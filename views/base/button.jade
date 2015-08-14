@@ -1,0 +1,234 @@
+extends ../doc-layout
+
+block content
+
+	style(type="text/css").
+		.example .ui.button:not(.attached) {
+			margin-top: 0.5em;
+		}
+		.example .ui.buttons > .ui.button{
+			margin-top: 0em;
+		}
+
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 标准按钮
+		.code
+			div(c-widget="button;") Hello
+			div(c-widget="button;ui:basic;") Hello
+
+	+addCatalog("event","事件绑定")
+	.example(name="event")#event
+		h4.ui.header 事件绑定
+		.code
+			div(c-widget="button; click:hello;") 单击
+	script(type="text/javascript" name="event").
+		cola("event", function (model) {
+			model.action({
+				hello: function (self, arg) {
+					alert("您已迈出神奇的一步！");
+				}
+			})
+		});
+
+	+addCatalog("icon-btn","图标")
+	.example#icon-btn
+		h4.ui.header 图标按钮
+		.code
+			div(c-widget="button; icon:cloud;")
+
+	+addCatalog("icon-caption","图标+标题")
+	.example(name="icon-caption-button")#icon-caption
+		h4.ui.header 图标+标题
+		p 图标的默认位置在左侧，可通过<code>iconPosition:right</code>属性移至右侧
+
+		.code
+			div(c-widget="button; icon:cloud; caption:在左(默认)")
+			div(c-widget="button; icon:cloud; iconPosition:right; caption:在右")
+
+	+addCatalog("emphasis","高亮")
+	.example#emphasis
+		h4.ui.header 高亮按钮
+		p 高亮模式不尽提供了<code>primary、secondary、positive、negative</code>还可以通过后续的color属性获得高亮
+		.code
+			- var emphasis={primary:"保存",secondary:"取消",positive:"提交",negative:"放弃"}
+			each val, index in emphasis
+				- var config="button; ui:"+index+"; caption:"+val
+				div(c-widget=config)
+
+	+addCatalog("animated","动画")
+	.example#animated
+		h4.ui.header 动画按钮
+		p
+		.code
+			div(c-widget="button; ui:animated;")
+				.visible.content 下一步
+				.hidden.content
+					i.right.arrow.icon
+			div(c-widget="button; ui:vertical animated;")
+				.hidden.content 购买
+				.visible.content
+					i.shop.icon
+			div(c-widget="button; ui:fade animated;")
+				.visible.content 购买电子文档
+				.hidden.content ￥12.99
+
+	+addCatalog("fluid","流体")
+	.example#fluid
+		h4.ui.header 流体按钮
+		p 此按钮将横向撑满容器：宽度为100%
+		.code
+			div(c-widget="button; ui:fluid;") 宽度100%
+
+	+addCatalog("color","颜色")
+	.example#color
+		h4.ui.header 颜色按钮
+		p 默认提供了以下几种颜色
+		.code
+			each color in colors
+				- var config = "button; color:"+color+"; caption:"+color+";"
+				div(c-widget=config)
+
+	+addCatalog("basic-color","ui:basic + 颜色")
+	.example#basic-color
+		h4.ui.header ui:basic + 颜色
+		p 通过此模式可获得边框幽灵效果
+		.code
+			each color in colors
+				- var config = "button; ui:basic; color:"+color+"; caption:"+color+";"
+				div(c-widget=config)
+
+	+addCatalog("states","状态")
+	.example#states
+		h4.ui.header 状态
+		p 通过states属性设定按钮状态，可选值有<code>disabled、loading、active</code>（默认状态可以传空字符串）
+		.code
+			div(c-widget="button; caption:默认状态")
+			- var states={active:"激活态",disabled:"禁用态",loading:"装载态"}
+			each val, index in states
+				- var config="button; states:"+index+"; caption:"+val
+				div(c-widget=config)
+
+	+addCatalog("inverted","反白效果")
+	.example#inverted
+		h4.ui.header Inverted
+		p 深色背景条件下的反白效果
+		.code
+			div(c-widget="Segment; ui:inverted;")
+				each color in colors
+					- var config = "button; ui:inverted; color:"+color+"; caption:"+color+";"
+					div(c-widget=config)
+
+	+addCatalog("size","尺寸")
+	.example#size
+		h4.ui.header 尺寸
+		p 默认提供了以下尺寸<code>mini、tiny、small、medium、large、big、huge、massive</code>
+		.code
+			each size in sizes
+				- var config = "button; size:"+size+"; caption:"+size+";"
+				div(c-widget=config)
+
+	.example#attached
+		h4.ui.header 附所模式
+		p 此模式将获得相应的边角处理
+		.code
+			div(c-widget="Segment;" style={padding: 0})
+				div(c-widget="button; attached:top; caption:顶部按钮")
+				p(style={height:"80px"})
+				div(c-widget="button; attached:bottom; caption:底部按钮")
+
+	+addCatalog("button-group","按钮组","按钮组")
+	.example#button-group
+		h4.ui.header 按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup")
+				div(c-widget="Button; caption:添加")
+				div(c-widget="Button; caption:删除")
+				div(c-widget="Button; caption:修改")
+				div(c-widget="Button; caption:保存")
+	+addCatalog("vertical-buttons","纵向","按钮组")
+	.example#vertical-buttons
+		h4.ui.header 纵向按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup; ui:vertical")
+				div(c-widget="Button; caption:添加")
+				div(c-widget="Button; caption:删除")
+				div(c-widget="Button; caption:修改")
+				div(c-widget="Button; caption:保存")
+	+addCatalog("button-group2","分割","按钮组")
+	.example#button-group2
+		h4.ui.header 带分割内容的按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup")
+				div(c-widget="Button; caption:添加")
+				//div(c-widget="Separator;")
+				div(c-widget="Button; caption:删除")
+	+addCatalog("icon-groups","图标","按钮组")
+	.example#icon-groups
+		h4.ui.header 图标按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup")
+				div(c-widget="Button; icon:align left")
+				div(c-widget="Button; icon:align center")
+				div(c-widget="Button; icon:align right")
+				div(c-widget="Button; icon:align justify")
+	+addCatalog("vertical-icon-groups","纵向图标","按钮组")
+	.example#vertical-icon-groups
+		h4.ui.header 纵向图标按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup; ui:vertical")
+				div(c-widget="Button; icon:align left")
+				div(c-widget="Button; icon:align center")
+				div(c-widget="Button; icon:align right")
+				div(c-widget="Button; icon:align justify")
+
+	+addCatalog("button-group-fluid","流体","按钮组")
+	.example#button-group-fluid
+		h4.ui.header 流体按钮组
+		p
+		.code
+			div(c-widget="ButtonGroup; ui:fluid;")
+				div(c-widget="Button; caption:添加")
+				div(c-widget="Button; caption:删除")
+				div(c-widget="Button; caption:修改")
+				div(c-widget="Button; caption:保存")
+
+	+addCatalog("vertical-button-group-fluid","纵向图标","按钮组")
+	.example#vertical-labeled-icon-button-group
+		h4.ui.header 纵向图标按钮组
+		p 需将设定<code>ui:vertical labeled icon</code>
+		.code
+			div(c-widget="ButtonGroup; ui:vertical labeled icon")
+				div(c-widget="Button; caption:暂停; icon:pause")
+				div(c-widget="Button; caption:播放; icon:play")
+				div(c-widget="Button; caption:随机; icon:shuffle")
+
+	+addCatalog("color-button-group","颜色","按钮组")
+	.example#color-button-group
+		h4.ui.header 按钮组颜色
+		p 组的颜色将渗透到子按钮
+		.code
+			div(c-widget="ButtonGroup; color:blue")
+				div(c-widget="Button; caption:一")
+				div(c-widget="Button; caption:二")
+				div(c-widget="Button; caption:三")
+
+	.example#attached-button-group
+		h4.ui.header 附所模式
+		p 此模式将获得相应的边角处理
+		.code
+			div(c-widget="Segment;" style={padding: 0})
+				div(c-widget="ButtonGroup; attached:top;")
+					div(c-widget="Button; caption:开启")
+					div(c-widget="Button; caption:关闭")
+				p(style={height:"80px"})
+				div(c-widget="ButtonGroup; attached:bottom;")
+					div(c-widget="Button; caption:开启")
+					div(c-widget="Button; caption:关闭")
+
+

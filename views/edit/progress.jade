@@ -1,0 +1,12 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("standard","progress")
+	.example#standard
+		h4.ui.header 滑动条开关
+		.code
+			div(c-widget="Slider; value: 0; total: 5")
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

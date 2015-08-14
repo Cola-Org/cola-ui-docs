@@ -1,0 +1,23 @@
+extends ./doc-layout
+
+block content
+
+	+addCatalog("event","事件绑定")
+	.example(name="event")#event
+		h4.ui.header 事件绑定
+		.code
+			div(c-widget="button; click:hello;") 单击
+		:markdown
+			# Markdown
+		include:markdown markdown.md
+	script(type="text/javascript" name="event").
+		cola(function (model) {
+			model.action({
+				hello: function (self, arg) {
+					$.post("/shop/send",{name:"cola ui"},function(data){
+						console.log(data)
+					})
+				}
+			})
+		});
+

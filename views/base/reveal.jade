@@ -1,0 +1,58 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("fade","Fade")
+	.example#fade
+		h4.ui.header Fade
+		.code
+			div(c-widget="Reveal;")
+				div.visible.content
+					img.ui.small.image(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image(src="/images/avatar/large/ade.jpg")
+	+addCatalog("move","Move")
+	.example#move
+		h4.ui.header Move
+		p 元素可以向某方向移动来展现内容;type:move; direction可选值<code>left,right,up,down</code>
+		.code
+			div(c-widget="Reveal; type:move;")
+				div.visible.content
+					img.ui.small.image(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image(src="/images/avatar/large/ade.jpg")
+			div(c-widget="Reveal; type:move; direction:right")
+				div.visible.content
+					img.ui.small.image(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image(src="/images/avatar/large/ade.jpg")
+			div(c-widget="Reveal; type:move; direction:up")
+				div.visible.content
+					img.ui.small.image(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image(src="/images/avatar/large/ade.jpg")
+			div(c-widget="Reveal; type:move; direction:down")
+				div.visible.content
+					img.ui.small.image(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image(src="/images/avatar/large/ade.jpg")
+	+addCatalog("rotate","Rotate")
+	.example#rotate
+		h4.ui.header Rotate
+		p 元素可以旋转的展现下面的内容;direction可选值<code>left,right</code>
+		.code
+			div(c-widget="Reveal; type:rotate;")
+				div.visible.content
+					img.ui.small.image.circular(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image.circular(src="/images/avatar/large/daniel.jpg")
+			div(c-widget="Reveal; type:rotate; direction:right")
+				div.visible.content
+					img.ui.small.image.circular(src="/images/wireframe/square-image.png")
+				div.hidden.content
+					img.ui.small.image.circular(src="/images/avatar/large/joe.jpg")
+
+
+
+	script(type="text/javascript").
+		cola(function (model) {});

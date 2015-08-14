@@ -1,0 +1,44 @@
+extends ../doc-layout
+block content
+	+addCatalog("horizontal","横向")
+	.example#horizontal
+		h4.ui.header 横向旋转
+		p.
+			可通过属性<code>orientation</code>设定旋转方向;可选值如下<code>horizontal、vertical</code>
+		.code
+			div(c-widget="Carousel; height:200")
+				.items-wrap
+					div
+						img(c-widget="image; src:/images/movies/12years-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/adaptation-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/spiderman-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/totoro-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/watchmen-horizontal.jpg; ui:centered fluid;")
+
+	+addCatalog("vertical","纵向")
+	.example#vertical
+		h4.ui.header 纵向旋转
+		p.
+			可通过属性<code>orientation</code>设定旋转方向;可选值如下<code>horizontal、vertical</code>
+		.code
+			div(c-widget="Carousel; height:200; orientation:vertical")
+				.items-wrap
+					div
+						img(c-widget="image; src:/images/movies/12years-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/adaptation-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/spiderman-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/totoro-horizontal.jpg; ui:centered fluid;")
+					div
+						img(c-widget="image; src:/images/movies/watchmen-horizontal.jpg; ui:centered fluid;")
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

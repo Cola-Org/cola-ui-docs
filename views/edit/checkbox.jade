@@ -1,0 +1,44 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("standard","确认框")
+	.example#standard
+		h4.ui.header 标准Checkbox
+		p.
+		.code
+			div(c-widget="Checkbox; label:已阅读并同意以上所有条款...")
+	+addCatalog("triStateExample","第三态")
+	.example#triStateExample(name="triState")
+		h4.ui.header 第三态
+		p.
+		.code
+			div(c-widget="Button; caption:true; click:clickBtn")
+			div(c-widget="Button; caption:false; click:clickBtn")
+			div(c-widget="Button; caption:第三态; click:clickBtn")
+			div#triStateCheckbox(c-widget="Checkbox; label:选择框; ")
+	script(type="text/javascript" name="triState").
+		cola("triState", function (model) {
+			model.widgetConfig({
+				triStateCheckbox: {
+					triState: true
+				}
+			});
+
+			model.action({
+				clickBtn: function (self, arg) {
+					var value = self.get("caption");
+					switch (value){
+						case "true":value=true ; break;
+						case "false":value=false; break;
+						case "第三态":value="第三态";
+					}
+					cola.widget("triStateCheckbox").set("value",value)
+				}
+			})
+		});
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

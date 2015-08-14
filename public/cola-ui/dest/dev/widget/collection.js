@@ -1,0 +1,2888 @@
+(function() {
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  cola.AbstractItemGroup = (function(superClass) {
+    extend(AbstractItemGroup, superClass);
+
+    AbstractItemGroup.ATTRIBUTES = {
+      items: {
+        setter: function(value) {
+          var item, j, len;
+          this.clearItems();
+          for (j = 0, len = value.length; j < len; j++) {
+            item = value[j];
+            this.addItem(item);
+          }
+          return this;
+        }
+      },
+      currentIndex: {
+        defaultValue: -1,
+        setter: function(value) {
+          this.setCurrentIndex(value);
+          return this;
+        }
+      }
+    };
+
+    function AbstractItemGroup(config) {
+      this._items = [];
+      AbstractItemGroup.__super__.constructor.call(this, config);
+    }
+
+    AbstractItemGroup.prototype.getContentContainer = function() {
+      return this.getDom();
+    };
+
+    AbstractItemGroup.prototype.getItems = function() {
+      return this._items;
+    };
+
+    AbstractItemGroup.prototype.getItemDom = function(item) {
+      var itemConfig, itemDom;
+      itemConfig = item;
+      if (typeof item === "number") {
+        itemConfig = this._items[item];
+      }
+      if (itemConfig instanceof cola.Widget) {
+        itemDom = itemConfig.getDom();
+      } else if (itemConfig.nodeType === 1) {
+        itemDom = itemConfig;
+      }
+      return itemDom;
+    };
+
+    AbstractItemGroup.prototype._addItemToDom = function(item) {
+      var container, itemDom;
+      container = this.getContentContainer();
+      itemDom = this.getItemDom(item);
+      if (itemDom.parentNode !== container) {
+        container.appendChild(itemDom);
+      }
+    };
+
+    AbstractItemGroup.prototype._itemsRender = function() {
+      var item, j, len, ref;
+      if (!this._items) {
+        return;
+      }
+      ref = this._items;
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
+        this._addItemToDom(item);
+      }
+    };
+
+    AbstractItemGroup.prototype.setCurrentIndex = function(index) {
+      var newItemDom, oldItemDom;
+      if (this._currentIndex == null) {
+        this._currentIndex = -1;
+      }
+      if (this._currentIndex === index) {
+        return this;
+      }
+      if (this._currentIndex > -1) {
+        oldItemDom = this.getItemDom(this._currentIndex);
+        if (oldItemDom) {
+          $(oldItemDom).removeClass("active");
+        }
+      }
+      if (index > -1) {
+        newItemDom = this.getItemDom(index);
+        if (newItemDom) {
+          $(newItemDom).addClass("active");
+        }
+      }
+      this._currentIndex = index;
+      return this;
+    };
+
+    AbstractItemGroup.prototype._doOnItemsChange = function() {
+      cola.util.delay(this, "_refreshItems", 50, this.refreshItems);
+    };
+
+    AbstractItemGroup.prototype.refreshItems = function() {
+      cola.util.cancelDelay(this, "_refreshItems");
+      return this;
+    };
+
+    AbstractItemGroup.prototype.addItem = function(config) {
+      var active, item;
+      if (config.constructor === Object.prototype.constructor) {
+        active = config.active;
+        delete config.active;
+        if (config.$type) {
+          item = cola.widget(config);
+        } else {
+          item = $.xCreate(config);
+        }
+      } else if (config.nodeType === 1) {
+        active = cola.util.hasClass(config, "active");
+        item = cola.widget(config);
+        if (item == null) {
+          item = config;
+        }
+      }
+      if (!item) {
+        return this;
+      }
+      if (this._items.indexOf(item) > -1) {
+        return this;
+      }
+      this._items.push(item);
+      this._addItemToDom(item);
+      if (!!active) {
+        this.setCurrentIndex(this._items.indexOf(item));
+      }
+      this._doOnItemsChange();
+      return this;
+    };
+
+    AbstractItemGroup.prototype.clearItems = function() {
+      var item, j, len, ref;
+      if (this._items == null) {
+        this._items = [];
+      }
+      if (this._items.length === 0) {
+        return this;
+      }
+      ref = this._items;
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
+        if (item instanceof cola.Widget) {
+          item.destroy();
+        } else {
+          $(item).remove();
+        }
+      }
+      this._items = [];
+      this._doOnItemsChange();
+      return this;
+    };
+
+    AbstractItemGroup.prototype.removeItem = function(item) {
+      var index, itemObj;
+      if (typeof item === "number") {
+        itemObj = this._items[item];
+        index = item;
+      } else {
+        itemObj = item;
+        index = this._items.indexOf(item);
+      }
+      this._items.splice(index, 1);
+      if (itemObj instanceof cola.Widget) {
+        itemObj.destroy();
+      } else {
+        $(itemObj).remove();
+      }
+      this._doOnItemsChange();
+      return this;
+    };
+
+    AbstractItemGroup.prototype.destroy = function() {
+      this.clearItems();
+      delete this._items;
+      return AbstractItemGroup.__super__.destroy.call(this);
+    };
+
+    return AbstractItemGroup;
+
+  })(cola.Widget);
+
+  if (cola.breadcrumb == null) {
+    cola.breadcrumb = {};
+  }
+
+  cola.breadcrumb.Section = (function(superClass) {
+    extend(Section, superClass);
+
+    function Section() {
+      return Section.__super__.constructor.apply(this, arguments);
+    }
+
+    Section.CLASS_NAME = "section";
+
+    Section.ATTRIBUTES = {
+      text: {
+        refreshDom: true
+      },
+      active: {
+        refreshDom: true,
+        defaultValue: false
+      }
+    };
+
+    Section.prototype._parseDom = function(dom) {
+      var text;
+      if (!this._text) {
+        text = cola.util.getTextChildData(dom);
+        if (text) {
+          this._text = text;
+        }
+      }
+    };
+
+    Section.prototype._createDom = function() {
+      var dom;
+      dom = document.createElement("a");
+      dom.className = "section";
+      return dom;
+    };
+
+    Section.prototype._doRefreshDom = function() {
+      var active, text;
+      if (!this._dom) {
+        return;
+      }
+      Section.__super__._doRefreshDom.call(this);
+      text = this.get("text");
+      if (text) {
+        this.get$Dom().text(text);
+      }
+      active = this.get("active");
+      this._classNamePool.toggle("active", !!active);
+    };
+
+    return Section;
+
+  })(cola.Widget);
+
+  cola.Breadcrumb = (function(superClass) {
+    extend(Breadcrumb, superClass);
+
+    function Breadcrumb() {
+      return Breadcrumb.__super__.constructor.apply(this, arguments);
+    }
+
+    Breadcrumb.CHILDREN_TYPE_NAMESPACE = "breadcrumb";
+
+    Breadcrumb.CLASS_NAME = "breadcrumb";
+
+    Breadcrumb.ATTRIBUTES = {
+      divider: {
+        "enum": ["chevron", "slash"],
+        defaultValue: "chevron"
+      },
+      size: {
+        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
+        refreshDom: true,
+        setter: function(value) {
+          var oldValue;
+          oldValue = this["_size"];
+          if (oldValue && oldValue !== value && this._dom) {
+            this.get$Dom().removeClass(oldValue);
+          }
+          this["_size"] = value;
+          return this;
+        }
+      },
+      sections: {
+        refreshDom: true,
+        setter: function(value) {
+          var j, len, section;
+          this.clear();
+          for (j = 0, len = value.length; j < len; j++) {
+            section = value[j];
+            if (section instanceof cola.breadcrumb.Section) {
+              this.addSection(section);
+            } else if (typeof section === "string") {
+              this.addSection(new cola.breadcrumb.Section({
+                text: section
+              }));
+            } else if (section.constructor === Object.prototype.constructor) {
+              this.addSection(new cola.breadcrumb.Section(section));
+            }
+          }
+          return this;
+        }
+      },
+      currentIndex: {
+        setter: function(value) {
+          this["_currentIndex"] = value;
+          return this.setCurrent(value);
+        },
+        getter: function() {
+          if (this._current && this._sections) {
+            return this._sections.indexOf(this._current);
+          } else {
+            return -1;
+          }
+        }
+      }
+    };
+
+    Breadcrumb.EVENTS = {
+      beforeChange: null,
+      change: null
+    };
+
+    Breadcrumb.prototype._initDom = function(dom) {
+      return Breadcrumb.__super__._initDom.call(this, dom);
+    };
+
+    Breadcrumb.prototype._setDom = function(dom, parseChild) {
+      var j, len, ref, ref1, section;
+      Breadcrumb.__super__._setDom.call(this, dom, parseChild);
+      if ((ref = this._sections) != null ? ref.length : void 0) {
+        ref1 = this._sections;
+        for (j = 0, len = ref1.length; j < len; j++) {
+          section = ref1[j];
+          this._rendSection(section);
+        }
+      }
+    };
+
+    Breadcrumb.prototype._parseDom = function(dom) {
+      var child, section, sectionConfig;
+      if (!dom) {
+        return;
+      }
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          section = cola.widget(child);
+          if (!section && cola.util.hasClass(child, "section")) {
+            sectionConfig = {
+              dom: child
+            };
+            if (cola.util.hasClass(child, "active")) {
+              sectionConfig.active = true;
+            }
+            section = new cola.breadcrumb.Section(sectionConfig);
+          }
+          if (section && section instanceof cola.breadcrumb.Section) {
+            this.addSection(section);
+          }
+        }
+        child = child.nextSibling;
+      }
+    };
+
+    Breadcrumb.prototype._doRefreshDom = function() {
+      var size;
+      if (!this._dom) {
+        return;
+      }
+      Breadcrumb.__super__._doRefreshDom.call(this);
+      size = this.get("size");
+      if (size) {
+        this._classNamePool.add(size);
+      }
+    };
+
+    Breadcrumb.prototype._makeDivider = function() {
+      var divider;
+      divider = this.get("divider");
+      if (divider === "chevron") {
+        return $.xCreate({
+          tagName: "i",
+          "class": "right chevron icon divider"
+        });
+      } else {
+        return $.xCreate({
+          tagName: "div",
+          "class": "divider",
+          content: "/"
+        });
+      }
+    };
+
+    Breadcrumb.prototype._rendSection = function(section) {
+      var divider, index, prev, sectionDom;
+      index = this._sections.indexOf(section);
+      if (this._dividers == null) {
+        this._dividers = [];
+      }
+      sectionDom = section.getDom();
+      if (sectionDom.parentNode !== this._dom) {
+        if (this._dividers.length < index) {
+          divider = this._makeDivider();
+          this._dividers.push(divider);
+          this._dom.appendChild(divider);
+        }
+        this._dom.appendChild(section.getDom());
+      } else if (index > 0) {
+        prev = sectionDom.previousElementSibling;
+        if (prev && !cola.util.hasClass(prev, "divider")) {
+          divider = this._makeDivider();
+          this._dividers.push(divider);
+          section.get$Dom().before(divider);
+        }
+      }
+    };
+
+    Breadcrumb.prototype._doChange = function(section) {
+      var arg, newCurrent, oldCurrent;
+      oldCurrent = this._current;
+      newCurrent = section;
+      if (oldCurrent === newCurrent) {
+        return;
+      }
+      arg = {
+        oldSection: oldCurrent,
+        newSection: newCurrent
+      };
+      this.fire("beforeChange", this, arg);
+      if (arg.processDefault === false) {
+        newCurrent.set("active", false);
+        return;
+      }
+      if (oldCurrent) {
+        oldCurrent.set("active", false);
+      }
+      newCurrent.set("active", true);
+      this.fire("change", this, arg);
+    };
+
+    Breadcrumb.prototype.addSection = function(section) {
+      var active;
+      if (this._destroyed) {
+        return this;
+      }
+      if (this._sections == null) {
+        this._sections = [];
+      }
+      if (section instanceof cola.breadcrumb.Section) {
+        this._sections.push(section);
+        if (this._dom) {
+          this._rendSection(section);
+        }
+        active = section.get("active");
+        if (active) {
+          this._doChange(section);
+        }
+      }
+      return this;
+    };
+
+    Breadcrumb.prototype.removeSection = function(section) {
+      if (!this._sections) {
+        return this;
+      }
+      if (typeof section === "number") {
+        section = this._sections[section];
+      }
+      if (section) {
+        this._doRemove(section);
+      }
+      return this;
+    };
+
+    Breadcrumb.prototype._doRemove = function(section) {
+      var dIndex, divider, index;
+      index = this._sections.indexOf(section);
+      if (index > -1) {
+        this._sections.splice(index, 1);
+        step.remove();
+        if (index > 0 && this._dividers) {
+          dIndex = index - 1;
+          divider = this._dividers[dIndex];
+          $(divider).remove();
+          this._dividers.splice(dIndex, 1);
+        }
+      }
+    };
+
+    Breadcrumb.prototype.clear = function() {
+      if (!this._sections) {
+        return this;
+      }
+      if (this._dom) {
+        this.get$Dom().empty();
+      }
+      if (this._sections.length) {
+        this._sections = [];
+      }
+      return this;
+    };
+
+    Breadcrumb.prototype.getSection = function(index) {
+      var el, j, len, section, sections;
+      sections = this._sections || [];
+      if (typeof index === "number") {
+        section = sections[index];
+      } else if (typeof index === "string") {
+        for (j = 0, len = sections.length; j < len; j++) {
+          el = sections[j];
+          if (index === el.get("text")) {
+            section = el;
+            break;
+          }
+        }
+      }
+      return section;
+    };
+
+    Breadcrumb.prototype.setCurrent = function(section) {
+      var currentSection;
+      if (section instanceof cola.breadcrumb.Section) {
+        currentSection = section;
+      } else {
+        currentSection = this.getSection(section);
+      }
+      if (currentSection) {
+        this._doChange(currentSection);
+      }
+      return this;
+    };
+
+    Breadcrumb.prototype.getCurrent = function() {
+      return this._current;
+    };
+
+    Breadcrumb.prototype.getCurrentIndex = function() {
+      if (this._cuurent) {
+        return this._sections.indexOf(this._current);
+      }
+    };
+
+    Breadcrumb.prototype.destroy = function() {
+      if (this._destroyed) {
+        return;
+      }
+      Breadcrumb.__super__.destroy.call(this);
+      delete this._current;
+      delete this._sections;
+      delete this._dividers;
+    };
+
+    return Breadcrumb;
+
+  })(cola.Widget);
+
+  cola.registerType("breadcrumb", "_default", cola.breadcrumb.Section);
+
+  cola.registerType("breadcrumb", "section", cola.breadcrumb.Section);
+
+  cola.registerTypeResolver("breadcrumb", function(config) {
+    return cola.resolveType("widget", config);
+  });
+
+  cola.CardBook = (function(superClass) {
+    extend(CardBook, superClass);
+
+    function CardBook() {
+      return CardBook.__super__.constructor.apply(this, arguments);
+    }
+
+    CardBook.CLASS_NAME = "card-book";
+
+    CardBook.EVENTS = {
+      beforeChange: null,
+      change: null
+    };
+
+    CardBook.prototype._parseDom = function(dom) {
+      var child;
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          if (cola.util.hasClass(child, "item")) {
+            if (child.nodeType === 1) {
+              this.addItem(child);
+            }
+          }
+        }
+        child = child.nextSibling;
+      }
+      return null;
+    };
+
+    CardBook.prototype._setDom = function(dom, parseChild) {
+      CardBook.__super__._setDom.call(this, dom, parseChild);
+      if (this._items) {
+        this._itemsRender();
+      }
+    };
+
+    CardBook.prototype.setCurrentIndex = function(index) {
+      var arg, newItem, newItemDom, oldItem, oldItemDom;
+      if (this._currentIndex == null) {
+        this._currentIndex = -1;
+      }
+      if (this._currentIndex === index) {
+        return this;
+      }
+      arg = {};
+      if (this._currentIndex > -1) {
+        oldItem = this._items[this._currentIndex];
+        oldItemDom = this.getItemDom(this._currentIndex);
+      }
+      if (index > -1) {
+        newItem = this._items[index];
+        newItemDom = this.getItemDom(index);
+      }
+      arg = {
+        oldItem: oldItem,
+        newItem: newItem
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
+        return this;
+      }
+      if (oldItemDom) {
+        $(oldItemDom).removeClass("active");
+      }
+      if (newItemDom) {
+        $(newItemDom).addClass("active");
+      }
+      this._currentIndex = index;
+      this.fire("change", this, arg);
+      return this;
+    };
+
+    return CardBook;
+
+  })(cola.AbstractItemGroup);
+
+  cola.Carousel = (function(superClass) {
+    extend(Carousel, superClass);
+
+    function Carousel() {
+      return Carousel.__super__.constructor.apply(this, arguments);
+    }
+
+    Carousel.CLASS_NAME = "carousel";
+
+    Carousel.ATTRIBUTES = {
+      orientation: {
+        defaultValue: "horizontal",
+        "enum": ["horizontal", "vertical"]
+      }
+    };
+
+    Carousel.EVENTS = {
+      change: null
+    };
+
+    Carousel.prototype.getContentContainer = function() {
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
+      }
+      return this._doms.wrap;
+    };
+
+    Carousel.prototype._parseDom = function(dom) {
+      var child, parseItem;
+      child = dom.firstChild;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      parseItem = (function(_this) {
+        return function(node) {
+          var childNode;
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              _this.addItem(childNode);
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      while (child) {
+        if (child.nodeType === 1) {
+          if (!this._doms.wrap && cola.util.hasClass(child, "items-wrap")) {
+            this._doms.wrap = child;
+            parseItem(child);
+          } else if (!_doms.indicators && cola.util.hasClass(child, "indicators")) {
+            _doms.indicators = child;
+          }
+        }
+        child = child.nextSibling;
+      }
+      if (!this._doms.indicators) {
+        this._createIndicatorContainer(dom);
+      }
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
+      }
+      return null;
+    };
+
+    Carousel.prototype._createIndicatorContainer = function(dom) {
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      this._doms.indicators = $.xCreate({
+        tagName: "div",
+        "class": "indicators indicators-" + this._orientation,
+        contextKey: "indicators"
+      });
+      dom.appendChild(this._doms.indicators);
+      return null;
+    };
+
+    Carousel.prototype._createItemsWrap = function(dom) {
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      this._doms.wrap = $.xCreate({
+        tagName: "div",
+        "class": "items-wrap",
+        contextKey: "wrap"
+      });
+      dom.appendChild(this._doms.wrap);
+      return null;
+    };
+
+    Carousel.prototype._setDom = function(dom, parseChild) {
+      var carousel;
+      Carousel.__super__._setDom.call(this, dom, parseChild);
+      if (!this._doms.indicators) {
+        this._createIndicatorContainer(dom);
+      }
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
+      }
+      if (this._items) {
+        this._itemsRender();
+        this.refreshIndicators();
+      }
+      carousel = this;
+      setTimeout(function() {
+        return carousel._scroller = new Swipe(carousel._dom, {
+          vertical: carousel._orientation === "vertical",
+          disableScroll: true,
+          callback: function(pos) {
+            carousel.setCurrentIndex(pos);
+          }
+        });
+      }, 0);
+    };
+
+    Carousel.prototype.setCurrentIndex = function(index) {
+      var activeSpan, e;
+      this.fire("change", this, {
+        index: index
+      });
+      this._currentIndex = index;
+      if (this._dom && this._doms.indicators) {
+        try {
+          $(".active", this._doms.indicators).removeClass("active");
+          activeSpan = this._doms.indicators.children[index];
+          if (activeSpan != null) {
+            activeSpan.className = "active";
+          }
+        } catch (_error) {
+          e = _error;
+        }
+      }
+      return this;
+    };
+
+    Carousel.prototype.refreshIndicators = function() {
+      var currentIndex, i, indicatorCount, itemsCount, span;
+      itemsCount = this._items.length;
+      if (!this._doms.indicators) {
+        return;
+      }
+      indicatorCount = this._doms.indicators.children.length;
+      if (indicatorCount < itemsCount) {
+        i = indicatorCount;
+        while (i < itemsCount) {
+          span = document.createElement("span");
+          this._doms.indicators.appendChild(span);
+          i++;
+        }
+      } else if (indicatorCount > itemsCount) {
+        i = itemsCount;
+        while (i < indicatorCount) {
+          $(this._doms.indicators.firstChild).remove();
+          i++;
+        }
+      }
+      if (this._currentIndex == null) {
+        this._currentIndex = -1;
+      }
+      currentIndex = this._currentIndex;
+      $("span", this._doms.indicators).removeClass("active");
+      if (currentIndex !== -1) {
+        jQuery("span:nth-child(" + (currentIndex + 1) + ")", this._doms.indicators).addClass("indicator-active");
+      }
+      return this;
+    };
+
+    Carousel.prototype.next = function() {
+      var ref;
+      if ((ref = this._scroller) != null) {
+        ref.next();
+      }
+      return this;
+    };
+
+    Carousel.prototype.previous = function() {
+      var ref;
+      if ((ref = this._scroller) != null) {
+        ref.prev();
+      }
+      return this;
+    };
+
+    Carousel.prototype.refreshItems = function() {
+      var ref;
+      Carousel.__super__.refreshItems.call(this);
+      if ((ref = this._scroller) != null) {
+        ref.refresh();
+      }
+      this.refreshIndicators();
+      return this;
+    };
+
+    Carousel.prototype._doRefreshDom = function() {
+      if (!this._dom) {
+        return;
+      }
+      Carousel.__super__._doRefreshDom.call(this);
+      this._classNamePool.add("carousel-" + this._orientation);
+      this.refreshIndicators();
+    };
+
+    return Carousel;
+
+  })(cola.AbstractItemGroup);
+
+  if (cola.menu == null) {
+    cola.menu = {};
+  }
+
+  cola.menu.AbstractMenuItem = (function(superClass) {
+    extend(AbstractMenuItem, superClass);
+
+    function AbstractMenuItem() {
+      return AbstractMenuItem.__super__.constructor.apply(this, arguments);
+    }
+
+    AbstractMenuItem.ATTRIBUTES = {
+      parent: null
+    };
+
+    AbstractMenuItem.prototype.onItemClick = function(event, item) {
+      var parentMenu;
+      parentMenu = this._parent;
+      if (parentMenu && parentMenu instanceof cola.Menu) {
+        parentMenu.onItemClick(event, item);
+      }
+    };
+
+    AbstractMenuItem.prototype.getParent = function() {
+      return this._parent;
+    };
+
+    AbstractMenuItem.prototype.hasSubMenu = function() {
+      return !!this._subMenu;
+    };
+
+    return AbstractMenuItem;
+
+  })(cola.Widget);
+
+  cola.menu.MenuItem = (function(superClass) {
+    extend(MenuItem, superClass);
+
+    function MenuItem() {
+      return MenuItem.__super__.constructor.apply(this, arguments);
+    }
+
+    MenuItem.CLASS_NAME = "item";
+
+    MenuItem.TAG_NAME = "a";
+
+    MenuItem.ATTRIBUTES = {
+      caption: null,
+      icon: null,
+      items: {
+        setter: function(value) {
+          this._items = value;
+          this._resetSubMenu(value);
+        },
+        getter: function() {
+          var ref;
+          return (ref = this._subMenu) != null ? ref.get("items") : void 0;
+        }
+      }
+    };
+
+    MenuItem.prototype._parseDom = function(dom) {
+      var child, subMenu;
+      child = dom.firstChild;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      while (child) {
+        if (child.nodeType === 1) {
+          subMenu = cola.widget(child);
+          if (subMenu && subMenu instanceof cola.Menu) {
+            this._subMenu = subMenu;
+            subMenu._isSubMemu = true;
+          } else if (child.nodeName === "I") {
+            this._doms.iconDom = child;
+            if (this._icon == null) {
+              this._icon = child.className;
+            }
+          } else if (cola.util.hasClass(child, "caption")) {
+            this._doms.captionDom = child;
+          }
+        }
+        child = child.nextSibling;
+      }
+      if (!this._doms.captionDom) {
+        this._doms.captionDom = $.xCreate({
+          tagName: "span",
+          content: this._caption || ""
+        });
+        dom.appendChild(this._doms.captionDom);
+      }
+    };
+
+    MenuItem.prototype._setDom = function(dom, parseChild) {
+      var $dom;
+      MenuItem.__super__._setDom.call(this, dom, parseChild);
+      $dom = $(dom);
+      $dom.click((function(_this) {
+        return function(event) {
+          return _this.onItemClick(event, _this);
+        };
+      })(this));
+      if (this._subMenu && this._subMenu.parentNode !== dom) {
+        $dom.append(this._subMenu.getDom());
+      }
+    };
+
+    MenuItem.prototype._createDom = function() {
+      var caption, icon;
+      icon = this.get("icon") || "";
+      caption = this.get("caption") || "";
+      return $.xCreate({
+        tagName: "A",
+        "class": this.constructor.CLASS_NAME,
+        content: [
+          {
+            tagName: "span",
+            content: caption,
+            contextKey: "captionDom"
+          }
+        ]
+      }, this._doms);
+    };
+
+    MenuItem.prototype._doRefreshDom = function() {
+      var subMenuDom;
+      if (!this._dom) {
+        return;
+      }
+      MenuItem.__super__._doRefreshDom.call(this);
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      if (!this._caption && this._icon) {
+        this._classNamePool.add("icon");
+      }
+      if (this._icon) {
+        if (!this._doms.iconDom) {
+          this._doms.iconDom = $.xCreate({
+            tagName: "i",
+            "class": (this._icon || "") + " icon"
+          });
+        }
+        if (this._doms.iconDom.parentNode !== this._dom) {
+          this.get$Dom().prepend(this._doms.iconDom);
+        }
+        $fly(this._doms.iconDom).addClass(this._icon);
+      } else {
+        $(this._doms.iconDom).remove();
+      }
+      $(this._dom).find(">.ui.menu").removeClass("ui");
+      if (this._subMenu) {
+        subMenuDom = this._subMenu.getDom();
+        if (subMenuDom.parentNode !== this._dom) {
+          this._dom.appendChild(subMenuDom);
+        }
+      }
+    };
+
+    MenuItem.prototype._resetSubMenu = function(config) {
+      var ref;
+      if ((ref = this._subMenu) != null) {
+        ref.destroy();
+      }
+      if (config) {
+        this._subMenu = new cola.Menu({
+          items: config
+        });
+        this._subMenu._parent = this;
+        return this._subMenu._isSubMemu = true;
+      } else {
+        return delete this._subMenu;
+      }
+    };
+
+    return MenuItem;
+
+  })(cola.menu.AbstractMenuItem);
+
+  cola.menu.DropdownMenuItem = (function(superClass) {
+    extend(DropdownMenuItem, superClass);
+
+    function DropdownMenuItem() {
+      return DropdownMenuItem.__super__.constructor.apply(this, arguments);
+    }
+
+    DropdownMenuItem.CLASS_NAME = "dropdown item";
+
+    DropdownMenuItem.prototype._createDom = function() {
+      var caption;
+      caption = this.get("caption") || "";
+      return $.xCreate({
+        tagName: "DIV",
+        "class": this.constructor.CLASS_NAME,
+        content: [
+          {
+            tagName: "span",
+            content: caption,
+            contextKey: "captionDom"
+          }, {
+            tagName: "i",
+            "class": "dropdown icon",
+            contextKey: "iconDom"
+          }
+        ]
+      }, this._doms);
+    };
+
+    DropdownMenuItem.prototype._parseDom = function(dom) {
+      var iconDom;
+      DropdownMenuItem.__super__._parseDom.call(this, dom);
+      iconDom = this._doms.iconDom;
+      if (iconDom) {
+        $(iconDom).addClass("dropdown icon");
+      }
+    };
+
+    return DropdownMenuItem;
+
+  })(cola.menu.MenuItem);
+
+  cola.menu.ControlMenuItem = (function(superClass) {
+    extend(ControlMenuItem, superClass);
+
+    function ControlMenuItem() {
+      return ControlMenuItem.__super__.constructor.apply(this, arguments);
+    }
+
+    ControlMenuItem.CLASS_NAME = "item";
+
+    ControlMenuItem.ATTRIBUTES = {
+      control: {
+        setter: function(value) {
+          var control, oldControl;
+          oldControl = this["_control"];
+          if (oldControl) {
+            oldControl.destroy();
+          }
+          if (value.constructor === Object.prototype.constructor && value.$type) {
+            control = cola.widget(value);
+          } else if (value instanceof cola.Widget) {
+            control = value;
+          }
+          this["_control"] = control;
+          if (control && this._dom) {
+            this._dom.appendChild(control.getDom());
+          }
+        }
+      }
+    };
+
+    ControlMenuItem.prototype._parseDom = function(dom) {
+      var child, widget;
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          widget = cola.widget(child);
+          if (widget) {
+            this._control = widget;
+            break;
+          }
+        }
+        child = child.nextSibling;
+      }
+    };
+
+    ControlMenuItem.prototype._doRefreshDom = function() {
+      if (!this._dom) {
+        return;
+      }
+      ControlMenuItem.__super__._doRefreshDom.call(this);
+      return this._classNamePool.remove("ui");
+    };
+
+    ControlMenuItem.prototype._setDom = function(dom, parseChild) {
+      var control;
+      ControlMenuItem.__super__._setDom.call(this, dom, parseChild);
+      control = this.get("control");
+      if (control) {
+        dom.appendChild(control.getDom());
+      }
+    };
+
+    return ControlMenuItem;
+
+  })(cola.menu.AbstractMenuItem);
+
+  cola.menu.HeaderMenuItem = (function(superClass) {
+    extend(HeaderMenuItem, superClass);
+
+    function HeaderMenuItem() {
+      return HeaderMenuItem.__super__.constructor.apply(this, arguments);
+    }
+
+    HeaderMenuItem.CLASS_NAME = "header item";
+
+    HeaderMenuItem.ATTRIBUTES = {
+      text: null
+    };
+
+    HeaderMenuItem.prototype._setDom = function(dom, parseChild) {
+      HeaderMenuItem.__super__._setDom.call(this, dom, parseChild);
+      if (this._text) {
+        this.get$Dom(this._text);
+      }
+    };
+
+    HeaderMenuItem.prototype._doRefreshDom = function() {
+      var text;
+      if (!this._dom) {
+        return;
+      }
+      HeaderMenuItem.__super__._doRefreshDom.call(this);
+      this._classNamePool.remove("ui");
+      text = this.get("text") || "";
+      this.get$Dom().text(text);
+    };
+
+    return HeaderMenuItem;
+
+  })(cola.menu.AbstractMenuItem);
+
+  cola.Menu = (function(superClass) {
+    extend(Menu, superClass);
+
+    function Menu() {
+      return Menu.__super__.constructor.apply(this, arguments);
+    }
+
+    Menu.CLASS_NAME = "ui menu";
+
+    Menu.CHILDREN_TYPE_NAMESPACE = "menu";
+
+    Menu.SEMANTIC_CLASS = ["top fixed", "right fixed", "bottom fixed", "left fixed"];
+
+    Menu.ATTRIBUTES = {
+      items: {
+        setter: function(value) {
+          var item, j, len, results;
+          if (this["_items"]) {
+            this.clearItems();
+          }
+          if (value) {
+            results = [];
+            for (j = 0, len = value.length; j < len; j++) {
+              item = value[j];
+              results.push(this.addItem(item));
+            }
+            return results;
+          }
+        }
+      },
+      showActivity: {
+        defaultValue: true
+      },
+      rightItems: {
+        setter: function(value) {
+          var item, j, len, results;
+          if (this["_rightItems"]) {
+            this.clearRightItems();
+          }
+          if (value) {
+            results = [];
+            for (j = 0, len = value.length; j < len; j++) {
+              item = value[j];
+              results.push(this.addRightItem(item));
+            }
+            return results;
+          }
+        }
+      },
+      centered: {
+        defaultValue: false
+      }
+    };
+
+    Menu.EVENTS = {
+      itemClick: null
+    };
+
+    Menu.prototype._parseDom = function(dom) {
+      var child, container, parseItems, parseRightMenu;
+      child = dom.firstChild;
+      if (this._items == null) {
+        this._items = [];
+      }
+      parseRightMenu = (function(_this) {
+        return function(node) {
+          var childNode, menuItem;
+          childNode = node.firstChild;
+          if (_this._rightItems == null) {
+            _this._rightItems = [];
+          }
+          while (childNode) {
+            if (childNode.nodeTypes === 1) {
+              menuItem = cola.widget(child);
+              if (menuItem) {
+                menuItem._parent = _this;
+                _this._rightItems.push(menuItem);
+              }
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      parseItems = (function(_this) {
+        return function(node) {
+          var childNode, menuItem;
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              menuItem = cola.widget(childNode);
+              if (menuItem) {
+                menuItem._parent = _this;
+                _this._items.push(menuItem);
+              } else if (!_this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
+                _this._rightMenuDom = childNode;
+                parseRightMenu(childNode);
+              }
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      container = $(dom).find(">.container");
+      if (container.length) {
+        this._centered = true;
+        this._containerDom = container[0];
+        parseItems(this._containerDom);
+      } else {
+        parseItems(dom);
+      }
+    };
+
+    Menu.prototype._doRefreshDom = function() {
+      if (!this._dom) {
+        return;
+      }
+      Menu.__super__._doRefreshDom.call(this);
+      $(this._containerDom).toggleClass("ui container", !!this._centered);
+      if (this._isSubMemu) {
+        this._classNamePool.remove("ui");
+      }
+    };
+
+    Menu.prototype._initDom = function(dom) {
+      var container, firstChild, fragmentElement, item, itemDom, j, k, len, len1, menu, menuItems, rItemDom, rightMenuItems;
+      menuItems = this._items;
+      rightMenuItems = this._rightItems;
+      menu = this;
+      if (menuItems) {
+        container = this._getItemsContainer();
+        for (j = 0, len = menuItems.length; j < len; j++) {
+          item = menuItems[j];
+          itemDom = item.getDom();
+          if (itemDom.parentNode !== container) {
+            container.appendChild(itemDom);
+          }
+        }
+      }
+      if (rightMenuItems) {
+        if (!this._rightMenuDom) {
+          this._rightMenuDom = this._createRightMenu();
+          dom.appendChild(this._rightMenuDom);
+        }
+        for (k = 0, len1 = rightMenuItems.length; k < len1; k++) {
+          item = rightMenuItems[k];
+          rItemDom = item.getDom();
+          if (rItemDom.parentNode !== this._rightMenuDom) {
+            this._rightMenuDom.appendChild(rItemDom);
+          }
+        }
+      }
+      firstChild = dom.children[0];
+      fragmentElement = $.xCreate({
+        tagName: "div",
+        "class": "left-items"
+      });
+      if (firstChild) {
+        $(firstChild).before(fragmentElement);
+      } else {
+        dom.appendChild(fragmentElement);
+      }
+      $(dom).hover((function(_this) {
+        return function() {
+          _this.get$Dom().find(">.dropdown.item,.right.menu>.dropdown.item").each(function(index, item) {
+            var $item;
+            $item = $(item);
+            if ($item.hasClass("c-dropdown")) {
+              return;
+            }
+            $item.addClass("c-dropdown");
+            $item.find(".dropdown.item").addClass("c-dropdown");
+            return $item.dropdown({
+              on: "hover"
+            });
+          });
+        };
+      })(this)).delegate(">.item,.right.menu>.item", "click", function() {
+        return menu._setActive(this);
+      });
+    };
+
+    Menu.prototype._setActive = function(itemDom) {
+      if (this._parent && this._parent instanceof cola.menu.DropdownMenuItem) {
+        return;
+      }
+      if (!this._showActivity) {
+        return;
+      }
+      $(">a.item:not(.dropdown),.right.menu>a.item:not(.dropdown)", this._dom).each(function() {
+        if (itemDom === this) {
+          $fly(this).addClass("active");
+        } else {
+          $fly(this).removeClass("active").find(".item").removeClass("active");
+        }
+      });
+      if ($fly(itemDom).hasClass("dropdown")) {
+        return;
+      }
+      if ($(">.menu", itemDom).length && !this._isSubMemu) {
+        $fly(itemDom).removeClass("active");
+      }
+    };
+
+    Menu.prototype._getItemsContainer = function() {
+      if (this._centered) {
+        if (!this._containerDom) {
+          this._containerDom = $.xCreate({
+            tagName: "div",
+            "class": "container"
+          });
+          this._dom.appendChild(this._containerDom);
+        }
+      }
+      return this._containerDom || this._dom;
+    };
+
+    Menu.prototype.getParent = function() {
+      return this._parent;
+    };
+
+    Menu.prototype.onItemClick = function(event, item) {
+      var arg, parentMenu;
+      parentMenu = this.getParent();
+      arg = {
+        item: item,
+        event: event
+      };
+      this.fire("itemClick", this, arg);
+      if (!parentMenu) {
+        return;
+      }
+      if (parentMenu instanceof cola.menu.AbstractMenuItem || parentMenu instanceof cola.Menu) {
+        parentMenu.onItemClick(event, item);
+      }
+    };
+
+    Menu.prototype._createItem = function(config) {
+      var menuItem;
+      menuItem = null;
+      if (config.constructor === Object.prototype.constructor) {
+        if (config.$type) {
+          if (config.$type === "dropdown") {
+            menuItem = new cola.menu.DropdownMenuItem(config);
+          } else if (config.$type === "headerItem") {
+            menuItem = new cola.menu.HeaderMenuItem(config);
+          } else {
+            menuItem = new cola.menu.ControlMenuItem({
+              control: config
+            });
+          }
+        } else {
+          menuItem = new cola.menu.MenuItem(config);
+        }
+      }
+      return menuItem;
+    };
+
+    Menu.prototype.addItem = function(config) {
+      var container, itemDom, menuItem;
+      menuItem = this._createItem(config);
+      if (!menuItem) {
+        return;
+      }
+      menuItem._parent = this;
+      if (this._items == null) {
+        this._items = [];
+      }
+      this._items.push(menuItem);
+      if (this._dom) {
+        container = this._getItemsContainer();
+        itemDom = menuItem.getDom();
+        if (itemDom.parentNode !== container) {
+          if (this._rightMenuDom) {
+            $(this._rightMenuDom).before(menuItem.getDom());
+          } else {
+            container.appendChild(menuItem.getDom());
+          }
+        }
+      }
+      return this;
+    };
+
+    Menu.prototype.addRightItem = function(config) {
+      var container, itemDom, menuItem;
+      menuItem = this._createItem(config);
+      if (!menuItem) {
+        return this;
+      }
+      menuItem._parent = this;
+      if (this._rightItems == null) {
+        this._rightItems = [];
+      }
+      this._rightItems.push(menuItem);
+      if (this._dom) {
+        container = this._getItemsContainer();
+        itemDom = menuItem.getDom();
+        if (!this._rightMenuDom) {
+          this._rightMenuDom = this._createRightMenu();
+          container.appendChild(this._rightMenuDom);
+        }
+        if (itemDom.parentNode !== this._rightMenuDom) {
+          this._rightMenuDom.appendChild(itemDom);
+        }
+      }
+      return this;
+    };
+
+    Menu.prototype.clearItems = function() {
+      var item, j, len, menuItems;
+      menuItems = this._items;
+      if (menuItems != null ? menuItems.length : void 0) {
+        for (j = 0, len = menuItems.length; j < len; j++) {
+          item = menuItems[j];
+          item.destroy();
+        }
+        this._items = [];
+      }
+      return this;
+    };
+
+    Menu.prototype.clearRightItems = function() {
+      var item, j, len, menuItems;
+      menuItems = this._rightItems;
+      if (menuItems != null ? menuItems.length : void 0) {
+        for (j = 0, len = menuItems.length; j < len; j++) {
+          item = menuItems[j];
+          item.destroy();
+        }
+        this._rightItems = [];
+      }
+      return this;
+    };
+
+    Menu.prototype._doRemove = function(array, item) {
+      var index;
+      index = array.indexOf(item);
+      if (index > -1) {
+        array.splice(index, 1);
+        item.destroy();
+      }
+    };
+
+    Menu.prototype.removeItem = function(item) {
+      var menuItems;
+      menuItems = this._items;
+      if (!menuItems) {
+        return this;
+      }
+      if (typeof item === "number") {
+        item = menuItems[item];
+      }
+      if (item) {
+        this._doRemove(menuItems, item);
+      }
+      return this;
+    };
+
+    Menu.prototype.removeRightItem = function(item) {
+      var menuItems;
+      menuItems = this._rightItems;
+      if (!menuItems) {
+        return this;
+      }
+      if (typeof item === "number") {
+        item = menuItems[item];
+      }
+      if (item) {
+        this._doRemove(menuItems, item);
+      }
+      return this;
+    };
+
+    Menu.prototype.getItem = function(index) {
+      var ref;
+      return (ref = this._items) != null ? ref[index] : void 0;
+    };
+
+    Menu.prototype.getRightItem = function(index) {
+      var ref;
+      return (ref = this._rightItems) != null ? ref[index] : void 0;
+    };
+
+    Menu.prototype._createRightMenu = function() {
+      return $.xCreate({
+        tagName: "DIV",
+        "class": "right menu"
+      });
+    };
+
+    return Menu;
+
+  })(cola.Widget);
+
+  cola.TitleBar = (function(superClass) {
+    extend(TitleBar, superClass);
+
+    function TitleBar() {
+      return TitleBar.__super__.constructor.apply(this, arguments);
+    }
+
+    TitleBar.CLASS_NAME = "menu title-bar";
+
+    TitleBar.CHILDREN_TYPE_NAMESPACE = "menu";
+
+    TitleBar.ATTRIBUTES = {
+      title: {
+        refreshDom: true
+      }
+    };
+
+    TitleBar.prototype._parseDom = function(dom) {
+      var child, firstChild;
+      child = dom.firstChild;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      while (child) {
+        if (child.nodeType === 1) {
+          if (!this._doms.title && cola.util.hasClass(child, "title")) {
+            this._doms.title = child;
+            if (this._title == null) {
+              this._title = cola.util.getTextChildData(child);
+            }
+            break;
+          }
+        }
+        child = child.nextSibling;
+      }
+      TitleBar.__super__._parseDom.call(this, dom);
+      firstChild = dom.children[0];
+      if (this._doms.title && firstChild !== this._doms.title) {
+        $(this._doms.title).remove();
+        $(firstChild).before(this._doms.title);
+      }
+    };
+
+    TitleBar.prototype._doRefreshDom = function() {
+      var firstChild;
+      if (!this._dom) {
+        return;
+      }
+      TitleBar.__super__._doRefreshDom.call(this);
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      if (this._title) {
+        if (!this._doms.title) {
+          this._doms.title = $.xCreate({
+            tagName: "div",
+            "class": "title"
+          });
+          firstChild = this._dom.children[0];
+          if (firstChild) {
+            $(firstChild).before(this._doms.title);
+          } else {
+            this._dom.appendChild(this._doms.title);
+          }
+        }
+        $(this._doms.title).text(this._title);
+      } else {
+        $(this._doms.title).empty();
+      }
+      return null;
+    };
+
+    return TitleBar;
+
+  })(cola.Menu);
+
+  cola.registerType("menu", "_default", cola.menu.MenuItem);
+
+  cola.registerType("menu", "item", cola.menu.MenuItem);
+
+  cola.registerType("menu", "dropdownItem", cola.menu.DropdownMenuItem);
+
+  cola.registerType("menu", "controlItem", cola.menu.ControlMenuItem);
+
+  cola.registerType("menu", "headerItem", cola.menu.HeaderMenuItem);
+
+  cola.registerTypeResolver("menu", function(config) {
+    return cola.resolveType("widget", config);
+  });
+
+  cola.ButtonMenu = (function(superClass) {
+    extend(ButtonMenu, superClass);
+
+    function ButtonMenu() {
+      return ButtonMenu.__super__.constructor.apply(this, arguments);
+    }
+
+    ButtonMenu.prototype.onItemClick = function(event, item) {
+      var ref;
+      if ((ref = this._parent) != null) {
+        ref.onItemClick(event, item);
+      }
+      return null;
+    };
+
+    ButtonMenu.prototype._toDropDown = function(item) {
+      if (!(this._parent instanceof cola.MenuButton)) {
+        ButtonMenu.__super__._toDropDown.call(this, item);
+      }
+      return null;
+    };
+
+    return ButtonMenu;
+
+  })(cola.Menu);
+
+  cola.MenuButton = (function(superClass) {
+    extend(MenuButton, superClass);
+
+    function MenuButton() {
+      return MenuButton.__super__.constructor.apply(this, arguments);
+    }
+
+    MenuButton.CLASS_NAME = "dropdown button";
+
+    MenuButton.ATTRIBUTES = {
+      menuItems: {
+        setter: function(value) {
+          this._menuItems = value;
+          this._resetMenu(value);
+        }
+      }
+    };
+
+    MenuButton.EVENTS = {
+      menuItemClick: null
+    };
+
+    MenuButton.prototype._setDom = function(dom, parseChild) {
+      var menuDom;
+      MenuButton.__super__._setDom.call(this, dom, parseChild);
+      if (this._menu) {
+        menuDom = this._menu.getDom();
+        if (menuDom.parentNode !== this._dom) {
+          this._dom.appendChild(menuDom);
+        }
+      }
+      this.get$Dom().dropdown();
+    };
+
+    MenuButton.prototype._parseDom = function(dom) {
+      var child, menu;
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          menu = cola.widget(child);
+          if (menu && menu instanceof cola.Menu) {
+            this._menu = menu;
+            break;
+          }
+        }
+        child = child.nextSibling;
+      }
+    };
+
+    MenuButton.prototype.onItemClick = function(event, item) {
+      var arg;
+      arg = {
+        item: item,
+        event: event
+      };
+      this.fire("menuItemClick", this, arg);
+    };
+
+    MenuButton.prototype._resetMenu = function(menuItems) {
+      var ref;
+      if ((ref = this._menu) != null) {
+        ref.destroy();
+      }
+      this._menu = new cola.ButtonMenu({
+        items: menuItems
+      });
+      this._menu._parent = this;
+      if (this._dom) {
+        this.get$Dom().append(this._menu.getDom());
+      }
+    };
+
+    MenuButton.prototype.getDom = function() {
+      if (this._destroyed) {
+        return null;
+      }
+      if (!this._dom) {
+        MenuButton.__super__.getDom.call(this);
+      }
+      return this._dom;
+    };
+
+    MenuButton.prototype.destroy = function() {
+      if (this._destroyed) {
+        return;
+      }
+      if (this._menu) {
+        this._menu.destroy();
+        delete this._menu;
+        delete this._menuItems;
+      }
+      MenuButton.__super__.destroy.call(this);
+    };
+
+    MenuButton.prototype.addMenuItem = function(config) {
+      var ref;
+      if ((ref = this._menu) != null) {
+        ref.addItem(config);
+      }
+      return this;
+    };
+
+    MenuButton.prototype.clearMenuItems = function() {
+      var ref;
+      if ((ref = this._menu) != null) {
+        ref.clearItems();
+      }
+      return this;
+    };
+
+    MenuButton.prototype.removeMenuItem = function(item) {
+      var ref;
+      if ((ref = this._menu) != null) {
+        ref.removeItem(item);
+      }
+      return this;
+    };
+
+    MenuButton.prototype.getMenuItem = function(index) {
+      var ref;
+      return (ref = this._menu) != null ? ref.getItem(index) : void 0;
+    };
+
+    return MenuButton;
+
+  })(cola.Button);
+
+  if (cola.shape == null) {
+    cola.shape = {};
+  }
+
+  cola.shape.Side = (function(superClass) {
+    extend(Side, superClass);
+
+    function Side() {
+      return Side.__super__.constructor.apply(this, arguments);
+    }
+
+    Side.ATTRIBUTES = {
+      content: {
+        refreshDom: true,
+        setter: function(value) {
+          var ref;
+          if ((ref = this["_content"]) != null) {
+            if (typeof ref.destroy === "function") {
+              ref.destroy();
+            }
+          }
+          this["_content"] = value;
+          if (this._dom) {
+            this._refreshContent();
+          }
+        }
+      },
+      active: {
+        defaultValue: false
+      }
+    };
+
+    Side.prototype._createDom = function() {
+      var dom;
+      dom = document.createElement("div");
+      dom.className = "side";
+      return dom;
+    };
+
+    Side.prototype._refreshContent = function() {
+      var content, dom;
+      content = this._content;
+      dom = null;
+      if (content instanceof cola.Widget) {
+        dom = content.getDom();
+      } else if (content.constructor === Object.prototype.constructor) {
+        if (content.$type) {
+          content = this._content = cola.widget(content);
+          content.appendTo(this._dom);
+        } else {
+          this.get$Dom().append($.xCreate(content));
+        }
+      } else if (content.nodeType === 1) {
+        this.get$Dom().append(content);
+      }
+    };
+
+    Side.prototype.getDom = function() {
+      if (this._destroyed) {
+        return;
+      }
+      if (!this._dom) {
+        Side.__super__.getDom.call(this);
+        if (this._content) {
+          this._refreshContent();
+        }
+      }
+      return this._dom;
+    };
+
+    Side.prototype.destroy = function() {
+      if (!this._destroyed) {
+        delete this._dom;
+        delete this._$dom;
+        delete this._content;
+        Side.__super__.destroy.call(this);
+      }
+      this._destroyed = true;
+    };
+
+    return Side;
+
+  })(cola.Widget);
+
+  cola.Shape = (function(superClass) {
+    extend(Shape, superClass);
+
+    function Shape() {
+      return Shape.__super__.constructor.apply(this, arguments);
+    }
+
+    Shape.CLASS_NAME = "ui shape";
+
+    Shape.ATTRIBUTES = {
+      sides: {
+        setter: function(sides) {
+          var config, j, len;
+          this.clear();
+          for (j = 0, len = sides.length; j < len; j++) {
+            config = sides[j];
+            this.addSide(config);
+          }
+        }
+      },
+      currentIndex: {
+        setter: function(sides) {
+          var config, j, len;
+          this.clear();
+          for (j = 0, len = sides.length; j < len; j++) {
+            config = sides[j];
+            this.addSide(config);
+          }
+        }
+      }
+    };
+
+    Shape.EVENTS = {
+      beforeChange: null,
+      afterChange: null
+    };
+
+    Shape.prototype.addSide = function(config) {
+      var side;
+      if (this._sides == null) {
+        this._sides = [];
+      }
+      side = null;
+      if (config instanceof cola.Widget) {
+        side = new cola.shape.Side({
+          content: config
+        });
+      } else if (config.constructor === Object.prototype.constructor) {
+        if (config.$type || config.tagName) {
+          side = new cola.shape.Side({
+            content: config
+          });
+        } else if (config.tagName) {
+          side = new cola.shape.Side(config);
+        }
+      }
+      if (side) {
+        this._sides.push(side);
+      }
+      if (this._dom && side) {
+        $(this._doms.sides).append(side.getDom());
+      }
+      return this;
+    };
+
+    Shape.prototype.removeSide = function(side) {
+      var index;
+      index = side;
+      if (side instanceof cola.shape.Side) {
+        index = this._sides.indexOf(side);
+      }
+      if (index > -1) {
+        this._sides.splice(index, 1);
+        side.remove();
+      }
+    };
+
+    Shape.prototype.clear = function() {
+      var j, len, ref, side;
+      if (!this._sides) {
+        return;
+      }
+      ref = this._sides;
+      for (j = 0, len = ref.length; j < len; j++) {
+        side = ref[j];
+        side.destroy();
+      }
+      this._sides = [];
+      $(this._doms.sides).empty();
+      return this;
+    };
+
+    Shape.prototype._createDom = function() {
+      return $.xCreate({
+        tagName: "div",
+        "class": this.constructor.CLASS_NAME,
+        content: [
+          {
+            tagName: "div",
+            "class": "sides",
+            contextKey: "sides"
+          }
+        ]
+      }, this._doms);
+    };
+
+    Shape.prototype.getDom = function() {
+      var $sidesDom, current, j, len, ref, side;
+      if (this._destroyed) {
+        return null;
+      }
+      if (!this._dom) {
+        if (this._doms == null) {
+          this._doms = {};
+        }
+        Shape.__super__.getDom.call(this);
+        $sidesDom = $(this._doms.sides);
+        if (this._sides) {
+          current = null;
+          ref = this._sides;
+          for (j = 0, len = ref.length; j < len; j++) {
+            side = ref[j];
+            $sidesDom.append(side.getDom());
+            if (!!side.get("active")) {
+              current = side;
+            }
+          }
+          if (current == null) {
+            current = this._sides[0];
+          }
+          current.get$Dom().addClass("active");
+        }
+        this.get$Dom().shape({
+          beforeChange: (function(_this) {
+            return function() {
+              _this.fire("beforeChange", _this, {
+                current: _this._current
+              });
+            };
+          })(this),
+          onChange: (function(_this) {
+            return function() {
+              var k, len1, ref1;
+              _this._current = null;
+              ref1 = _this._sides;
+              for (k = 0, len1 = ref1.length; k < len1; k++) {
+                side = ref1[k];
+                side.get$Dom().hasClass("active");
+                _this._current = side;
+                break;
+              }
+              _this.fire("afterChange", _this, {
+                current: _this._current
+              });
+            };
+          })(this)
+        });
+      }
+      return this._dom;
+    };
+
+    Shape.prototype.getSide = function(index) {
+      var ref;
+      return (ref = this._sides) != null ? ref[index] : void 0;
+    };
+
+    Shape.prototype.getSideDom = function(index) {
+      var ref, ref1;
+      return (ref = this._sides) != null ? (ref1 = ref[index]) != null ? ref1.getDom() : void 0 : void 0;
+    };
+
+    Shape.prototype.flipUp = function() {
+      this.get$Dom().shape("flip up");
+      return this;
+    };
+
+    Shape.prototype.flipDown = function() {
+      this.get$Dom().shape("flip down");
+      return this;
+    };
+
+    Shape.prototype.flipRight = function() {
+      this.get$Dom().shape("flip right");
+      return this;
+    };
+
+    Shape.prototype.flipLeft = function() {
+      this.get$Dom().shape("flip left");
+      return this;
+    };
+
+    Shape.prototype.flipOver = function() {
+      this.get$Dom().shape("flip over");
+      return this;
+    };
+
+    Shape.prototype.flipBack = function() {
+      this.get$Dom().shape("flip back");
+      return this;
+    };
+
+    Shape.prototype.flip = function(flip) {
+      this.get$Dom().shape("flip " + flip);
+      return this;
+    };
+
+    Shape.prototype.setNextSide = function(selector) {
+      this.get$Dom().shape("set next side", selector);
+      return this;
+    };
+
+    return Shape;
+
+  })(cola.Widget);
+
+  if (cola.steps == null) {
+    cola.steps = {};
+  }
+
+  cola.steps.Step = (function(superClass) {
+    extend(Step, superClass);
+
+    function Step() {
+      return Step.__super__.constructor.apply(this, arguments);
+    }
+
+    Step.CLASS_NAME = "step";
+
+    Step.ATTRIBUTES = {
+      icon: {
+        refreshDom: true
+      },
+      content: {
+        refreshDom: true
+      },
+      states: {
+        refreshDom: true,
+        "enum": ["completed", "active", ""],
+        defaultValue: "",
+        setter: function(value) {
+          var oldValue;
+          oldValue = this._states;
+          this._states = value;
+          if (this._dom && value !== oldValue && oldValue) {
+            $fly(this._dom).removeClass(oldValue);
+          }
+          return this;
+        }
+      },
+      disabled: {
+        defaultValue: false
+      }
+    };
+
+    Step.prototype._parseDom = function(dom) {
+      var $cc, $child, cc, child, j, len, parseContent, parseDescription, parseTitle, ref;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      parseTitle = (function(_this) {
+        return function(node) {
+          var content, title;
+          _this._doms.title = node;
+          title = cola.util.getTextChildData(node);
+          content = _this._content || {};
+          if (!content.title && title) {
+            if (_this._content == null) {
+              _this._content = {};
+            }
+            _this._doms.titleDom = node;
+            _this._content.title = title;
+          }
+        };
+      })(this);
+      parseDescription = (function(_this) {
+        return function(node) {
+          var content, description;
+          _this._doms.description = node;
+          description = cola.util.getTextChildData(node);
+          content = _this._content || {};
+          if (!content.description && description) {
+            if (_this._content == null) {
+              _this._content = {};
+            }
+            _this._doms.descriptionDom = node;
+            _this._content.description = description;
+          }
+        };
+      })(this);
+      parseContent = (function(_this) {
+        return function(node) {
+          var content;
+          content = cola.util.getTextChildData(node);
+          if (!_this._content && content) {
+            _this._content = content;
+          }
+        };
+      })(this);
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          if (child.nodeName === "I") {
+            this._doms.iconDom = child;
+            if (!this._icon) {
+              this._icon = child.className;
+            }
+          } else {
+            $child = $(child);
+            if ($child.hasClass("content")) {
+              this._doms.contentDom = child;
+              ref = child.childNodes;
+              for (j = 0, len = ref.length; j < len; j++) {
+                cc = ref[j];
+                if (child.nodeType !== 1) {
+                  continue;
+                }
+                $cc = $(cc);
+                if ($cc.hasClass("title")) {
+                  parseTitle(cc);
+                }
+                if ($cc.hasClass("description")) {
+                  parseDescription(cc);
+                }
+              }
+              if (!this._content) {
+                parseContent(child);
+              }
+            } else if ($child.hasClass("title")) {
+              parseTitle(child);
+            } else if ($child.hasClass("description")) {
+              parseDescription(child);
+            }
+          }
+        }
+        child = child.nextSibling;
+      }
+      parseContent(dom);
+    };
+
+    Step.prototype._doRefreshDom = function() {
+      var $contentDom, $dom, base, base1, base2, base3, classNamePool, content, icon, states;
+      if (!this._dom) {
+        return;
+      }
+      Step.__super__._doRefreshDom.call(this);
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      content = this.get("content");
+      $dom = this.get$Dom();
+      $dom.empty();
+      icon = this.get("icon");
+      if (icon) {
+        if ((base = this._doms).iconDom == null) {
+          base.iconDom = document.createElement("i");
+        }
+        this._doms.iconDom.className = icon + " icon";
+        $dom.append(this._doms.iconDom);
+      } else {
+        $(this._doms.iconDom).remove();
+      }
+      if (content) {
+        if ((base1 = this._doms).contentDom == null) {
+          base1.contentDom = document.createElement("div");
+        }
+        $contentDom = $(this._doms.contentDom);
+        $contentDom.addClass("content").empty();
+        if (typeof content === "string") {
+          $contentDom.text(content);
+        } else {
+          if (content.title) {
+            if ((base2 = this._doms).titleDom == null) {
+              base2.titleDom = document.createElement("div");
+            }
+            $(this._doms.titleDom).addClass("title").text(content.title);
+            $contentDom.append(this._doms.titleDom);
+          }
+          if (content.description) {
+            if ((base3 = this._doms).descriptionDom == null) {
+              base3.descriptionDom = document.createElement("div");
+            }
+            $(this._doms.descriptionDom).addClass("description").text(content.description);
+            $contentDom.append(this._doms.descriptionDom);
+          }
+        }
+        $dom.append($contentDom);
+      }
+      classNamePool = this._classNamePool;
+      states = this.get("states");
+      if (states) {
+        classNamePool.add(states);
+      }
+      return classNamePool.toggle("disabled", !!this._disabled);
+    };
+
+    Step.prototype.destroy = function() {
+      if (this._destroyed) {
+        return;
+      }
+      Step.__super__.destroy.call(this);
+      return delete this._doms;
+    };
+
+    return Step;
+
+  })(cola.Widget);
+
+  cola.Steps = (function(superClass) {
+    extend(Steps, superClass);
+
+    function Steps() {
+      return Steps.__super__.constructor.apply(this, arguments);
+    }
+
+    Steps.CHILDREN_TYPE_NAMESPACE = "steps";
+
+    Steps.CLASS_NAME = "steps";
+
+    Steps.SEMANTIC_CLASS = ["tablet stackable", "left floated", "right floated"];
+
+    Steps.ATTRIBUTES = {
+      size: {
+        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
+        refreshDom: true,
+        setter: function(value) {
+          var oldValue;
+          oldValue = this["_size"];
+          if (oldValue && oldValue !== value && this._dom) {
+            this.get$Dom().removeClass(oldValue);
+          }
+          this["_size"] = value;
+        }
+      },
+      steps: {
+        refreshDom: true,
+        setter: function(value) {
+          var j, len, step;
+          this.clear();
+          for (j = 0, len = value.length; j < len; j++) {
+            step = value[j];
+            if (step instanceof cola.steps.Step) {
+              this.addStep(step);
+            } else if (step.constructor === Object.prototype.constructor) {
+              this.addStep(new cola.steps.Step(step));
+            }
+          }
+        }
+      },
+      currentIndex: {
+        setter: function(value) {
+          this["_currentIndex"] = value;
+          return this.setCurrent(value);
+        },
+        getter: function() {
+          if (this._current && this._steps) {
+            return this._steps.indexOf(this._current);
+          } else {
+            return -1;
+          }
+        }
+      },
+      autoComplete: {
+        defaultValue: true
+      }
+    };
+
+    Steps.EVENTS = {
+      beforeChange: null,
+      change: null,
+      complete: null
+    };
+
+    Steps.prototype._doRefreshDom = function() {
+      var size;
+      if (!this._dom) {
+        return;
+      }
+      Steps.__super__._doRefreshDom.call(this);
+      size = this.get("size");
+      if (size) {
+        return this._classNamePool.add(size);
+      }
+    };
+
+    Steps.prototype._doRemove = function(step) {
+      var index;
+      index = this._steps.indexOf(step);
+      if (index > -1) {
+        this._steps.splice(index, 1);
+        step.remove();
+      }
+    };
+
+    Steps.prototype._setDom = function(dom, parseChild) {
+      var j, len, ref, ref1, step, stepDom;
+      Steps.__super__._setDom.call(this, dom, parseChild);
+      if (!((ref = this._steps) != null ? ref.length : void 0)) {
+        return;
+      }
+      ref1 = this._steps;
+      for (j = 0, len = ref1.length; j < len; j++) {
+        step = ref1[j];
+        stepDom = step.getDom();
+        if (stepDom.parentNode !== this._dom) {
+          step.appendTo(this._dom);
+        }
+      }
+    };
+
+    Steps.prototype._parseDom = function(dom) {
+      var child, step;
+      if (!dom) {
+        return;
+      }
+      if (this._steps == null) {
+        this._steps = [];
+      }
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          step = cola.widget(child);
+          if (step && step instanceof cola.steps.Step) {
+            this.addStep(step);
+          }
+        }
+        child = child.nextSibling;
+      }
+    };
+
+    Steps.prototype._doChange = function(index) {
+      var arg, newCurrent, oldCurrent;
+      oldCurrent = this._current;
+      if (index > -1 && index < this._steps.length) {
+        newCurrent = this._steps[index];
+      }
+      if (oldCurrent === newCurrent) {
+        return;
+      }
+      arg = {
+        oldCurrent: oldCurrent,
+        newCurrent: newCurrent
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
+        if (newCurrent) {
+          newCurrent.set("states", "");
+        }
+        return;
+      }
+      this._current = newCurrent;
+      if (oldCurrent) {
+        oldCurrent.set("states", "");
+      }
+      if (newCurrent) {
+        newCurrent.set("states", "active");
+      }
+      if (index >= this._steps.length) {
+        this.fire("complete", this, {});
+      }
+      this.fire("change", this, arg);
+      this._doComplete(index);
+    };
+
+    Steps.prototype.getStep = function(index) {
+      var ref;
+      return (ref = this._steps) != null ? ref[index] : void 0;
+    };
+
+    Steps.prototype.setCurrent = function(step) {
+      var currentIndex, el, index, j, len, ref;
+      currentIndex = step;
+      if (typeof step === "string") {
+        ref = this._steps;
+        for (index = j = 0, len = ref.length; j < len; index = ++j) {
+          el = ref[index];
+          if (step === el.get("content")) {
+            currentIndex = index;
+            break;
+          }
+        }
+      } else if (step instanceof cola.steps.Step) {
+        currentIndex = this._steps.indexOf(step);
+      }
+      this._doChange(currentIndex);
+      return this;
+    };
+
+    Steps.prototype._doComplete = function(index) {
+      var completeIndex, dIndex, results;
+      if (this._autoComplete) {
+        completeIndex = index - 1;
+        while (completeIndex > -1) {
+          this._steps[completeIndex].set("states", "completed");
+          completeIndex--;
+        }
+        dIndex = index + 1;
+        results = [];
+        while (dIndex < this._steps.length) {
+          this._steps[dIndex].set("states", "");
+          results.push(dIndex++);
+        }
+        return results;
+      }
+    };
+
+    Steps.prototype.getCurrent = function() {
+      return this._current;
+    };
+
+    Steps.prototype.add = function() {
+      var arg, j, len, step;
+      for (j = 0, len = arguments.length; j < len; j++) {
+        arg = arguments[j];
+        step = arg;
+        if (step instanceof cola.steps.Step) {
+          this.addStep(step);
+        } else if (step.constructor === Object.prototype.constructor) {
+          this.addStep(new cola.steps.Step(step));
+        }
+      }
+      return this;
+    };
+
+    Steps.prototype.addStep = function(step) {
+      var states, stepDom;
+      if (this._destroyed) {
+        return this;
+      }
+      if (this._steps == null) {
+        this._steps = [];
+      }
+      if (step.constructor === Object.prototype.constructor) {
+        step = new cola.steps.Step(step);
+      }
+      if (!(step instanceof cola.steps.Step)) {
+        return this;
+      }
+      if (this._steps.indexOf(step) > -1) {
+        return this;
+      }
+      this._steps.push(step);
+      if (this._dom) {
+        stepDom = step.getDom();
+        if (stepDom.parentNode !== this._dom) {
+          step.appendTo(this._dom);
+        }
+      }
+      states = step.get("states");
+      if (states === "active") {
+        this._doChange(this._steps.length - 1);
+      }
+      return this;
+    };
+
+    Steps.prototype.removeStep = function(step) {
+      if (!this._steps) {
+        return this;
+      }
+      if (typeof step === "number") {
+        step = this._steps[step];
+      }
+      if (step) {
+        this._doRemove(step);
+      }
+      return this;
+    };
+
+    Steps.prototype.clear = function() {
+      if (!this._steps) {
+        return this;
+      }
+      if (this._dom) {
+        this.get$Dom().empty();
+      }
+      if (this._steps.length) {
+        this._steps = [];
+      }
+      return this;
+    };
+
+    Steps.prototype.next = function() {
+      var currentIndex;
+      currentIndex = this.get("currentIndex");
+      this.setCurrent(++currentIndex);
+      return this;
+    };
+
+    Steps.prototype.complete = function() {
+      return this.setCurrent(this._steps.length);
+    };
+
+    Steps.prototype.previous = function() {
+      var currentIndex;
+      currentIndex = this.get("currentIndex");
+      this.setCurrent(--currentIndex);
+      return this;
+    };
+
+    Steps.prototype.goTo = function(index) {
+      this.setCurrent(index);
+      return this;
+    };
+
+    Steps.prototype.getStepIndex = function(step) {
+      var ref;
+      return (ref = this._steps) != null ? ref.indexOf(step) : void 0;
+    };
+
+    return Steps;
+
+  })(cola.Widget);
+
+  cola.registerType("steps", "_default", cola.steps.Step);
+
+  cola.registerType("steps", "Step", cola.steps.Step);
+
+  cola.registerTypeResolver("steps", function(config) {
+    return cola.resolveType("widget", config);
+  });
+
+  cola.Stack = (function(superClass) {
+    extend(Stack, superClass);
+
+    function Stack() {
+      return Stack.__super__.constructor.apply(this, arguments);
+    }
+
+    Stack.CLASS_NAME = "stack";
+
+    Stack.EVENTS = {
+      change: null
+    };
+
+    Stack.duration = 200;
+
+    Stack.prototype._createDom = function() {
+      var dom;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      dom = $.xCreate({
+        content: [
+          {
+            tagName: "div",
+            "class": "items-wrap",
+            contextKey: "itemsWrap",
+            content: [
+              {
+                tagName: "div",
+                "class": "item black prev",
+                contextKey: "prevItem"
+              }, {
+                tagName: "div",
+                "class": "item blue current",
+                contextKey: "currentItem",
+                style: {
+                  display: "block"
+                }
+              }, {
+                tagName: "div",
+                "class": "item green next",
+                contextKey: "nextItem"
+              }
+            ]
+          }
+        ]
+      }, this._doms);
+      this._prevItem = this._doms.prevItem;
+      this._currentItem = this._doms.currentItem;
+      this._nextItem = this._doms.nextItem;
+      return dom;
+    };
+
+    Stack.prototype._setDom = function(dom, parseChild) {
+      var stack;
+      Stack.__super__._setDom.call(this, dom, parseChild);
+      stack = this;
+      return $(dom).on("touchstart", function(evt) {
+        return stack._onTouchStart(evt);
+      }).on("touchmove", function(evt) {
+        return stack._onTouchMove(evt);
+      }).on("touchend", function(evt) {
+        return stack._onTouchEnd(evt);
+      });
+    };
+
+    Stack.prototype._getTouchPoint = function(evt) {
+      var touches;
+      touches = evt.originalEvent.touches;
+      if (!touches.length) {
+        touches = evt.originalEvent.changedTouches;
+      }
+      return touches[0];
+    };
+
+    Stack.prototype._onTouchStart = function(evt) {
+      var touch;
+      this._touchStart = true;
+      touch = evt.originalEvent.touches[0];
+      this._touchStartX = touch.pageX;
+      this._touchStartY = touch.pageY;
+      this._moveTotal = 0;
+      this._touchTimestamp = new Date();
+      evt.stopImmediatePropagation();
+      return this;
+    };
+
+    Stack.prototype._onTouchMove = function(evt) {
+      var direction, distanceX, distanceY, factor, timestamp, touchPoint, width;
+      if (!this._touchStart) {
+        return;
+      }
+      touchPoint = this._getTouchPoint(evt);
+      this._touchLastX = touchPoint.pageX;
+      this._touchLastY = touchPoint.pageY;
+      distanceX = this._touchLastX - this._touchStartX;
+      distanceY = this._touchLastY - this._touchStartY;
+      timestamp = new Date();
+      this._touchMoveSpeed = distanceX / (timestamp - this._touchLastTimstamp);
+      this._touchLastTimstamp = timestamp;
+      if (distanceX < 0) {
+        direction = "left";
+        factor = 1;
+      } else {
+        direction = "right";
+        factor = -1;
+      }
+      this._touchDirection = direction;
+      this._factor = factor;
+      width = this._currentItem.clientWidth;
+      this._distanceX = Math.abs(distanceX);
+      this._moveTotal = (this._moveTotal || 0) + Math.abs(distanceX);
+      if (this._moveTotal < 8) {
+        return;
+      }
+      $fly(this._currentItem).css("transform", "translate(" + distanceX + "px,0)");
+      if (direction === "left") {
+        $fly(this._prevItem).css("display", "none");
+        $fly(this._nextItem).css({
+          transform: "translate(" + (width + distanceX) + "px,0)",
+          display: "block"
+        });
+      } else {
+        $fly(this._nextItem).css("display", "none");
+        $fly(this._prevItem).css({
+          transform: "translate(" + (factor * width + distanceX) + "px,0)",
+          display: "block"
+        });
+      }
+      evt.stopImmediatePropagation();
+      return false;
+    };
+
+    Stack.prototype._onTouchEnd = function(evt) {
+      var duration, width;
+      if (!this._touchStart) {
+        return;
+      }
+      duration = this.constructor.duration;
+      width = this._currentItem.clientWidth;
+      if (this._moveTotal < 8) {
+        return;
+      }
+      if (this._distanceX > width / 3) {
+        if (this._touchDirection === "left") {
+          $(this._currentItem).transit({
+            x: -1 * width,
+            duration: duration
+          });
+          $(this._nextItem).transit({
+            x: 0,
+            duration: duration
+          });
+          this._doNext();
+        } else {
+          $(this._currentItem).transit({
+            x: width,
+            duration: duration
+          });
+          $(this._prevItem).transit({
+            x: 0,
+            duration: duration
+          });
+          this._doPrev();
+        }
+      } else {
+        $(this._currentItem).transit({
+          x: 0,
+          duration: duration
+        });
+        if (this._touchDirection === "left") {
+          $(this._nextItem).transit({
+            x: width,
+            duration: duration
+          });
+        } else {
+          $(this._prevItem).transit({
+            x: -1 * width,
+            duration: duration
+          });
+        }
+      }
+      this._touchStart = false;
+    };
+
+    Stack.prototype.next = function() {
+      var duration, stack, width;
+      if (this._animating) {
+        return;
+      }
+      this._animating = true;
+      width = this._currentItem.clientWidth;
+      stack = this;
+      duration = this.constructor.duration;
+      $fly(this._nextItem).css({
+        transform: "translate(" + width + "px,0)",
+        display: "block"
+      });
+      $(this._currentItem).transit({
+        x: -1 * width,
+        duration: duration * 2,
+        complete: function() {
+          stack._animating = false;
+          $(stack._currentItem).css("display", "none");
+          return stack._doNext();
+        }
+      });
+      $(this._nextItem).transit({
+        x: 0,
+        duration: duration * 2
+      });
+      return this;
+    };
+
+    Stack.prototype.prev = function() {
+      var duration, stack, width;
+      if (this._animating) {
+        return;
+      }
+      this._animating = true;
+      width = this._currentItem.clientWidth;
+      stack = this;
+      duration = this.constructor.duration;
+      $fly(this._prevItem).css({
+        transform: "translate(-" + width + "px,0)",
+        display: "block"
+      });
+      $(this._currentItem).transit({
+        x: width,
+        duration: duration * 2,
+        complete: function() {
+          $(stack._currentItem).css("display", "none");
+          stack._animating = false;
+          return stack._doPrev();
+        }
+      });
+      $(this._prevItem).transit({
+        x: 0,
+        duration: duration * 2
+      });
+      return this;
+    };
+
+    Stack.prototype._doNext = function() {
+      var currentItem, nextItem, prevItem;
+      prevItem = this._prevItem;
+      currentItem = this._currentItem;
+      nextItem = this._nextItem;
+      this._prevItem = currentItem;
+      this._nextItem = prevItem;
+      this._currentItem = nextItem;
+      this.fire("change", this, {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem
+      });
+      return null;
+    };
+
+    Stack.prototype._doPrev = function() {
+      var currentItem, nextItem, prevItem;
+      prevItem = this._prevItem;
+      currentItem = this._currentItem;
+      nextItem = this._nextItem;
+      this._prevItem = nextItem;
+      this._nextItem = currentItem;
+      this._currentItem = prevItem;
+      this.fire("change", this, {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem
+      });
+      return null;
+    };
+
+    return Stack;
+
+  })(cola.Widget);
+
+}).call(this);

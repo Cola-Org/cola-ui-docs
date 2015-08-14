@@ -1,0 +1,22 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("slider","Slider")
+	.example#slider
+		h4.ui.header 滑动条开关
+		.code
+			div(c-widget="Slider; label:滑动开关;")
+	+addCatalog("onValue","onValue")
+	.example#onValue
+		h4.ui.header onValue
+		.code
+			div(c-widget="slider; label:滑动开关; value:开启; onValue:开启")
+	+addCatalog("offValue","offValue")
+	.example#offValue
+		h4.ui.header offValue
+		.code
+			div(c-widget="slider; label:滑动开关; value:关闭; offValue:关闭")
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

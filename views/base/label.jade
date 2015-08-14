@@ -1,0 +1,102 @@
+extends ../doc-layout
+
+block content
+	- defaultGroupName= "Label"
+	style.
+		.columns.small-6 {
+			padding: 2em;
+		}
+	+addCatalog("standard","Label")
+	.example#standard
+		h4.ui.header 标签
+		.code
+			div(c-widget="Label; text:标签; icon:mail")
+	+addCatalog("image","图片标签")
+
+	.example#image
+		h4.ui.header ImageLabel
+		p 可以将图片显示在Label内(图片属性名:<code>image</code>)，此样式下也可以加<code>detail</code>属性来描述信息
+		.code
+			div(c-widget="ImageLabel; image:/images/avatar/small/helen.jpg; text:媚媚;")
+			div(c-widget="ImageLabel; ui:blue; image:/images/avatar/small/chris.jpg; text:李四; detail:知己")
+			div(c-widget="ImageLabel; ui:teal; image:/images/avatar/small/christian.jpg; text:王五; detail:同学")
+			div(c-widget="ImageLabel; ui:yellow; image:/images/avatar/small/daniel.jpg; text:刘六; detail:同事")
+	+addCatalog("pointing","指向标签")
+	.example#pointing
+		h4.ui.header PointingLabel
+		p 标签可以指向紧邻的内容
+
+		.code
+			form.ui.fluid.form.segment
+				.inline.field
+					input(type=text)
+					div(c-widget="PointingLabel;pointing:left; text:请输入一个值;")
+				.field
+					input(type=text)
+					div(c-widget="PointingLabel; text:请输入一个值;")
+				.ui.divider
+				.field
+					div(c-widget="PointingLabel;pointing:bottom; text:请输入一个值;")
+					input(type=text)
+
+				.inline.field
+					div(c-widget="PointingLabel;pointing:right; text:您的密码必须是6个字符或以上;")
+					input
+	+addCatalog("corner","角标")
+	.example#corner
+		h4.ui.header 角标
+		p 标签可以位于元素的拐角处
+		.ui.ignored.warning.message.
+			角落标签必须放置在一个<code>position: relative</code>容器,才可获得正确的现实。如果容器是圆形的请设定<code>overflow:hidden</code>。
+		.code
+			.row
+				.columns.small-6
+					div.ui.fluid.image(c-widget="Widget")
+						a(c-widget="Corner; icon:heart;ui:red;position:left")
+						img(c-widget="Image; src:/images/wireframe/image.png")
+				.columns.small-6
+					div.ui.fluid.image(c-widget="Widget")
+						a(c-widget="Corner; icon:save; ui:blue")
+						img(c-widget="Image; src:/images/wireframe/image.png")
+	+addCatalog("tag","小标签")
+	.example#tag
+		h4.ui.header Tag
+		p 标签可以表现为小标签
+		.code
+			div(c-widget="Tag;  text:新闻;")
+			div(c-widget="Tag; ui:red; text:即将到来;")
+			div(c-widget="Tag; ui:teal; text:精选;")
+	+addCatalog("tag","丝带")
+	.example#ribbon(name="ribbon")
+		h4.ui.header 丝带
+		p 标签可以显示成附着在其他元素上的绶带样式
+		.code
+			ul.small-block-grid-2.medium-block-grid-4
+				li
+					.ui.segment.compact
+						div(c-widget="Ribbon; ui:red; text:概述;")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+				li
+					.ui.segment.compact
+						div(c-widget="Ribbon; ui:blue; text:说明;")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+				li
+					.ui.segment.compact
+						div(c-widget="Ribbon; ui:orange; text:简介; position:right")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+				li
+					.ui.segment.compact
+						div(c-widget="Ribbon; ui:teal; text:新闻;position:right")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+	style(name="ribbon").
+		.code > ul > li {
+			padding: 1em;
+		}
+
+		.code > ul > li > .segment > img {
+			margin-top: 2em;
+		}
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

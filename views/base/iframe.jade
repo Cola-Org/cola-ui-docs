@@ -1,0 +1,36 @@
+extends ../doc-layout
+
+block content
+	- defaultGroupName= "IFrame 控件"
+	style.
+		.ui.iframe{
+			border: #f1e2d3 solid 1px;
+		}
+	+addCatalog("standard","IFrame")
+	.example#standard
+		h4.ui.header IFrame
+		.code
+			div(c-widget="IFrame; height:180; path:../inner-window;")
+	+addCatalog("event","事件")
+	.example#event(name="event")
+		h4.ui.header 装载监听
+		div#loadButton(c-widget="Button; caption:reload; click:load")
+
+		.row
+			.columns.small-6
+				.code
+					div#iframeLoad(c-widget="IFrame; height:180;path:../inner-window; load:onLoad")
+			.columns.small-6
+				img#dogImg(c-widget="image; src:/images/dog.png; size:small; ui:spaced")
+
+	script(type="text/javascript" name="event").
+		cola("event", function (model) {
+			model.action({
+				onLoad: function (self, arg) {
+					$("#dogImg").transition('tada')
+				},
+				load:function(){
+					cola.widget("iframeLoad").reload()
+				}
+			});
+		});

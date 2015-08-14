@@ -1,0 +1,105 @@
+@prettyprintTransition: border-color 0.55s linear;
+@prettyprintBoxShadow: 0 1px 4px rgba(0, 105, 214, 0.25);
+.example {
+	> p, a {
+		> code {
+			background-color: rgba(0, 50, 100, 0.12);
+
+			color: #1e70bf;
+			padding: 0 0.5em;
+			&:hover {
+				text-decoration: none;
+			}
+		}
+	}
+	pre.prettyprint {
+		border: 1px solid #d4d4d5;
+		padding: 1em;
+
+		background: #ffffff;
+		-webkit-transition: @prettyprintTransition;
+		transition: @prettyprintTransition;
+	}
+
+	pre.prettyprint:hover {
+		background: #f9f9f9;
+		border-color: #0098cc;
+		-webkit-transition: @prettyprintTransition;
+		-moz-transition: @prettyprintTransition;
+		-o-transition: @prettyprintTransition;
+		-ms-transition: @prettyprintTransition;
+		transition: @prettyprintTransition;
+		-webkit-box-shadow: @prettyprintBoxShadow;
+		-moz-box-shadow: @prettyprintBoxShadow;
+		box-shadow: @prettyprintBoxShadow;
+	}
+}
+
+.main.container {
+	position: relative;
+	#catalog {
+		.content.menu{
+			margin: 0;
+		}
+		a.item.active {
+			padding: 0.5em 1.33333333em;
+		}
+		&.fixed {
+			top: 20px;
+		}
+	}
+	.right.rail {
+		//padding: 0em;
+		margin: 0em;
+	}
+}
+
+@media only screen and (max-width: 780px) {
+	.main.container {
+		.example {
+			margin: 2em 0em;
+			pre.prettyprint {
+				padding: 0.5em;
+			}
+		}
+	}
+}
+@media only screen and (min-width: 780px) {
+	.main.container {
+		.example {
+			margin: 2em;
+			pre.prettyprint {
+				padding: 1em;
+			}
+		}
+	}
+}
+
+@media only screen  and (max-width: 992px) {
+	.main.container {
+		> .right.rail {
+			display: none;
+		}
+	}
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1144px) {
+	.main.container {
+		width: 700px;
+	}
+}
+
+@media only screen and (min-width: 1144px) and (max-width: 1280px) {
+	.main.container {
+		width: 828px;
+	}
+}
+
+@media only screen and (min-width: 1280px) {
+	.main.container {
+		width: 928px;
+
+	}
+}
+
+

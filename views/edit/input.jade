@@ -1,0 +1,112 @@
+extends ../doc-layout
+block content
+	style.
+		.ui.input {
+			margin-right: 1em;
+			margin-bottom: 1em;
+		}
+	+addCatalog("standard","输入框")
+	.example#standard
+		h4.ui.header 标准输入框
+		p.
+		.code
+			div(c-widget="Input; placeholder:搜索...")
+
+	+addCatalog("icon","图标")
+	.example#icon
+		h4.ui.header 图标
+
+		.code
+			div(c-widget="Input; placeholder:搜索...; icon:search")
+			div(c-widget="Input; placeholder:搜索用户...; icon:users; iconPosition:left")
+
+	+addCatalog("error","Error")
+	.example#error
+		h4.ui.header Error
+
+		.code
+			div(c-widget="Input; ui:error; placeholder:密码;")
+
+	+addCatalog("loading","Loading")
+	.example#loading
+		h4.ui.header Loading
+		p.
+			输入框结合loading 图标可展示加载数据的状态
+		.code
+			div(c-widget="Input; placeholder:搜索...; ui:loading; icon:search")
+
+	+addCatalog("label","标签")
+	.example#label
+		h4.ui.header 标签
+		p 输入框可联合标签使用
+		.code
+			div(c-widget="Input; placeholder:搜索...; value:mysite.com ")
+				div(c-widget="Label; text:http://")
+			div(c-widget="Input; placeholder:搜索网址...; labelPosition:right")
+				div(c-widget="Label; text:.com")
+			div(c-widget="Input;icon:tags;iconPosition:left; placeholder:输入...; labelPosition:right")
+				div(c-widget="Tag; text:标签")
+
+	+addCatalog("button","按钮")
+	.example#button
+		h4.ui.header 按钮
+		p 输入框可结合按钮向用户指明操作行为
+		.code
+			div(c-widget="Input; placeholder:搜索...; value:mysite.com ")
+				div(c-widget="Button; caption:搜索")
+			div(c-widget="Input; value:$53.5; buttonPosition:left")
+				div(c-widget="Button; caption:购买; icon:cart; ui:teal")
+			div(c-widget="Input; placeholder:关键字;")
+				div(c-widget="MenuButton; caption:Google; icon:dropdown;color:blue; iconPosition:right")
+					div(c-widget="Menu")
+						a.item Google
+						a.item Bing
+						a.item BaiDu
+						a.item SouGou
+
+			div(c-widget="Input; placeholder:搜索;")
+				div(c-widget="Button; icon:search; color:orange")
+			div(c-widget="Input;")
+				div(c-widget="Button; caption:复制; icon:copy; color:purple")
+
+	+addCatalog("transparent","透明")
+	.example#transparent
+		h4.ui.header 透明
+		p 透明输入框无背景色,可在menu或者部分反白的容器内使用此UI
+		.code
+			div(c-widget="Input; placeholder:搜索...;ui:transparent;icon:search")
+
+	+addCatalog("inverted","反白")
+	.example#inverted
+		h4.ui.header 反白
+		.ui.segment.inverted
+			.code
+				div(c-widget="Input; placeholder:搜索...;ui:inverted;icon:search")
+				div.ui.inverted.divider
+				div(c-widget="Input; placeholder:搜索...;ui:inverted transparent;icon:search")
+
+	+addCatalog("fluid","流体")
+	.example#fluid
+		h4.ui.header 流体
+		p 输入框横向撑满父容器
+		.code
+			div(c-widget="Input; placeholder:搜索...; value:mysite.com; ui:fluid")
+				div(c-widget="Button; caption:搜索")
+			div(c-widget="Input; value:$53.5; buttonPosition:left; ui:fluid")
+				div(c-widget="Button; caption:购买; icon:cart; ui:teal")
+
+	+addCatalog("size","尺寸")
+	.example#size
+		h4.ui.header 尺寸
+		p 默认提供了以下尺寸<code>mini、small、medium、large、big、huge、massive</code>
+		.ui.ignored.info.message 这些输入框将自动设置尺寸大小，除非你手动声明了宽度
+		.code
+			each size in ["mini","small","medium","large","big","huge","massive"]
+				.ui.divider.hidden
+				- var config = "input; ui:"+size+"; placeholder:搜索...;"
+				div(c-widget=config)
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});

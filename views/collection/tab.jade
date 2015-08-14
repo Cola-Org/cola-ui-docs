@@ -1,0 +1,209 @@
+extends ../doc-layout
+mixin _makeTab(id,color,device)
+	div(id=id class="inverted " + color + " " + device style={height: "120px"} c-widget="Tab")
+		nav.tab-bar
+			ul.tabs
+				li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+				li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+				li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+		ul.contents
+			li(name="dashboard") 控制台
+			li(name="desktop") 数据中心
+			li(name="user") 个人中心
+
+block content
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 标签控件
+		p.
+			标签页控件由标签按钮和标签内容组成,标签按钮和内容通过 <code>name</code> Attribute 产生关联。
+			所以通过dom模板创建此控件时需在<code>HTMLElement</code>  上注明<code>name</code>关系。如下所示
+		.ui.segment(style={padding: "0px"})
+			.code
+				div(c-widget="Tab; height:100")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	+addCatalog("direction","标签位置")
+
+	.example#direction
+		h4.ui.header 标签位置
+		p.
+			此控件的标签按钮位置可以通过 <code>direction</code> 进行设定;
+		p.
+			可选值有:<code>left、right、top(默认)、bottom</code>
+		.ui.segment(style={padding: "0px"})
+			.code
+
+				div(c-widget="Tab; height:300; direction:left")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+
+	.ui.divider
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.right-bar(c-widget="Tab; height:300;direction:right")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	.ui.divider
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div(c-widget="Tab; height:300;direction:bottom")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+
+	+addCatalog("inverted","反白效果")
+	.example#inverted
+		h4.ui.header 反白效果
+		.ui.segment(style={padding: "0px"})
+			.code
+
+				div.inverted(c-widget="Tab; height:300")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+
+	+addCatalog("button-color","按钮颜色")
+	.example#button-color
+		h4.ui.header 按钮颜色
+		p.
+			此控件的标签按钮位置可以通过 <code>className</code> 进行设定;
+		p.
+			可选值有:<code>red,orange,yellow,olive,green,teal,blue,violet,purple,pink,brown,grey</code>
+		.ui.segment(style={padding: "0px"})
+			.code
+				div(c-widget="Tab; height:300")
+					nav.tab-bar
+						ul.tabs
+							li.red(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li.blue(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li.yellow(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	+addCatalog("pad-ui","PadUI")
+	.example#pad-ui
+		h4.ui.header PadUI
+		p.
+			可以通过 <code>className=pad</code> 进行设定;
+		p    此UI也支持以上位置,反白和颜色特性
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.pad(c-widget="Tab; height:300")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.pad(c-widget="Tab; height:300; direction:left")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.pad.inverted(c-widget="Tab; height:300")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.pad.inverted.teal(c-widget="Tab; height:300")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	.example
+		.ui.segment(style={padding: "0px"})
+			.code
+				div.pad.inverted.blue(c-widget="Tab; height:300; direction:left")
+					nav.tab-bar
+						ul.tabs
+							li(name="dashboard" c-widget="TabButton; icon:dashboard; caption:控制台;closeable:true")
+							li(name="desktop" c-widget="TabButton; icon:desktop; caption:数据中心;closeable:true")
+							li(name="user" c-widget="TabButton; icon:user; caption:个人中心;closeable:true")
+					ul.contents
+						li(name="dashboard") 控制台
+						li(name="desktop") 数据中心
+						li(name="user") 个人中心
+	+addCatalog("color","颜色")
+
+	.example#color
+		h4.ui.header 颜色
+		p.
+			此控件的标签按钮位置可以通过 <code>className</code> 进行设定;
+		p.
+			可选值有:<code>red,orange,yellow,olive,green,teal,blue,violet,purple,pink,brown,grey</code>
+
+	each color in colors
+		- var id = "tab"+color;
+		+_makeTab(id,color,"")
+
+	each color in colors
+		- var id = "tab"+color;
+
+		+_makeTab(id,color,"pad")
+	script(type="text/javascript").
+		cola(function (model) {
+		});

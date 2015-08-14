@@ -1,0 +1,83 @@
+extends ../doc-layout
+
+
+block content
+	+addCatalog("standard","Steps")
+	.example#standard
+		h4.ui.header 标准
+		.code
+			div(c-widget="Steps;")
+				div(c-widget="Step; icon:payment; content: 提交订单")
+				div(c-widget="Step; icon:car; content: 商品出库")
+				div(c-widget="Step; icon:user; content: 等待收货")
+				div(c-widget="Step; icon:checkmark; content: 完成订单")
+
+	+addCatalog("orderStatusExample","状态")
+	.example#orderStatusExample(name="orderStatus")
+		h4.ui.header 状态
+		.code
+			div#orderStatus(c-widget="Steps;")
+	script(type="text/javascript" name="orderStatus").
+		cola("orderStatus", function (model) {
+			model.widgetConfig({
+				orderStatus: {
+					steps: [
+						{
+							icon: "payment", content: "提交订单"
+						},
+						{
+							icon: "car", content: "商品出库"
+						},
+						{
+							icon: "user", content: "等待收货", states: "active"
+						},
+						{
+							icon: "checkmark", content: "完成订单"
+						}
+					]
+				}
+			})
+		});
+	+addCatalog("content","Content")
+	.example#content(name="content")
+		h4.ui.header Content
+		.code
+			div#stepContent.small(c-widget="Steps;")
+	script(type="text/javascript" name="content").
+		cola("stepContent", function (model) {
+			model.widgetConfig({
+				stepContent: {
+					steps: [
+						{
+							icon: "payment", content: {title: "提交订单", description: "2015-08-01 20:21:30"}
+						},
+						{
+							icon: "car", content: {title: "商品出库", description: "2015-08-01 23:01:33"}
+						},
+						{
+							icon: "user", content: {title: "等待收货", description: "2015-08-02 08:11:30"}, states: "active"
+						},
+						{
+							icon: "checkmark", content: {title: "完成订单", description: "2015-08-02 11:21:30"}
+						}
+					]
+				}
+			})
+		});
+	+addCatalog("autoComplete","自动完成")
+	.example#autoComplete
+		h4.ui.header 自动完成
+		.code
+			div(c-widget="Steps;")
+				div(c-widget="Step; icon:payment; content: 提交订单")
+				div(c-widget="Step; icon:car; content: 商品出库; states:active")
+				div(c-widget="Step; icon:user; content: 等待收货")
+				div(c-widget="Step; icon:checkmark; content: 完成订单")
+			div(c-widget="Steps; autoComplete:false;")
+				div(c-widget="Step; icon:payment; content: 提交订单")
+				div(c-widget="Step; icon:car; content: 商品出库; states:active")
+				div(c-widget="Step; icon:user; content: 等待收货")
+				div(c-widget="Step; icon:checkmark; content: 完成订单")
+	script(type="text/javascript").
+		cola(function (model) {
+		})

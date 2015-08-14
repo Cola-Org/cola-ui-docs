@@ -1,0 +1,38 @@
+extends ../doc-layout
+block content
+	style.
+		.example>.ui.segment{
+			width: 200px;
+			height: 200px;
+		}
+	div#radioGroup(c-widget="RadioGroup; name:animation; value:slide left;")
+	+addCatalog("standard","Layer")
+	.example#standard
+		h4.ui.header Layer 层控件
+
+		div#standardBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#standardLayer.blue-background(c-widget="Layer;")
+	script(type="text/javascript").
+		cola(function (model) {
+			model.action({
+				click:function(){
+					cola.widget("standardLayer").toggle({animation:cola.widget("radioGroup").get("value")})
+				}
+			})
+
+			model.widgetConfig({
+				radioGroup:{
+					items: [
+						"scale", "drop", "browse right", "browse",
+						"slide left", "slide right", "slide up", "slide down",
+						"fade left", "fade right", "fade up", "fade down",
+						"fly left", "fly right", "fly up", "fly down",
+						"swing left", "swing right", "swing up", "swing down",
+						"horizontal flip", "vertical flip"
+					]
+				}
+			})
+
+		});

@@ -1,0 +1,38 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("standard","CardBook")
+	.example#standard(name="standard")
+		h4.ui.header 卡片控件
+		p.
+			该控件可添加多个子组件，但是每次只能显示一个子组件，显示的组件称为活动组件。
+			开控件的子组件切换无动画。
+		div.ui.segment(style={padding: 0, "max-width": "300px"})
+			.code
+				div#card-book-demo(c-widget="CardBook;height:300")
+					.item.active
+						img.ui.image.fluid(src="/images/movies/happiness.jpg")
+					.item
+						img.ui.image.fluid(src="/images/movies/spiderman.jpg")
+					.item
+						img.ui.image.fluid(src="/images/movies/totoro.jpg")
+					.item
+						img.ui.image.fluid(src="/images/movies/12years.jpg")
+
+				div#bottomBar(c-widget="Menu;ui:bottom attached four item; itemClick:itemClick")
+					a(c-widget="item; caption:钱包; icon:money; userData:0")
+					a(c-widget="item; caption:商家; icon:flag; userData:1")
+					a(c-widget="item; caption:朋友; icon:users;userData:2")
+					a(c-widget="item; caption:财富; icon:gift;userData:3")
+
+
+	script(type="text/javascript" name="standard").
+		cola(function (model) {
+			model.action({
+				itemClick: function (self, arg) {
+					var index = arg.item.get("userData");
+					cola.widget("card-book-demo").setCurrentIndex(parseInt(index))
+				}
+			})
+		});

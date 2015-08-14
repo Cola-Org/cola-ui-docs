@@ -1,0 +1,80 @@
+.example > p > code,
+.example a > code {
+  background-color: rgba(0, 50, 100, 0.12);
+  color: #1e70bf;
+  padding: 0 0.5em;
+}
+.example > p > code:hover,
+.example a > code:hover {
+  text-decoration: none;
+}
+.example pre.prettyprint {
+  border: 1px solid #d4d4d5;
+  padding: 1em;
+  background: #ffffff;
+  -webkit-transition: border-color 0.55s linear;
+  transition: border-color 0.55s linear;
+}
+.example pre.prettyprint:hover {
+  background: #f9f9f9;
+  border-color: #0098cc;
+  -webkit-transition: border-color 0.55s linear;
+  -moz-transition: border-color 0.55s linear;
+  -o-transition: border-color 0.55s linear;
+  -ms-transition: border-color 0.55s linear;
+  transition: border-color 0.55s linear;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
+  -moz-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
+}
+.main.container {
+  position: relative;
+}
+.main.container #catalog .content.menu {
+  margin: 0;
+}
+.main.container #catalog a.item.active {
+  padding: 0.5em 1.33333333em;
+}
+.main.container #catalog.fixed {
+  top: 20px;
+}
+.main.container .right.rail {
+  margin: 0em;
+}
+@media only screen and (max-width: 780px) {
+  .main.container .example {
+    margin: 2em 0em;
+  }
+  .main.container .example pre.prettyprint {
+    padding: 0.5em;
+  }
+}
+@media only screen and (min-width: 780px) {
+  .main.container .example {
+    margin: 2em;
+  }
+  .main.container .example pre.prettyprint {
+    padding: 1em;
+  }
+}
+@media only screen and (max-width: 992px) {
+  .main.container > .right.rail {
+    display: none;
+  }
+}
+@media only screen and (min-width: 992px) and (max-width: 1144px) {
+  .main.container {
+    width: 700px;
+  }
+}
+@media only screen and (min-width: 1144px) and (max-width: 1280px) {
+  .main.container {
+    width: 828px;
+  }
+}
+@media only screen and (min-width: 1280px) {
+  .main.container {
+    width: 928px;
+  }
+}

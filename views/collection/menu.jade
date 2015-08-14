@@ -1,0 +1,176 @@
+extends ../doc-layout
+
+block content
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 标准
+		.code
+			div(c-widget="menu;")
+				a(c-widget="item; caption:首页")
+	+addCatalog("rightMenu","右边菜单")
+	.example#rightMenu
+		h4.ui.header 右边菜单
+		.code
+			div(c-widget="menu;")
+				a(c-widget="item; caption:首页")
+				div.right.menu
+					a(c-widget="item; caption:登陆")
+	+addCatalog("dropdownMenu","下拉菜单")
+	.example#dropdownMenu
+		h4.ui.header 下拉菜单
+		.code
+			div(c-widget="menu;")
+				a(c-widget="dropdownItem; caption:首页")
+				div.right.menu
+					div(c-widget="dropdownItem; caption:分享")
+						div(c-widget="menu;")
+							a(c-widget="item; icon:qq; caption:腾讯微博")
+							a(c-widget="item; icon:weixin; caption:微信")
+							a(c-widget="item; icon:google; caption:Google+")
+
+	+addCatalog("content","菜单项")
+	.example#content
+		h4.ui.header 菜单项
+		.code
+			div(c-widget="menu;")
+				div(c-widget="headerItem; text:Dorado UI")
+				div(c-widget="controlItem;")
+					div(c-widget="input; icon:search")
+				div.right.menu
+					div(c-widget="controlItem;")
+						div(c-widget="Button; caption:注册; ui:primary")
+					div(c-widget="controlItem;")
+						div(c-widget="Button; caption:登陆")
+	+addCatalog("verticalMenu","纵向菜单")
+	.example#verticalMenu
+
+		h4.ui.header 纵向菜单
+		.code
+			div(c-widget="menu; ui:vertical;")
+				a(c-widget="item; caption:收件箱")
+					div.ui.label.teal.pointing.left 1
+				a(c-widget="item; caption:垃圾邮件")
+					div.ui.label 5
+				a(c-widget="item; caption:草稿箱")
+					div.ui.label 2
+				div(c-widget="controlItem")
+					div(c-widget="input; ui:transparent; icon:search;placeholder:搜索邮件...")
+	+addCatalog("subMenu","子菜单")
+	.example#subMenu
+		h4.ui.header 子菜单
+		.code
+			div(c-widget="menu; ui:vertical;")
+				div(c-widget="item")
+					div(c-widget="input; icon:search;placeholder:搜索...")
+				div(c-widget="item; caption:产品维护")
+					div(c-widget="menu;")
+						a(c-widget="item; caption:收件箱")
+						a(c-widget="item; caption:垃圾邮件")
+						a(c-widget="item; caption:草稿箱")
+	+addCatalog("tabular","标签式")
+	.example#tabular
+		h4.ui.header Tabular
+		.code
+			div(c-widget="menu; ui:tabular;")
+				a(c-widget="item; ui:active") 首页
+				a(c-widget="item;") 产品维护
+	+addCatalog("fixed","锁定")
+
+	.example#fixed
+		h4.ui.header Fixed
+		p 通过<code>ui:top fixed</code> 获得页面顶部锁定,<code>ui:bottom fixed</code> 获得页面底部锁定
+		.code
+			div(c-widget="menu; ui:bottom fixed;")
+				a(c-widget="item; ui:active") 首页
+				a(c-widget="item;") 产品维护
+	+addCatalog("stackable","Stackable")
+
+	.example#stackable
+		h4.ui.header Stackable
+		.code
+			div(c-widget="menu; ui:stackable;")
+				a(c-widget="item;")
+					img(c-widget="image; src:/images/logo.png")
+				a(c-widget="item; ui:active") 首页
+				a(c-widget="item;") 产品维护
+	+addCatalog("icon","图标")
+	.example#icon
+		h4.ui.header Icon
+		.code
+			div(c-widget="menu; ui:icon;")
+				a(c-widget="item; icon:gamepad")
+				a(c-widget="item; icon:video camera")
+				a(c-widget="item; icon:video play")
+			div(c-widget="menu; ui:vertical icon;")
+				a(c-widget="item; icon:gamepad")
+				a(c-widget="item; icon:video camera")
+				a(c-widget="item; icon:video play")
+	+addCatalog("labeled-icon","标题+图标")
+	.example#labeled-icon
+		h4.ui.header Icon
+		.code
+			div(c-widget="menu; ui:labeled icon;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+			div(c-widget="menu; ui:labeled vertical icon;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+	+addCatalog("fluid","流体")
+	.example#fluid
+		h4.ui.header 流体
+		.code
+			div(c-widget="menu; ui:fluid vertical;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+	+addCatalog("compact","自由宽度")
+	.example#compact
+		h4.ui.header 自由宽度
+		.code
+			div(c-widget="menu; ui:compact;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+	+addCatalog("divided","均分宽度")
+	.example#divided
+		h4.ui.header 均分宽度
+		p 需将ui定义为子项数量英文单词+item 如：4个(<code>ui:four item;</code>)3个(<code>ui:three item;</code>)
+		.code
+			div(c-widget="menu; ui:three item;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+			div(c-widget="menu; ui:four item;")
+				a(c-widget="item; icon:gamepad;caption:游戏;")
+				a(c-widget="item; icon:video camera; caption:电视")
+				a(c-widget="item; icon:video play; caption:视频")
+				a(c-widget="item; icon:music; caption:音乐")
+	+addCatalog("attached","附所模式")
+	.example#attached
+		h4.ui.header 附所模式
+		p 将获得边角的处理
+		.code
+
+				div(c-widget="menu; ui:top attached;")
+					a(c-widget="item; icon:home;caption:首页;")
+				div.ui.attached.segment
+					img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+				div(c-widget="menu; ui:bottom attached;")
+					a(c-widget="item; icon:gamepad;caption:游戏;")
+	+addCatalog("borderless","无分割线")
+	.example#borderless
+		h4.ui.header 无分割线
+		p 通过<code>ui:borderless</code>获得item 无分割线效果
+		.code
+			div(c-widget="menu; ui:borderless;")
+				a(c-widget="item;") 1
+				a(c-widget="item;") 2
+				a(c-widget="item;") 3
+				a(c-widget="item;") 4
+				a(c-widget="item;") 5
+
+	script(type="text/javascript").
+		cola(function (model) {
+		});

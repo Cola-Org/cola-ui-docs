@@ -1,0 +1,55 @@
+doctype html
+html
+	head
+		title= title
+		meta(charset="utf-8")
+		meta(name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1")
+		script(src="/include-all.js")
+		script(src="/cola-interceptor.js")
+
+		link(rel="stylesheet" type="text/css" href="/prettify/themes/tomorrow.css")
+		link(rel="stylesheet" type="text/css" href="/docs.css")
+
+	body
+		// 公共变量与MIXIN定义区域
+		- var colors = ["red", "orange", "yellow","olive", "green", "teal","blue","violet","purple","pink","brown","grey"]
+		- var sizes=["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"]
+		- var catalogGroups=[]
+		- var groupConfig={}
+		- var defaultGroupName="快速入门"
+
+		mixin addCatalog(id,caption,name)
+			unless name
+				-name=defaultGroupName
+			unless groupConfig[name]
+				-groupConfig[name]=[]
+				-catalogGroups.push(name)
+			-groupConfig[name].push({id:id,caption:caption})
+
+		mixin _makeCatalogGroup(name,items)
+			.item.active
+				a.title
+					b= name
+				div(class!=attributes.class)
+					each item in items
+						- var href="#"+item.id
+						a.item(href=href)= item.caption
+
+		mixin catalog()
+			.ui.right.rail
+				.ui.sticky#catalog
+					h4.ui.header 文档目录
+					.ui.vertical.following.fluid.accordion.text.menu
+						each groupName, index in catalogGroups
+							-var items=groupConfig[groupName]
+							-var className="content menu"
+							if index == 0
+								-className+=" active"
+							+_makeCatalogGroup(groupName,items,index)(class=className)
+
+		.main.ui.container
+			block content
+			+catalog()
+	script(src="/prettify/prettify.js")
+	script(src="/jsbeautify.js")
+	script(src="/docs.js")

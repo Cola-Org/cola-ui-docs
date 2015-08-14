@@ -1,0 +1,20 @@
+extends ./doc-layout
+block content
+	+addCatalog("event","事件绑定")
+	.example(name="event")#event
+		h4.ui.header 事件绑定
+		.code
+			div(c-widget="button; click:hello;") 单击
+		//TODO 内部编写markdown
+		:markdown
+			# 内部的 Markdown 内容
+		//TODO 引入外部的markdown 文件
+		include:markdown markdown.md
+	script(type="text/javascript" name="event").
+		cola(function (model) {
+			model.action({
+				hello: function (self, arg) {
+					alert("Hello!!")
+				}
+			})
+		});
