@@ -113,7 +113,7 @@
         if (this._dom) {
           dom = element.getDom();
         }
-      } else if (element.nodeType === 1) {
+      } else if (element.nodeType) {
         targetList.push(element);
         dom = element;
       }

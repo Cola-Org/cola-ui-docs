@@ -4041,12 +4041,12 @@ template {
 .ui.card-book .item.active {
   display: block;
 }
-.ui.d-tab {
+.ui.c-tab {
   position: relative;
   background-color: #ffffff;
   overflow: hidden;
 }
-.ui.d-tab > .tab-bar {
+.ui.c-tab > .tab-bar {
   overflow: hidden;
   display: inline-block;
   width: 100%;
@@ -4055,55 +4055,55 @@ template {
   box-shadow: inset 0 -2px 3px rgba(203, 196, 130, 0.06);
   color: #29324e;
 }
-.ui.d-tab > .tab-bar > .tabs {
+.ui.c-tab > .tab-bar > .tabs {
   list-style: none;
   padding: 0;
   display: inline-block;
   margin: 0;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button {
+.ui.c-tab > .tab-bar > .tabs > .tab-button {
   cursor: pointer;
   line-height: 48px;
   padding: 0 .5em 0 1em;
   float: left;
   font-size: 1em;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button > .caption {
+.ui.c-tab > .tab-bar > .tabs > .tab-button > .caption {
   display: block;
   float: left;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button > .caption span {
+.ui.c-tab > .tab-bar > .tabs > .tab-button > .caption span {
   display: block;
   float: right;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button > .caption > i {
+.ui.c-tab > .tab-bar > .tabs > .tab-button > .caption > i {
   line-height: inherit;
   float: left;
   font-size: 1em;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button .close-btn {
+.ui.c-tab > .tab-bar > .tabs > .tab-button .close-btn {
   display: block;
   float: right;
   opacity: 0.3;
   margin-left: .5em;
   line-height: inherit;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button .close-btn i {
+.ui.c-tab > .tab-bar > .tabs > .tab-button .close-btn i {
   line-height: inherit;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button .close-btn:hover {
+.ui.c-tab > .tab-bar > .tabs > .tab-button .close-btn:hover {
   opacity: 0.6;
   color: #d95c5c;
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #ffffff;
   box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.4);
 }
-.ui.d-tab > .tab-bar > .tabs > .tab-button:hover {
+.ui.c-tab > .tab-bar > .tabs > .tab-button:hover {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab > .contents {
+.ui.c-tab > .contents {
   position: absolute;
   list-style: none;
   margin: 0;
@@ -4113,28 +4113,28 @@ template {
   right: 0;
   left: 0;
 }
-.ui.d-tab > .contents .item {
+.ui.c-tab > .contents .item {
   display: none;
 }
-.ui.d-tab > .contents .item.active {
+.ui.c-tab > .contents .item.active {
   display: block;
 }
-.ui.d-tab.bottom-bar > .tab-bar {
+.ui.c-tab.bottom-bar > .tab-bar {
   position: absolute;
   bottom: 0;
   box-shadow: inset 0 2px 3px rgba(203, 196, 130, 0.06);
 }
-.ui.d-tab.bottom-bar > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.bottom-bar > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.bottom-bar > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.bottom-bar > .tab-bar > .tabs > .tab-button.active:hover {
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.4);
 }
-.ui.d-tab.bottom-bar > .contents {
+.ui.c-tab.bottom-bar > .contents {
   overflow: auto;
   top: 0;
   bottom: 48px;
 }
-.ui.d-tab.left-bar > .tab-bar,
-.ui.d-tab.right-bar > .tab-bar {
+.ui.c-tab.left-bar > .tab-bar,
+.ui.c-tab.right-bar > .tab-bar {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -4143,349 +4143,349 @@ template {
   width: auto;
   height: 100%;
 }
-.ui.d-tab.left-bar > .tab-bar > .tabs > .tab-button,
-.ui.d-tab.right-bar > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.left-bar > .tab-bar > .tabs > .tab-button,
+.ui.c-tab.right-bar > .tab-bar > .tabs > .tab-button {
   float: none;
   height: 48px;
   line-height: 48px;
   display: block;
 }
-.ui.d-tab.left-bar > .contents,
-.ui.d-tab.right-bar > .contents {
+.ui.c-tab.left-bar > .contents,
+.ui.c-tab.right-bar > .contents {
   margin: 0;
   padding: 0;
   position: absolute;
   top: 0;
 }
-.ui.d-tab.left-bar > .tab-bar {
+.ui.c-tab.left-bar > .tab-bar {
   left: 0;
 }
-.ui.d-tab.left-bar > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.left-bar > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.left-bar > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.left-bar > .tab-bar > .tabs > .tab-button.active:hover {
   box-shadow: 2px 0 0 rgba(0, 0, 0, 0.4) inset;
 }
-.ui.d-tab.left-bar > .contents {
+.ui.c-tab.left-bar > .contents {
   left: 11.5em;
 }
-.ui.d-tab.right-bar {
+.ui.c-tab.right-bar {
   position: relative;
 }
-.ui.d-tab.right-bar > .tab-bar {
+.ui.c-tab.right-bar > .tab-bar {
   right: 0;
 }
-.ui.d-tab.right-bar > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.right-bar > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.right-bar > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.right-bar > .tab-bar > .tabs > .tab-button.active:hover {
   box-shadow: -2px 0 0 rgba(0, 0, 0, 0.4) inset;
 }
-.ui.d-tab.right-bar > .contents {
+.ui.c-tab.right-bar > .contents {
   right: 11.5em;
 }
-.ui.d-tab.inverted {
+.ui.c-tab.inverted {
   color: rgba(255, 255, 255, 0.9);
   background-color: #1b1c1d;
 }
-.ui.d-tab.inverted > .tab-bar {
+.ui.c-tab.inverted > .tab-bar {
   color: rgba(255, 255, 255, 0.9);
   background-color: rgba(255, 255, 255, 0.06);
 }
-.ui.d-tab.inverted > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.inverted > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.inverted > .tab-bar > .tabs > .tab-button.active:hover {
   box-shadow: none;
   color: inherit;
   background-color: #1b1c1d;
 }
-.ui.d-tab.inverted > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.inverted > .tab-bar > .tabs > .tab-button {
   color: rgba(255, 255, 255, 0.9);
 }
-.ui.d-tab.inverted > .tab-bar > .tabs > .tab-button:hover {
+.ui.c-tab.inverted > .tab-bar > .tabs > .tab-button:hover {
   background: rgba(34, 36, 38, 0.1);
   color: rgba(255, 255, 255, 0.9);
   box-shadow: none;
 }
-.ui.d-tab.inverted.red {
+.ui.c-tab.inverted.red {
   background-color: #db2828;
 }
-.ui.d-tab.inverted.red > .tab-bar {
+.ui.c-tab.inverted.red > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.red > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.red > .tab-bar > .tabs > .tab-button.active {
   background-color: #db2828;
 }
-.ui.d-tab.inverted.red > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.red > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #db2828;
 }
-.ui.d-tab.inverted.orange {
+.ui.c-tab.inverted.orange {
   background-color: #f2711c;
 }
-.ui.d-tab.inverted.orange > .tab-bar {
+.ui.c-tab.inverted.orange > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.orange > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.orange > .tab-bar > .tabs > .tab-button.active {
   background-color: #f2711c;
 }
-.ui.d-tab.inverted.orange > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.orange > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #f2711c;
 }
-.ui.d-tab.inverted.yellow {
+.ui.c-tab.inverted.yellow {
   background-color: #fbbd08;
 }
-.ui.d-tab.inverted.yellow > .tab-bar {
+.ui.c-tab.inverted.yellow > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.yellow > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.yellow > .tab-bar > .tabs > .tab-button.active {
   background-color: #fbbd08;
 }
-.ui.d-tab.inverted.yellow > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.yellow > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #fbbd08;
 }
-.ui.d-tab.inverted.olive {
+.ui.c-tab.inverted.olive {
   background-color: #b5cc18;
 }
-.ui.d-tab.inverted.olive > .tab-bar {
+.ui.c-tab.inverted.olive > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.olive > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.olive > .tab-bar > .tabs > .tab-button.active {
   background-color: #b5cc18;
 }
-.ui.d-tab.inverted.olive > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.olive > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #b5cc18;
 }
-.ui.d-tab.inverted.green {
+.ui.c-tab.inverted.green {
   background-color: #21ba45;
 }
-.ui.d-tab.inverted.green > .tab-bar {
+.ui.c-tab.inverted.green > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.green > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.green > .tab-bar > .tabs > .tab-button.active {
   background-color: #21ba45;
 }
-.ui.d-tab.inverted.green > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.green > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #21ba45;
 }
-.ui.d-tab.inverted.teal {
+.ui.c-tab.inverted.teal {
   background-color: #00b5ad;
 }
-.ui.d-tab.inverted.teal > .tab-bar {
+.ui.c-tab.inverted.teal > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.teal > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.teal > .tab-bar > .tabs > .tab-button.active {
   background-color: #00b5ad;
 }
-.ui.d-tab.inverted.teal > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.teal > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #00b5ad;
 }
-.ui.d-tab.inverted.blue {
+.ui.c-tab.inverted.blue {
   background-color: #2185d0;
 }
-.ui.d-tab.inverted.blue > .tab-bar {
+.ui.c-tab.inverted.blue > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.blue > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.blue > .tab-bar > .tabs > .tab-button.active {
   background-color: #2185d0;
 }
-.ui.d-tab.inverted.blue > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.blue > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #2185d0;
 }
-.ui.d-tab.inverted.violet {
+.ui.c-tab.inverted.violet {
   background-color: #6435c9;
 }
-.ui.d-tab.inverted.violet > .tab-bar {
+.ui.c-tab.inverted.violet > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.violet > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.violet > .tab-bar > .tabs > .tab-button.active {
   background-color: #6435c9;
 }
-.ui.d-tab.inverted.violet > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.violet > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #6435c9;
 }
-.ui.d-tab.inverted.purple {
+.ui.c-tab.inverted.purple {
   background-color: #a333c8;
 }
-.ui.d-tab.inverted.purple > .tab-bar {
+.ui.c-tab.inverted.purple > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.purple > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.purple > .tab-bar > .tabs > .tab-button.active {
   background-color: #a333c8;
 }
-.ui.d-tab.inverted.purple > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.purple > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #a333c8;
 }
-.ui.d-tab.inverted.pink {
+.ui.c-tab.inverted.pink {
   background-color: #e03997;
 }
-.ui.d-tab.inverted.pink > .tab-bar {
+.ui.c-tab.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active {
   background-color: #e03997;
 }
-.ui.d-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #e03997;
 }
-.ui.d-tab.inverted.brown {
+.ui.c-tab.inverted.brown {
   background-color: #a5673f;
 }
-.ui.d-tab.inverted.brown > .tab-bar {
+.ui.c-tab.inverted.brown > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.brown > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.brown > .tab-bar > .tabs > .tab-button.active {
   background-color: #a5673f;
 }
-.ui.d-tab.inverted.brown > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.brown > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #a5673f;
 }
-.ui.d-tab.inverted.grey {
+.ui.c-tab.inverted.grey {
   background-color: #767676;
 }
-.ui.d-tab.inverted.grey > .tab-bar {
+.ui.c-tab.inverted.grey > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
-.ui.d-tab.inverted.grey > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.inverted.grey > .tab-bar > .tabs > .tab-button.active {
   background-color: #767676;
 }
-.ui.d-tab.inverted.grey > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.inverted.grey > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #767676;
 }
-.ui.d-tab:not(.inverted) .tab-button.red {
+.ui.c-tab:not(.inverted) .tab-button.red {
   color: #db2828;
 }
-.ui.d-tab:not(.inverted) .tab-button.red.active,
-.ui.d-tab:not(.inverted) .tab-button.red.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.red.active,
+.ui.c-tab:not(.inverted) .tab-button.red.active:hover {
   box-shadow: inset 0 2px 0 #db2828;
 }
-.ui.d-tab:not(.inverted) .tab-button.orange {
+.ui.c-tab:not(.inverted) .tab-button.orange {
   color: #f2711c;
 }
-.ui.d-tab:not(.inverted) .tab-button.orange.active,
-.ui.d-tab:not(.inverted) .tab-button.orange.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.orange.active,
+.ui.c-tab:not(.inverted) .tab-button.orange.active:hover {
   box-shadow: inset 0 2px 0 #f2711c;
 }
-.ui.d-tab:not(.inverted) .tab-button.yellow {
+.ui.c-tab:not(.inverted) .tab-button.yellow {
   color: #fbbd08;
 }
-.ui.d-tab:not(.inverted) .tab-button.yellow.active,
-.ui.d-tab:not(.inverted) .tab-button.yellow.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.yellow.active,
+.ui.c-tab:not(.inverted) .tab-button.yellow.active:hover {
   box-shadow: inset 0 2px 0 #fbbd08;
 }
-.ui.d-tab:not(.inverted) .tab-button.olive {
+.ui.c-tab:not(.inverted) .tab-button.olive {
   color: #b5cc18;
 }
-.ui.d-tab:not(.inverted) .tab-button.olive.active,
-.ui.d-tab:not(.inverted) .tab-button.olive.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.olive.active,
+.ui.c-tab:not(.inverted) .tab-button.olive.active:hover {
   box-shadow: inset 0 2px 0 #b5cc18;
 }
-.ui.d-tab:not(.inverted) .tab-button.green {
+.ui.c-tab:not(.inverted) .tab-button.green {
   color: #21ba45;
 }
-.ui.d-tab:not(.inverted) .tab-button.green.active,
-.ui.d-tab:not(.inverted) .tab-button.green.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.green.active,
+.ui.c-tab:not(.inverted) .tab-button.green.active:hover {
   box-shadow: inset 0 2px 0 #21ba45;
 }
-.ui.d-tab:not(.inverted) .tab-button.teal {
+.ui.c-tab:not(.inverted) .tab-button.teal {
   color: #00b5ad;
 }
-.ui.d-tab:not(.inverted) .tab-button.teal.active,
-.ui.d-tab:not(.inverted) .tab-button.teal.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.teal.active,
+.ui.c-tab:not(.inverted) .tab-button.teal.active:hover {
   box-shadow: inset 0 2px 0 #00b5ad;
 }
-.ui.d-tab:not(.inverted) .tab-button.blue {
+.ui.c-tab:not(.inverted) .tab-button.blue {
   color: #2185d0;
 }
-.ui.d-tab:not(.inverted) .tab-button.blue.active,
-.ui.d-tab:not(.inverted) .tab-button.blue.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.blue.active,
+.ui.c-tab:not(.inverted) .tab-button.blue.active:hover {
   box-shadow: inset 0 2px 0 #2185d0;
 }
-.ui.d-tab:not(.inverted) .tab-button.violet {
+.ui.c-tab:not(.inverted) .tab-button.violet {
   color: #6435c9;
 }
-.ui.d-tab:not(.inverted) .tab-button.violet.active,
-.ui.d-tab:not(.inverted) .tab-button.violet.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.violet.active,
+.ui.c-tab:not(.inverted) .tab-button.violet.active:hover {
   box-shadow: inset 0 2px 0 #6435c9;
 }
-.ui.d-tab:not(.inverted) .tab-button.purple {
+.ui.c-tab:not(.inverted) .tab-button.purple {
   color: #a333c8;
 }
-.ui.d-tab:not(.inverted) .tab-button.purple.active,
-.ui.d-tab:not(.inverted) .tab-button.purple.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.purple.active,
+.ui.c-tab:not(.inverted) .tab-button.purple.active:hover {
   box-shadow: inset 0 2px 0 #a333c8;
 }
-.ui.d-tab:not(.inverted) .tab-button.pink {
+.ui.c-tab:not(.inverted) .tab-button.pink {
   color: #e03997;
 }
-.ui.d-tab:not(.inverted) .tab-button.pink.active,
-.ui.d-tab:not(.inverted) .tab-button.pink.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.pink.active,
+.ui.c-tab:not(.inverted) .tab-button.pink.active:hover {
   box-shadow: inset 0 2px 0 #e03997;
 }
-.ui.d-tab:not(.inverted) .tab-button.brown {
+.ui.c-tab:not(.inverted) .tab-button.brown {
   color: #a5673f;
 }
-.ui.d-tab:not(.inverted) .tab-button.brown.active,
-.ui.d-tab:not(.inverted) .tab-button.brown.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.brown.active,
+.ui.c-tab:not(.inverted) .tab-button.brown.active:hover {
   box-shadow: inset 0 2px 0 #a5673f;
 }
-.ui.d-tab:not(.inverted) .tab-button.grey {
+.ui.c-tab:not(.inverted) .tab-button.grey {
   color: #767676;
 }
-.ui.d-tab:not(.inverted) .tab-button.grey.active,
-.ui.d-tab:not(.inverted) .tab-button.grey.active:hover {
+.ui.c-tab:not(.inverted) .tab-button.grey.active,
+.ui.c-tab:not(.inverted) .tab-button.grey.active:hover {
   box-shadow: inset 0 2px 0 #767676;
 }
 @media only screen and (max-width: 468px) {
-  .ui.d-tab > .tab-bar {
+  .ui.c-tab > .tab-bar {
     text-align: center;
   }
 }
-.ui.d-tab.pad.top-bar > .tab-bar,
-.ui.d-tab.pad.bottom-bar > .tab-bar {
+.ui.c-tab.pad.top-bar > .tab-bar,
+.ui.c-tab.pad.bottom-bar > .tab-bar {
   height: 5.25rem;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button {
   display: block;
   background-color: rgba(34, 36, 38, 0.07);
   text-align: center;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .caption {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .caption {
   line-height: inherit;
   margin: 0 8px;
   min-width: 6.25em;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .caption > span {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .caption > span {
   margin: 0;
   line-height: 5.25rem;
   float: none;
   width: 100%;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .caption > i + span {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .caption > i + span {
   line-height: 1em !important;
   margin-top: 0.5rem;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .caption > i {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .caption > i {
   margin: 0.75rem 0 0.75rem 0;
   width: 100%;
   font-size: 2em;
   line-height: initial;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .close-btn {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .close-btn {
   line-height: inherit;
   height: 100%;
   margin: 0;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button > .close-btn i {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button > .close-btn i {
   margin: 0;
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button:hover {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button:hover {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.pad > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.pad > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #ffffff;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs {
   line-height: 5.25rem;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs > .tab-button,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs > .tab-button,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button {
   position: relative;
   float: left;
   line-height: 5.25rem;
@@ -4493,221 +4493,221 @@ template {
   margin-left: 1px;
   padding: 0;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .caption,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .caption {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .caption,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .caption {
   margin: 0 8px;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .caption > span,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .caption > span {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .caption > span,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .caption > span {
   line-height: 5.25rem;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .close-btn,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .close-btn {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .close-btn,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .close-btn {
   top: 0;
   right: 0;
   position: absolute;
   line-height: 16px;
   height: 16px;
 }
-.ui.d-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .close-btn:hover,
-.ui.d-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .close-btn:hover {
+.ui.c-tab.pad.top-bar > .tab-bar > .tabs > .tab-button > .close-btn:hover,
+.ui.c-tab.pad.bottom-bar > .tab-bar > .tabs > .tab-button > .close-btn:hover {
   background-color: rgba(60, 63, 65, 0.22);
 }
-.ui.d-tab.pad.top-bar > .contents {
+.ui.c-tab.pad.top-bar > .contents {
   top: 5.25rem;
 }
-.ui.d-tab.pad.bottom-bar > .contents {
+.ui.c-tab.pad.bottom-bar > .contents {
   bottom: 5.25rem;
 }
-.ui.d-tab.pad.left-bar > .tab-bar > .tabs > .tab-button,
-.ui.d-tab.pad.right-bar > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.left-bar > .tab-bar > .tabs > .tab-button,
+.ui.c-tab.pad.right-bar > .tab-bar > .tabs > .tab-button {
   float: none;
   line-height: 5.25rem;
   height: 5.25rem;
   padding: 0 4px 0 0;
   margin-top: 1px;
 }
-.ui.d-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .caption,
-.ui.d-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .caption {
+.ui.c-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .caption,
+.ui.c-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .caption {
   margin-left: 8px;
   float: right;
 }
-.ui.d-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .caption > span,
-.ui.d-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .caption > span {
+.ui.c-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .caption > span,
+.ui.c-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .caption > span {
   line-height: 5.25rem;
 }
-.ui.d-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .close-btn,
-.ui.d-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .close-btn {
+.ui.c-tab.pad.left-bar > .tab-bar > .tabs > .tab-button > .close-btn,
+.ui.c-tab.pad.right-bar > .tab-bar > .tabs > .tab-button > .close-btn {
   background-color: rgba(60, 63, 65, 0.43);
   line-height: inherit;
   height: 100%;
 }
-.ui.d-tab.pad.left-bar > .contents {
+.ui.c-tab.pad.left-bar > .contents {
   left: 9em;
 }
-.ui.d-tab.pad.right-bar > .contents {
+.ui.c-tab.pad.right-bar > .contents {
   right: 9em;
 }
-.ui.d-tab.pad.inverted {
+.ui.c-tab.pad.inverted {
   background-color: #1b1c1d;
   color: rgba(255, 255, 255, 0.9);
 }
-.ui.d-tab.pad.inverted > .tab-bar {
+.ui.c-tab.pad.inverted > .tab-bar {
   color: rgba(255, 255, 255, 0.9);
   background-color: rgba(255, 255, 255, 0.06);
 }
-.ui.d-tab.pad.inverted > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted > .tab-bar > .tabs > .tab-button {
   background-color: rgba(255, 255, 255, 0.06);
 }
-.ui.d-tab.pad.inverted > .tab-bar > .tabs > .tab-button.active,
-.ui.d-tab.pad.inverted > .tab-bar > .tabs > .tab-button.active:hover {
+.ui.c-tab.pad.inverted > .tab-bar > .tabs > .tab-button.active,
+.ui.c-tab.pad.inverted > .tab-bar > .tabs > .tab-button.active:hover {
   background-color: #1b1c1d;
 }
-.ui.d-tab.pad.inverted > .tab-bar > .tabs > .tab-button:hover {
+.ui.c-tab.pad.inverted > .tab-bar > .tabs > .tab-button:hover {
   background-color: rgba(255, 255, 255, 0.01);
 }
-.ui.d-tab.pad.inverted.red {
+.ui.c-tab.pad.inverted.red {
   background-color: #db2828;
 }
-.ui.d-tab.pad.inverted.red > .tab-bar {
+.ui.c-tab.pad.inverted.red > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.red > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.red > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.red > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.red > .tab-bar > .tabs > .tab-button.active {
   background-color: #db2828;
 }
-.ui.d-tab.pad.inverted.orange {
+.ui.c-tab.pad.inverted.orange {
   background-color: #f2711c;
 }
-.ui.d-tab.pad.inverted.orange > .tab-bar {
+.ui.c-tab.pad.inverted.orange > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.orange > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.orange > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.orange > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.orange > .tab-bar > .tabs > .tab-button.active {
   background-color: #f2711c;
 }
-.ui.d-tab.pad.inverted.yellow {
+.ui.c-tab.pad.inverted.yellow {
   background-color: #fbbd08;
 }
-.ui.d-tab.pad.inverted.yellow > .tab-bar {
+.ui.c-tab.pad.inverted.yellow > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.yellow > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.yellow > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.yellow > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.yellow > .tab-bar > .tabs > .tab-button.active {
   background-color: #fbbd08;
 }
-.ui.d-tab.pad.inverted.olive {
+.ui.c-tab.pad.inverted.olive {
   background-color: #b5cc18;
 }
-.ui.d-tab.pad.inverted.olive > .tab-bar {
+.ui.c-tab.pad.inverted.olive > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.olive > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.olive > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.olive > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.olive > .tab-bar > .tabs > .tab-button.active {
   background-color: #b5cc18;
 }
-.ui.d-tab.pad.inverted.green {
+.ui.c-tab.pad.inverted.green {
   background-color: #21ba45;
 }
-.ui.d-tab.pad.inverted.green > .tab-bar {
+.ui.c-tab.pad.inverted.green > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.green > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.green > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.green > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.green > .tab-bar > .tabs > .tab-button.active {
   background-color: #21ba45;
 }
-.ui.d-tab.pad.inverted.teal {
+.ui.c-tab.pad.inverted.teal {
   background-color: #00b5ad;
 }
-.ui.d-tab.pad.inverted.teal > .tab-bar {
+.ui.c-tab.pad.inverted.teal > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.teal > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.teal > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.teal > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.teal > .tab-bar > .tabs > .tab-button.active {
   background-color: #00b5ad;
 }
-.ui.d-tab.pad.inverted.blue {
+.ui.c-tab.pad.inverted.blue {
   background-color: #2185d0;
 }
-.ui.d-tab.pad.inverted.blue > .tab-bar {
+.ui.c-tab.pad.inverted.blue > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.blue > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.blue > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.blue > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.blue > .tab-bar > .tabs > .tab-button.active {
   background-color: #2185d0;
 }
-.ui.d-tab.pad.inverted.violet {
+.ui.c-tab.pad.inverted.violet {
   background-color: #6435c9;
 }
-.ui.d-tab.pad.inverted.violet > .tab-bar {
+.ui.c-tab.pad.inverted.violet > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.violet > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.violet > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.violet > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.violet > .tab-bar > .tabs > .tab-button.active {
   background-color: #6435c9;
 }
-.ui.d-tab.pad.inverted.purple {
+.ui.c-tab.pad.inverted.purple {
   background-color: #a333c8;
 }
-.ui.d-tab.pad.inverted.purple > .tab-bar {
+.ui.c-tab.pad.inverted.purple > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.purple > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.purple > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.purple > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.purple > .tab-bar > .tabs > .tab-button.active {
   background-color: #a333c8;
 }
-.ui.d-tab.pad.inverted.pink {
+.ui.c-tab.pad.inverted.pink {
   background-color: #e03997;
 }
-.ui.d-tab.pad.inverted.pink > .tab-bar {
+.ui.c-tab.pad.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button.active {
   background-color: #e03997;
 }
-.ui.d-tab.pad.inverted.brown {
+.ui.c-tab.pad.inverted.brown {
   background-color: #a5673f;
 }
-.ui.d-tab.pad.inverted.brown > .tab-bar {
+.ui.c-tab.pad.inverted.brown > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.brown > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.brown > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.brown > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.brown > .tab-bar > .tabs > .tab-button.active {
   background-color: #a5673f;
 }
-.ui.d-tab.pad.inverted.grey {
+.ui.c-tab.pad.inverted.grey {
   background-color: #767676;
 }
-.ui.d-tab.pad.inverted.grey > .tab-bar {
+.ui.c-tab.pad.inverted.grey > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
 }
-.ui.d-tab.pad.inverted.grey > .tab-bar > .tabs > .tab-button {
+.ui.c-tab.pad.inverted.grey > .tab-bar > .tabs > .tab-button {
   background-color: rgba(34, 36, 38, 0.1);
 }
-.ui.d-tab.pad.inverted.grey > .tab-bar > .tabs > .tab-button.active {
+.ui.c-tab.pad.inverted.grey > .tab-bar > .tabs > .tab-button.active {
   background-color: #767676;
 }
 

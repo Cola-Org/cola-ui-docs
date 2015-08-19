@@ -12,6 +12,11 @@ mixin _makeTab(id,color,device)
 			li(name="user") 个人中心
 
 block content
+	style.
+		.ui.c-tab > .contents{
+			text-align: center;
+			padding: 1em !important;
+		}
 	+addCatalog("standard","标准")
 	.example#standard
 		h4.ui.header 标签控件

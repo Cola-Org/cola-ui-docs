@@ -101,18 +101,3 @@ body {
   background-color: #F9F9F5 !important;
   color: #2C3E50 !important;
 }
-body,
-button,
-input,
-select {
-  font-family: Microsoft Yahei, Hiragino Sans GB, WenQuanYi Micro Hei, sans-serif !important;
-}
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 500;
-  font-family: Helvetica Neue, Microsoft Yahei, Hiragino Sans GB, WenQuanYi Micro Hei, sans-serif !important;
-}

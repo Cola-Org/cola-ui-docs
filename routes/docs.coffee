@@ -7,6 +7,7 @@ path = require 'path'
 fs = require 'fs'
 mit = require('jstransformer-markdown-it')
 markdown = jstransformer(mit)
+marked = require('marked')
 router.get '/*', (req, res, next) ->
 	pathName = req.params[0]
 	if pathName
@@ -18,7 +19,7 @@ router.get '/*', (req, res, next) ->
 				(err, html)->
 					fs.readFile(path.join(__dirname, mdConfig.options.cwd, mdOptions.file), (err, data)->
 						if err then throw err
-						res.send(html.replace("#MARKDOWN-CONTENT", markdownJs.makeHtml(data.toString())))
+						res.send(html.replace("#MARKDOWN-CONTENT", marked(data.toString())))
 					)
 					return
 			return

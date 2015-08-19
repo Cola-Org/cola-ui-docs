@@ -1016,7 +1016,11 @@
           tagName: "span",
           content: this._caption || ""
         });
-        dom.appendChild(this._doms.captionDom);
+        if (this._doms.iconDom) {
+          $fly(this._doms.iconDom).after(this._doms.captionDom);
+        } else {
+          $fly(dom).prepend(this._doms.captionDom);
+        }
       }
     };
 
@@ -1109,6 +1113,7 @@
       $dom = this.get$Dom();
       $dom.find(">.ui.menu").removeClass("ui");
       this._refreshIcon();
+      $fly(this._doms.captionDom).text(this._caption || "");
       if (this._subMenu) {
         subMenuDom = this._subMenu.getDom();
         if (subMenuDom.parentNode !== this._dom) {
