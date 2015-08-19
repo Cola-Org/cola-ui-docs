@@ -27,7 +27,7 @@ router.get '/*', (req, res, next) ->
 		title = if paths.length > 1 then paths[1] else pathName
 	else
 		pathName = "preview"
-		title = "Dorado UI"
+		title = "Cola UI"
 	res.render pathName,
 		title: title
 		markdown: markdown

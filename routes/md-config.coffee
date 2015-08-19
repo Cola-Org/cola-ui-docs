@@ -2,6 +2,30 @@ module.exports =
 	options:
 		cwd:"../views/md"
 	router:
+		"articals":
+			title:"Cola-UI文章"
+			file:"articals.md"
 		"quick-start":
 			title:"快速入门"
 			file:"quick-start.md"
+		"model":
+			title:"Model(视图模型)"
+			file:"model.md"
+		"data-model":
+			title:"数据相关概念"
+			file:"data-model.md"
+		"expression":
+			title:"表达式"
+			file:"expression.md"
+		"dom-directives":
+			title:"DOM指令"
+			file:"dom-directives.md"
+		"element":
+			title:"Element"
+			file:"element.md"
+		"action":
+			title:"Action(动作)"
+			file:"action.md"
+		"router":
+			title:"router(路由)"
+			file:"router.md"
