@@ -1,5 +1,6 @@
 (function() {
-  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  var _removeTranslateStyle,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
   cola.Segment = (function(superClass) {
@@ -77,6 +78,16 @@
 
   })(cola.AbstractContainer);
 
+  _removeTranslateStyle = function(element) {
+    var i, len, prefix, ref;
+    ref = ['Moz', 'Webkit', 'O', 'ms'];
+    for (i = 0, len = ref.length; i < len; i++) {
+      prefix = ref[i];
+      element.style[prefix + "Transform"] = "";
+    }
+    return element.style.transform = "";
+  };
+
   cola.Layer = (function(superClass) {
     extend(Layer, superClass);
 
@@ -109,6 +120,8 @@
       beforeHide: null
     };
 
+    Layer.SLIDE_ANIMATIONS = ["slide left", "slide right", "slide up", "slide down"];
+
     Layer.prototype._onShow = function() {};
 
     Layer.prototype._onHide = function() {};
@@ -116,7 +129,7 @@
     Layer.prototype._initDom = function() {};
 
     Layer.prototype._doTransition = function(options, callback) {
-      var layer, onComplete;
+      var $dom, animation, configs, duration, height, isHorizontal, isShow, layer, onComplete, width, x, y;
       layer = this;
       onComplete = function() {
         if (typeof callback === "function") {
@@ -135,19 +148,60 @@
         onComplete();
         return this;
       }
-      this.get$Dom().transition({
-        animation: options.animation || this._animation || "slide left",
-        duration: options.duration || this._duration || 300,
-        onComplete: onComplete,
-        queue: true
-      });
+      animation = options.animation || this._animation || "slide left";
+      duration = options.duration || this._duration || 300;
+      if (this.constructor.SLIDE_ANIMATIONS.indexOf(animation) < 0) {
+        this.get$Dom().transition({
+          animation: animation,
+          duration: duration,
+          onComplete: onComplete,
+          queue: true
+        });
+      } else {
+        $dom = this.get$Dom();
+        width = $dom.width();
+        height = $dom.height();
+        isHorizontal = animation === "slide left" || animation === "slide right";
+        if (animation === "slide left") {
+          x = width;
+          y = 0;
+        } else if (animation === "slide right") {
+          x = -width;
+          y = 0;
+        } else if (animation === "slide up") {
+          x = 0;
+          y = height;
+        } else {
+          x = 0;
+          y = -height;
+        }
+        isShow = options.target === "show";
+        if (isShow) {
+          cola.Fx.translateElement(this._dom, x, y);
+        }
+        configs = {
+          duration: duration,
+          complete: (function(_this) {
+            return function() {
+              if (!isShow) {
+                $dom.removeClass("visible").addClass("hidden");
+              }
+              _removeTranslateStyle(_this._dom);
+              return onComplete();
+            };
+          })(this)
+        };
+        if (isHorizontal) {
+          configs.x = isShow ? 0 : x;
+        } else {
+          configs.y = isShow ? 0 : y;
+        }
+        $dom.removeClass("hidden").addClass("visible").transit(configs);
+      }
     };
 
     Layer.prototype._transition = function(options, callback) {
-      var arg;
-      arg = {};
-      this.fire("before" + (cola.util.capitalize(options.target)), this, {});
-      if (arg.processDefault === false) {
+      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
         return false;
       }
       this._doTransition(options, callback);
@@ -186,6 +240,10 @@
       return this;
     };
 
+    Layer.prototype.toggle = function() {
+      return this[this.isVisible() ? "hide" : "show"].apply(this, arguments);
+    };
+
     Layer.prototype.isVisible = function() {
       return this.get$Dom().transition("stop all").transition("is visible");
     };
@@ -205,21 +263,19 @@
 
     Dialog.ATTRIBUTES = {
       context: null,
+      animation: {
+        defaultValue: "scale",
+        "enum": ["scale", "drop", "browse right", "browse", "slide left", "slide right", "slide up", "slide down", "fade left", "fade right", "fade up", "fade down", "fly left", "fly right", "fly up", "fly down", "swing left", "swing right", "swing up", "swing down", "horizontal flip", "vertical flip"]
+      },
       header: {
         setter: function(value) {
-          this._setInternal(value, "header");
-          return this;
-        }
-      },
-      content: {
-        setter: function(value) {
-          this._setInternal(value, "content");
+          this._setContent(value, "header");
           return this;
         }
       },
       actions: {
         setter: function(value) {
-          this._setInternal(value, "actions");
+          this._setContent(value, "actions");
           return this;
         }
       },
@@ -242,28 +298,19 @@
         return null;
       }
       if (!this._doms.content) {
-        this._makeInternalDom("content");
+        this._makeContentDom("content");
       }
       return this._doms.content;
     };
 
-    Dialog.prototype._setDom = function(dom, parseChild) {
+    Dialog.prototype._initDom = function(dom) {
       var container, el, i, j, key, len, len1, ref, ref1, ref2;
-      Dialog.__super__._setDom.call(this, dom, parseChild);
-      if (this._doms == null) {
-        this._doms = {};
-      }
-      if (!this._doms.content) {
-        this._makeInternalDom("content");
-      }
+      Dialog.__super__._initDom.call(this, dom);
       ref = ["header", "actions"];
       for (i = 0, len = ref.length; i < len; i++) {
         container = ref[i];
         key = "_" + container;
         if ((ref1 = this[key]) != null ? ref1.length : void 0) {
-          if (!this._doms[container]) {
-            this._makeInternalDom(container);
-          }
           ref2 = this[key];
           for (j = 0, len1 = ref2.length; j < len1; j++) {
             el = ref2[j];
@@ -326,26 +373,21 @@
       return Dialog.__super__._onShow.call(this);
     };
 
-    Dialog.prototype._onHide = function() {
-      return Dialog.__super__._onHide.call(this);
-    };
-
     Dialog.prototype._transition = function(options, callback) {
-      var $dom, arg, height, pHeight, pWidth, parentNode, width;
-      arg = {};
-      this.fire("before" + (options.target.substring(0, 1).toUpperCase() + options.target.substring(1)), this, {});
-      if (arg.processDefault === false) {
+      var $dom, height, isShow, pHeight, pWidth, parentNode, width;
+      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
         return false;
       }
       $dom = this.get$Dom();
+      isShow = options.target === "show";
       if (this.get("modal")) {
-        if (options.target === "show") {
+        if (isShow) {
           this._showModalLayer();
         } else {
           this._hideModalLayer();
         }
       }
-      if (options.target === "show") {
+      if (isShow) {
         width = $dom.width();
         height = $dom.height();
         parentNode = this._context || this._dom.parentNode;
@@ -361,7 +403,7 @@
       return this._doTransition(options, callback);
     };
 
-    Dialog.prototype._makeInternalDom = function(target) {
+    Dialog.prototype._makeContentDom = function(target) {
       var afterEl, dom, flex;
       if (this._doms == null) {
         this._doms = {};
@@ -402,7 +444,7 @@
           while (childNode) {
             if (childNode.nodeType === 1) {
               widget = cola.widget(childNode);
-              _this._addInternalElement(widget || childNode, target);
+              _this._addContentElement(widget || childNode, target);
             }
             childNode = childNode.nextSibling;
           }

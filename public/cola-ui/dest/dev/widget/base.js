@@ -15,24 +15,18 @@
     AbstractContainer.ATTRIBUTES = {
       content: {
         setter: function(value) {
-          this._setInternal(value, "content");
+          this._setContent(value, "content");
           return this;
         }
       }
     };
 
     AbstractContainer.prototype._initDom = function(dom) {
-      var el, k, len, ref, ref1;
-      if (this._doms == null) {
-        this._doms = {};
-      }
+      var el, k, len, ref;
       if (this._content) {
-        if (!((ref = this._doms) != null ? ref.content : void 0)) {
-          this._makeInternalDom("content");
-        }
-        ref1 = this._content;
-        for (k = 0, len = ref1.length; k < len; k++) {
-          el = ref1[k];
+        ref = this._content;
+        for (k = 0, len = ref.length; k < len; k++) {
+          el = ref[k];
           this._render(el, "content");
         }
       }
@@ -59,28 +53,7 @@
       return this.getDom();
     };
 
-    AbstractContainer.prototype._parseContentElement = function(element) {
-      var result, widget;
-      result = null;
-      if (typeof element === "string") {
-        result = $.xCreate({
-          tagName: "SPAN",
-          content: element
-        });
-      } else if (element.constructor === Object.prototype.constructor && element.$type) {
-        widget = cola.widget(element);
-        result = widget;
-      } else if (element instanceof cola.Widget) {
-        result = element;
-      } else if (element.nodeType === 1) {
-        result = element;
-      } else {
-        result = $.xCreate(element);
-      }
-      return result;
-    };
-
-    AbstractContainer.prototype._clearInternal = function(target) {
+    AbstractContainer.prototype._clearContent = function(target) {
       var el, k, len, old;
       old = this["_" + target];
       if (old) {
@@ -100,26 +73,26 @@
       }
     };
 
-    AbstractContainer.prototype._setInternal = function(value, target) {
+    AbstractContainer.prototype._setContent = function(value, target) {
       var el, k, len, result;
-      this._clearInternal(target);
+      this._clearContent(target);
       if (value instanceof Array) {
         for (k = 0, len = value.length; k < len; k++) {
           el = value[k];
-          result = this._parseContentElement(el);
+          result = cola.xRender(el, this._scope);
           if (result) {
-            this._addInternalElement(result, target);
+            this._addContentElement(result, target);
           }
         }
       } else {
-        result = this._parseContentElement(value);
+        result = cola.xRender(value, this._scope);
         if (result) {
-          this._addInternalElement(result, target);
+          this._addContentElement(result, target);
         }
       }
     };
 
-    AbstractContainer.prototype._makeInternalDom = function(target) {
+    AbstractContainer.prototype._makeContentDom = function(target) {
       if (this._doms == null) {
         this._doms = {};
       }
@@ -127,7 +100,7 @@
       return this._dom;
     };
 
-    AbstractContainer.prototype._addInternalElement = function(element, target) {
+    AbstractContainer.prototype._addContentElement = function(element, target) {
       var dom, name, targetList;
       name = "_" + target;
       if (this[name] == null) {
@@ -155,7 +128,7 @@
         this._doms = {};
       }
       if (!this._doms[target]) {
-        this._makeInternalDom(target);
+        this._makeContentDom(target);
       }
       dom = node;
       if (node instanceof cola.Widget) {
@@ -175,7 +148,6 @@
         ref = this._content;
         for (k = 0, len = ref.length; k < len; k++) {
           child = ref[k];
-          this._doRemove(child);
           if (typeof child.destroy === "function") {
             child.destroy();
           }
@@ -209,11 +181,19 @@
     };
 
     Link.prototype._setDom = function(dom, parseChild) {
-      var href;
-      if (parseChild && !this._href) {
-        href = dom.getAttribute("href");
-        if (href) {
-          this._href = href;
+      var href, target;
+      if (parseChild) {
+        if (!this._href) {
+          href = dom.getAttribute("href");
+          if (href) {
+            this._href = href;
+          }
+        }
+        if (!this._target) {
+          target = dom.getAttribute("target");
+          if (target) {
+            this._target = target;
+          }
         }
       }
       return Link.__super__._setDom.call(this, dom, parseChild);
@@ -226,7 +206,11 @@
       }
       Link.__super__._doRefreshDom.call(this);
       $dom = this.get$Dom();
-      $dom.attr("href", this._href || "");
+      if (this._href) {
+        $dom.attr("href", this._href);
+      } else {
+        $dom.removeAttr("href");
+      }
       return $dom.attr("target", this._target || "");
     };
 
@@ -252,11 +236,11 @@
         refreshDom: true,
         setter: function(value) {
           var oldValue;
-          oldValue = this["_size"];
+          oldValue = this._size;
           if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-          this["_size"] = value;
+          this._size = value;
         }
       },
       color: {
@@ -264,11 +248,11 @@
         "enum": ["red", "orange", "yellow", "olive", "green", "teal", "blue", "violet", "purple", "pink", "brown", "grey", "black"],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_color"];
+          oldValue = this._color;
           if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-          this["_color"] = value;
+          this._color = value;
         }
       },
       attached: {
@@ -277,11 +261,11 @@
         "enum": ["left", "right", "top", "bottom", ""],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_attached"];
+          oldValue = this._attached;
           if (oldValue && oldValue !== value && this._dom) {
-            cola.util.removeClass(this._dom, oldValue + " attached", true);
+            this.removeClass(oldValue + " attached", true);
           }
-          this["_attached"] = value;
+          this._attached = value;
         }
       }
     };
@@ -317,7 +301,7 @@
       return Button.__super__.constructor.apply(this, arguments);
     }
 
-    Button.SEMANTIC_CLASS = ["left floated", "right floated", "left labeled", "right labeled", "top attached", "bottom attached", "left attached", "right attached"];
+    Button.SEMANTIC_CLASS = ["left floated", "right floated", "top attached", "bottom attached", "left attached", "right attached"];
 
     Button.CLASS_NAME = "button";
 
@@ -328,12 +312,11 @@
       icon: {
         refreshDom: true,
         setter: function(value) {
-          var $iconDom, oldValue, ref;
-          oldValue = this["_icon"];
-          this["_icon"] = value;
+          var oldValue, ref;
+          oldValue = this._icon;
+          this._icon = value;
           if (oldValue && oldValue !== value && this._dom && ((ref = this._doms) != null ? ref.iconDom : void 0)) {
-            $iconDom = $(this._doms.iconDom);
-            $iconDom.removeClass(oldValue);
+            $fly(this._doms.iconDom).removeClass(oldValue);
           }
         }
       },
@@ -346,17 +329,21 @@
         refreshDom: true,
         defaultValue: false
       },
+      disabled: {
+        refreshDom: true,
+        defaultValue: false
+      },
       states: {
         refreshDom: true,
         defaultValue: "",
-        "enum": ["disabled", "loading", "active", ""],
+        "enum": ["loading", "active", ""],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_states"];
+          oldValue = this._states;
           if (oldValue && oldValue !== value && this._dom) {
             $fly(this._dom).removeClass(oldValue);
           }
-          this["_states"] = value;
+          this._states = value;
         }
       }
     };
@@ -401,16 +388,16 @@
           }
         }
         this._classNamePool.add("icon");
-        (base = this._doms).iconDom || (base.iconDom = document.createElement("i"));
+        if ((base = this._doms).iconDom == null) {
+          base.iconDom = document.createElement("i");
+        }
         iconDom = this._doms.iconDom;
-        $(iconDom).addClass(icon + " icon");
+        $fly(iconDom).addClass(icon + " icon");
         if (iconDom.parentNode !== this._dom) {
           $dom.append(iconDom);
         }
-      } else {
-        if (this._doms.iconDom) {
-          $(this._doms.iconDom).remove();
-        }
+      } else if (this._doms.iconDom) {
+        $fly(this._doms.iconDom).remove();
       }
     };
 
@@ -422,23 +409,20 @@
       Button.__super__._doRefreshDom.call(this);
       $dom = this.get$Dom();
       classNamePool = this._classNamePool;
-      if (this._doms == null) {
-        this._doms = {};
-      }
-      caption = this.get("caption");
+      caption = this._caption;
       captionDom = this._doms.captionDom;
       if (caption) {
         if (!captionDom) {
           captionDom = document.createElement("span");
           this._doms.captionDom = captionDom;
         }
-        $(captionDom).text(caption);
+        $fly(captionDom).text(caption);
         if (captionDom.parentNode !== this._dom) {
           $dom.append(captionDom);
         }
       } else {
         if (captionDom) {
-          $(captionDom).remove();
+          $fly(captionDom).remove();
         }
       }
       if (this.get("focusable")) {
@@ -451,13 +435,7 @@
       if (states) {
         classNamePool.add(states);
       }
-    };
-
-    Button.prototype.destroy = function() {
-      if (!this._destroyed) {
-        delete this._doms;
-        Button.__super__.destroy.call(this);
-      }
+      classNamePool.toggle("disabled", this._disabled);
     };
 
     return Button;
@@ -479,11 +457,8 @@
 
     Separator.ATTRIBUTES = {
       text: {
-        defaultValue: "",
-        setter: function(value) {
-          this["_value"] = value;
-          return this.refresh();
-        }
+        defaultValue: "or",
+        refreshDom: true
       }
     };
 
@@ -506,7 +481,7 @@
       }
       Separator.__super__._doRefreshDom.call(this);
       if (this._dom) {
-        $(this._dom).attr("data-text", this.get("text"));
+        this.get$Dom().attr("data-text", this._text);
       }
       return this;
     };
@@ -523,6 +498,8 @@
     function ButtonGroup() {
       return ButtonGroup.__super__.constructor.apply(this, arguments);
     }
+
+    ButtonGroup.SEMANTIC_CLASS = ["left floated", "right floated", "top attached", "bottom attached", "left attached", "right attached"];
 
     ButtonGroup.CHILDREN_TYPE_NAMESPACE = "button-group";
 
@@ -554,9 +531,6 @@
 
     ButtonGroup.prototype._setDom = function(dom, parseChild) {
       var activeExclusive, item, itemDom, k, len, ref, ref1;
-      if (this._doms == null) {
-        this._doms = {};
-      }
       ButtonGroup.__super__._setDom.call(this, dom, parseChild);
       if ((ref = this._items) != null ? ref.length : void 0) {
         ref1 = this._items;
@@ -584,7 +558,7 @@
               if (button) {
                 button.set("states", "");
               } else {
-                $(itemDom).removeClass("active disabled");
+                $(itemDom).removeClass("active");
               }
             }
           });
@@ -617,9 +591,6 @@
           }
         }
         child = child.nextSibling;
-      }
-      if (this._doms == null) {
-        this._doms = {};
       }
     };
 
@@ -749,9 +720,8 @@
     };
 
     ButtonGroup.prototype.getItem = function(index) {
-      if (this._items) {
-        return this._items[index];
-      }
+      var ref;
+      return (ref = this._items) != null ? ref[index] : void 0;
     };
 
     ButtonGroup.prototype.getItems = function() {
@@ -1887,7 +1857,7 @@
         animation: "slide down",
         vertical: true,
         horizontal: true,
-        ui: "date-timer"
+        "class": "date-timer"
       });
       timerLayer._picker = picker;
       layerDom = timerLayer.getDom();
@@ -2725,116 +2695,34 @@
     Divider.CLASS_NAME = "divider";
 
     Divider.ATTRIBUTES = {
-      content: {
-        refreshDom: true,
-        setter: function(value) {
-          var contentDom, oldValue;
-          oldValue = this["_content"];
-          this["_content"] = value;
-          if (oldValue && this["_contentDom"]) {
-            delete this["_contentDom"];
-          }
-          if (this._dom) {
-            contentDom = this._getContentDom();
-            if (contentDom) {
-              this.get$Dom().html(contentDom);
-            }
-          }
-        },
-        getter: function() {
-          var childNodes;
-          if (this._content) {
-            return this._content;
-          }
-          if (this._dom) {
-            childNodes = this._dom.childNodes;
-            if (childNodes.length === 1 && childNodes[0].nodeType === 3) {
-              return cola.util.getTextChildData(this._dom);
-            } else if (childNodes.length) {
-              return this._dom.childNodes;
-            }
-          }
-        }
-      },
       direction: {
         "enum": ["vertical", "horizontal", ""],
         defaultValue: "",
+        refreshDom: true,
         setter: function(value) {
           var oldValue;
-          oldValue = this["_direction"];
-          this["_direction"] = value;
+          oldValue = this._direction;
+          this._direction = value;
           if (this._dom && oldValue && oldValue !== value) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-        }
-      }
-    };
-
-    Divider.prototype._getContentDom = function() {
-      var content, contentDom;
-      if (this._contentDom) {
-        return this._contentDom;
-      }
-      content = this.get("content");
-      if (!content) {
-        return null;
-      }
-      contentDom = null;
-      if (content.getDom) {
-        contentDom = content.getDom();
-      } else if (typeof content === "string") {
-        contentDom = $.xCreate({
-          tagName: "SPAN",
-          content: content
-        });
-        this._content = contentDom;
-      } else if (content.nodeType === 1) {
-        contentDom = content;
-      } else if (content.constructor === Object.prototype.constructor) {
-        if (content.$type) {
-          this._content = cola.widget(content);
-          contentDom = this._content.getDom();
-        } else {
-          contentDom = $.xCreate(content);
-        }
-      }
-      this._contentDom = contentDom;
-      return this._contentDom;
-    };
-
-    Divider.prototype._setDom = function(dom, parseChild) {
-      var contentDom;
-      Divider.__super__._setDom.call(this, dom, parseChild);
-      if (this._content) {
-        contentDom = this._getContentDom();
-        if (contentDom.parentNode !== this._dom) {
-          return this.get$Dom().append(contentDom);
         }
       }
     };
 
     Divider.prototype._doRefreshDom = function() {
-      var classNamePool;
       if (!this._dom) {
         return;
       }
       Divider.__super__._doRefreshDom.call(this);
-      classNamePool = this._classNamePool;
       if (this._direction) {
-        classNamePool.add(this._direction);
-      }
-    };
-
-    Divider.prototype.destroy = function() {
-      if (!this._destroyed) {
-        delete this._content;
-        Divider.__super__.destroy.call(this);
+        this._classNamePool.add(this._direction);
       }
     };
 
     return Divider;
 
-  })(cola.Widget);
+  })(cola.AbstractContainer);
 
   BLANK_PATH = "about:blank";
 
@@ -2851,14 +2739,13 @@
       path: {
         defaultValue: BLANK_PATH,
         setter: function(value) {
-          var oldValue, ref;
+          var oldValue;
           oldValue = this._path;
           this._path = value;
           if (oldValue === value || !this._dom) {
             return;
           }
           this._loaded = false;
-          $((ref = this._doms) != null ? ref.dimmer : void 0).addClass("active");
           this._replaceUrl(this._path);
         }
       },
@@ -2869,14 +2756,12 @@
       load: null
     };
 
-    IFrame.prototype._setDom = function(dom, parseChild) {
+    IFrame.prototype._initDom = function(dom) {
       var $dom, frame, frameDoms;
-      IFrame.__super__._setDom.call(this, dom, parseChild);
       frame = this;
+      frameDoms = this._doms;
       $dom = $(dom);
-      $dom.addClass("loading").empty();
-      frameDoms = this._doms != null ? this._doms : this._doms = {};
-      $dom.append($.xCreate([
+      $dom.addClass("loading").empty().append($.xCreate([
         {
           tagName: "div",
           "class": "ui active inverted dimmer",
@@ -2889,7 +2774,6 @@
           contextKey: "dimmer"
         }, {
           tagName: "iframe",
-          className: "iframe hidden",
           contextKey: "iframe",
           scrolling: cola.os.ios ? "no" : "auto",
           frameBorder: 0
@@ -2899,7 +2783,14 @@
         frame.fire("load", this, {});
         frame._loaded = true;
         return $(frameDoms.dimmer).removeClass("active");
-      }).attr("src", this.get("path"));
+      }).attr("src", this._path);
+    };
+
+    IFrame.prototype.getLoaderContainer = function() {
+      if (!this._dom) {
+        this.getDom();
+      }
+      return this._doms.dimmer;
     };
 
     IFrame.prototype.getContentWindow = function() {
@@ -3086,19 +2977,9 @@
           this["_size"] = value;
         }
       },
-      states: {
+      disabled: {
         refreshDom: true,
-        defaultValue: "",
-        "enum": ["disabled", "hidden", ""],
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_states"];
-          if (oldValue && oldValue !== value && this._dom) {
-            $fly(this._dom).removeClass(oldValue);
-          }
-          this["_states"] = value;
-          return this;
-        }
+        defaultValue: false
       }
     };
 
@@ -3116,7 +2997,7 @@
     };
 
     Image.prototype._doRefreshDom = function() {
-      var $dom, classNamePool, size, src;
+      var $dom, classNamePool, size;
       if (!this._dom) {
         return;
       }
@@ -3127,11 +3008,8 @@
       if (size) {
         classNamePool.add(size);
       }
-      src = this.get("src");
-      $dom.attr("src", src);
-      if (this._states) {
-        classNamePool.add(this._states);
-      }
+      $dom.attr("src", this._src);
+      classNamePool.toggle("disabled", this._disabled);
     };
 
     return Image;
@@ -3168,11 +3046,11 @@
         refreshDom: true,
         setter: function(value) {
           var oldValue;
-          oldValue = this["_size"];
+          oldValue = this._size;
           if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-          this["_size"] = value;
+          this._size = value;
         }
       },
       text: {
@@ -3181,12 +3059,11 @@
       icon: {
         refreshDom: true,
         setter: function(value) {
-          var $iconDom, oldValue, ref;
-          oldValue = this["_icon"];
-          this["_icon"] = value;
+          var oldValue, ref;
+          oldValue = this._icon;
+          this._icon = value;
           if (oldValue !== value && this._dom && ((ref = this._doms) != null ? ref.iconDom : void 0)) {
-            $iconDom = $(this._doms.iconDom);
-            $iconDom.removeClass(oldValue);
+            $fly(this._doms.iconDom).removeClass(oldValue);
           }
         }
       },
@@ -3204,33 +3081,26 @@
         "enum": ["black", "yellow", "green", "blue", "orange", "purple", "red", "pink", "teal"],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_color"];
+          oldValue = this._color;
           if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-          this["_color"] = value;
+          this._color = value;
         }
       },
       attached: {
         refreshDom: true,
         defaultValue: "",
-        "enum": ["left top", "left bottom", "right top", "right bottom", "top", "bottom"],
+        "enum": ["left top", "left bottom", "right top", "right bottom", "top", "bottom", ""],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_attached"];
+          oldValue = this._attached;
           if (oldValue && this._dom) {
-            $removeClass(this._dom, oldValue + " attached", true);
+            this.removeClass(oldValue + " attached", true);
           }
-          this["_attached"] = value;
+          this._attached = value;
         }
       }
-    };
-
-    Label.prototype._setDom = function(dom, parseChild) {
-      if (this._doms == null) {
-        this._doms = {};
-      }
-      return Label.__super__._setDom.call(this, dom, parseChild);
     };
 
     Label.prototype._parseDom = function(dom) {
@@ -3248,16 +3118,15 @@
     };
 
     Label.prototype._refreshIcon = function() {
-      var $dom, base, icon, iconDom, iconPosition;
+      var base, icon, iconDom, iconPosition;
       if (!this._dom) {
         return;
       }
-      $dom = this.get$Dom();
       if (this._doms == null) {
         this._doms = {};
       }
-      icon = this.get("icon");
-      iconPosition = this.get("iconPosition");
+      icon = this._icon;
+      iconPosition = this._iconPosition;
       if (icon) {
         if ((base = this._doms).iconDom == null) {
           base.iconDom = document.createElement("i");
@@ -3267,33 +3136,32 @@
         if (iconPosition === "left" && this._doms.textDom) {
           $(this._doms.textDom).before(iconDom);
         } else {
-          $dom.append(iconDom);
+          this._dom.appendChild(iconDom);
         }
       } else if (this._doms.iconDom) {
-        $(this._doms.iconDom).remove();
+        cola.detachNode(this._doms.iconDom);
       }
     };
 
     Label.prototype._doRefreshDom = function() {
-      var $dom, attached, classNamePool, color, size, text, textDom;
+      var attached, classNamePool, color, size, text, textDom;
       if (!this._dom) {
         return;
       }
       Label.__super__._doRefreshDom.call(this);
-      $dom = this.get$Dom();
       classNamePool = this._classNamePool;
-      text = this.get("text") || "";
+      text = this._text || "";
       textDom = this._doms.textDom;
       if (text) {
         if (!textDom) {
           textDom = document.createElement("span");
           this._doms.textDom = textDom;
         }
-        $(textDom).text(text);
-        $dom.append(textDom);
+        $fly(textDom).text(text);
+        this._dom.appendChild(textDom);
       } else {
         if (textDom) {
-          $(textDom).remove();
+          cola.detachNode(textDom);
         }
       }
       size = this.get("size");
@@ -3356,7 +3224,7 @@
         $fly(this._doms.image).attr("src", this._image);
       } else {
         if (this._doms.image) {
-          $fly(this._doms.image).remove();
+          cola.detachNode(this._doms.image);
         }
       }
       detailDom = $(".detail", this._dom);
@@ -3396,24 +3264,22 @@
         "enum": ["left", "right", "top", "bottom"],
         setter: function(value) {
           var oldValue;
-          oldValue = this["_pointing"];
+          oldValue = this._pointing;
           if (oldValue && this._dom) {
-            this.get$Dom().removeClass(oldValue);
+            this.removeClass(oldValue);
           }
-          this["_pointing"] = value;
+          this._pointing = value;
         }
       }
     };
 
     PointingLabel.prototype._doRefreshDom = function() {
-      var pointing;
       if (!this._dom) {
         return;
       }
       PointingLabel.__super__._doRefreshDom.call(this);
-      pointing = this.get("pointing");
-      if (pointing && this._dom) {
-        return this._classNamePool.add(pointing);
+      if (this._pointing) {
+        return this._classNamePool.add(this._pointing);
       }
     };
 
@@ -3446,31 +3312,25 @@
     Corner.ATTRIBUTES = {
       position: {
         "enum": ["left", "right"],
+        defaultValue: "right",
         refreshDom: true,
         setter: function(value) {
-          var $dom, oldValue;
-          oldValue = this["_position"];
+          var oldValue;
+          oldValue = this._position;
           if (oldValue && oldValue !== value && this._dom) {
-            $dom = this.get$Dom();
-            if (oldValue === "left") {
-              $dom.removeClass(oldValue);
-            }
+            this.removeClass(oldValue);
           }
-          this["_position"] = value;
+          this._position = value;
         }
       }
     };
 
     Corner.prototype._doRefreshDom = function() {
-      var position;
       if (!this._dom) {
         return;
       }
       Corner.__super__._doRefreshDom.call(this);
-      position = this.get("position");
-      if (position === "left") {
-        return this._classNamePool.add(position);
-      }
+      return this._classNamePool.add(this._position);
     };
 
     return Corner;
@@ -3489,17 +3349,18 @@
     Ribbon.ATTRIBUTES = {
       position: {
         "enum": ["left", "right"],
+        defaultValue: "left",
         setter: function(value) {
           var oldValue;
-          oldValue = this["_position"];
+          oldValue = this._position;
           if (oldValue === value) {
             return;
           }
           if (oldValue === "right" && this._dom) {
-            cola.util.removeClass(this._dom, "right ribbon", true);
-            this.get$Dom().addClass("ribbon");
+            this.removeClass("right ribbon", true);
+            this.addClass("ribbon");
           }
-          this["_position"] = value;
+          this._position = value;
         }
       }
     };
@@ -3510,7 +3371,7 @@
         return;
       }
       Ribbon.__super__._doRefreshDom.call(this);
-      position = this.get("position");
+      position = this._position;
       if (position === "right") {
         this._classNamePool.remove("ribbon");
         return this._classNamePool.add("right ribbon");
@@ -3562,7 +3423,7 @@
           icon: "black help circle icon"
         }
       },
-      ui: "standard",
+      "class": "standard",
       level: {
         WARNING: "warning",
         ERROR: "error",
@@ -3865,48 +3726,33 @@
       visibleContent: {
         refreshDom: true,
         setter: function(value) {
-          var oldValue;
-          oldValue = this["_visibleContent"];
-          if (oldValue != null) {
-            if (typeof oldValue.destroy === "function") {
-              oldValue.destroy();
-            }
-          }
-          delete this["_visibleContent"];
-          delete this["_visibleContentDom"];
-          this._visibleContent = this._getContent(value);
-          if (this._dom) {
-            this._refreshContent("visible");
-          }
+          this._setContent(value, "visibleContent");
+          return this;
         }
       },
       hiddenContent: {
         refreshDom: true,
         setter: function(value) {
-          var oldValue;
-          oldValue = this["_hiddenContent"];
-          if (oldValue != null) {
-            if (typeof oldValue.destroy === "function") {
-              oldValue.destroy();
-            }
-          }
-          delete this["_hiddenContent"];
-          delete this["_hiddenContentDom"];
-          this._hiddenContent = this._getContent(value);
-          if (this._dom) {
-            this._refreshContent("hidden");
-          }
+          this._setContent(value, "hiddenContent");
+          return this;
         }
       }
     };
 
-    Reveal.prototype._setDom = function(dom, parseChild) {
-      Reveal.__super__._setDom.call(this, dom, parseChild);
-      if (this._visibleContent) {
-        this._refreshContent("visible");
-      }
-      if (this._hiddenContent) {
-        return this._refreshContent("hidden");
+    Reveal.prototype._initDom = function(dom) {
+      var container, el, k, key, l, len, len1, ref, ref1, ref2;
+      Reveal.__super__._initDom.call(this, dom);
+      ref = ["visibleContent", "hiddenContent"];
+      for (k = 0, len = ref.length; k < len; k++) {
+        container = ref[k];
+        key = "_" + container;
+        if ((ref1 = this[key]) != null ? ref1.length : void 0) {
+          ref2 = this[key];
+          for (l = 0, len1 = ref2.length; l < len1; l++) {
+            el = ref2[l];
+            this._render(el, container);
+          }
+        }
       }
     };
 
@@ -3946,72 +3792,85 @@
       return results;
     };
 
-    Reveal.prototype._getContent = function(value) {
-      var content;
-      content = null;
-      if (typeof value === "string") {
-        content = $.xCreate({
-          tagName: "SPAN",
-          content: value
-        });
-      } else if (value.constructor === Object.prototype.constructor) {
-        if (value.$type) {
-          content = cola.widget(value);
-        } else {
-          content = $.xCreate(value);
+    Reveal.prototype._clearContent = function(target) {
+      var el, k, len, old;
+      old = this["_" + target];
+      if (old) {
+        for (k = 0, len = old.length; k < len; k++) {
+          el = old[k];
+          if (el instanceof cola.widget) {
+            el.destroy();
+          }
         }
-      } else {
-        content = value;
+        this["_" + target] = [];
       }
-      return content;
-    };
-
-    Reveal.prototype._getContentDom = function(context) {
-      var content, domKey;
-      content = this.get(context + "Content");
-      if (!content) {
-        return;
-      }
-      domKey = "_" + context + "ContentDom";
-      if (!this[domKey]) {
-        if (content instanceof cola.Widget) {
-          this[domKey] = content.getDom();
-        } else if (content.nodeType === 1) {
-          this[domKey] = content;
-        }
-      }
-      return this[domKey];
-    };
-
-    Reveal.prototype._refreshContent = function(context) {
-      var contentDom, domKey, parentNode;
-      contentDom = this._getContentDom(context);
-      if (!contentDom) {
-        return;
-      }
-      parentNode = contentDom.parentNode;
       if (this._doms == null) {
         this._doms = {};
       }
-      domKey = context + "Content";
-      if (parentNode) {
-        if (parentNode === this._doms[domKey]) {
-          return;
-        } else if (parentNode === this._dom) {
-          $(contentDom).addClass(context + " content");
-          return;
+      if (this._doms[target]) {
+        $fly(this._doms[target]).empty();
+      }
+    };
+
+    Reveal.prototype._setContent = function(value, target) {
+      var el, k, len, result;
+      this._clearContent(target);
+      if (value instanceof Array) {
+        for (k = 0, len = value.length; k < len; k++) {
+          el = value[k];
+          result = cola.xRender(el, this._scope);
+          if (result) {
+            this._addContentElement(result, target);
+          }
+        }
+      } else {
+        result = cola.xRender(value, this._scope);
+        if (result) {
+          this._addContentElement(result, target);
         }
       }
-      if (!this._doms[domKey]) {
-        this._doms[domKey] = $.xCreate({
-          tagName: "div",
-          "class": context + " content"
-        });
+    };
+
+    Reveal.prototype._makeContentDom = function(target) {
+      if (this._doms == null) {
+        this._doms = {};
       }
-      if (this._doms[domKey].parentNode !== this._dom) {
-        this.get$Dom().append(this._doms[domKey]);
+      if (!this._doms[target]) {
+        this._doms[target] = document.createElement("div");
+        this._doms[target].className = (target === "visibleContent" ? "visible" : "hidden") + " content";
+        this._dom.appendChild(this._doms[target]);
       }
-      $(this._doms[domKey]).empty().append(contentDom);
+      return this._doms[target];
+    };
+
+    Reveal.prototype._addContentElement = function(element, target) {
+      var name, targetList;
+      name = "_" + target;
+      if (this[name] == null) {
+        this[name] = [];
+      }
+      targetList = this[name];
+      targetList.push(element);
+      if (element && this._dom) {
+        this._render(element, target);
+      }
+    };
+
+    Reveal.prototype._render = function(node, target) {
+      var dom;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      if (!this._doms[target]) {
+        this._makeContentDom(target);
+      }
+      dom = node;
+      if (node instanceof cola.Widget) {
+        dom = node.getDom();
+      }
+      if (dom.parentNode !== this._doms[target]) {
+        this._doms[target].appendChild(dom);
+      }
     };
 
     Reveal.prototype._doRefreshDom = function() {
@@ -4036,6 +3895,24 @@
       if (direction) {
         classNamePool.add(direction);
       }
+    };
+
+    Reveal.prototype._getContentContainer = function(target) {
+      if (!this._dom) {
+        return;
+      }
+      if (!this._doms[target]) {
+        this._makeContentDom(target);
+      }
+      return this._doms[target];
+    };
+
+    Reveal.prototype.getVisibleContentContainer = function() {
+      return this._getContentContainer("visible");
+    };
+
+    Reveal.prototype.getHiddenContentContainer = function() {
+      return this._getContentContainer("hidden");
     };
 
     return Reveal;

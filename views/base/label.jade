@@ -18,9 +18,9 @@ block content
 		p 可以将图片显示在Label内(图片属性名:<code>image</code>)，此样式下也可以加<code>detail</code>属性来描述信息
 		.code
 			div(c-widget="ImageLabel; image:/images/avatar/small/helen.jpg; text:媚媚;")
-			div(c-widget="ImageLabel; ui:blue; image:/images/avatar/small/chris.jpg; text:李四; detail:知己")
-			div(c-widget="ImageLabel; ui:teal; image:/images/avatar/small/christian.jpg; text:王五; detail:同学")
-			div(c-widget="ImageLabel; ui:yellow; image:/images/avatar/small/daniel.jpg; text:刘六; detail:同事")
+			div(c-widget="ImageLabel; class:blue; image:/images/avatar/small/chris.jpg; text:李四; detail:知己")
+			div(c-widget="ImageLabel; class:teal; image:/images/avatar/small/christian.jpg; text:王五; detail:同学")
+			div(c-widget="ImageLabel; class:yellow; image:/images/avatar/small/daniel.jpg; text:刘六; detail:同事")
 	+addCatalog("pointing","指向标签")
 	.example#pointing
 		h4.ui.header PointingLabel
@@ -52,11 +52,11 @@ block content
 			.row
 				.columns.small-6
 					div.ui.fluid.image(c-widget="Widget")
-						a(c-widget="Corner; icon:heart;ui:red;position:left")
+						a(c-widget="Corner; icon:heart;class:red;position:left")
 						img(c-widget="Image; src:/images/wireframe/image.png")
 				.columns.small-6
 					div.ui.fluid.image(c-widget="Widget")
-						a(c-widget="Corner; icon:save; ui:blue")
+						a(c-widget="Corner; icon:save; class:blue")
 						img(c-widget="Image; src:/images/wireframe/image.png")
 	+addCatalog("tag","小标签")
 	.example#tag
@@ -64,8 +64,8 @@ block content
 		p 标签可以表现为小标签
 		.code
 			div(c-widget="Tag;  text:新闻;")
-			div(c-widget="Tag; ui:red; text:即将到来;")
-			div(c-widget="Tag; ui:teal; text:精选;")
+			div(c-widget="Tag; class:red; text:即将到来;")
+			div(c-widget="Tag; class:teal; text:精选;")
 	+addCatalog("tag","丝带")
 	.example#ribbon(name="ribbon")
 		h4.ui.header 丝带
@@ -74,20 +74,20 @@ block content
 			ul.small-block-grid-2.medium-block-grid-4
 				li
 					.ui.segment.compact
-						div(c-widget="Ribbon; ui:red; text:概述;")
-						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+						div(c-widget="Ribbon; class:red; text:概述;")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; class:fluid")
 				li
 					.ui.segment.compact
-						div(c-widget="Ribbon; ui:blue; text:说明;")
-						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+						div(c-widget="Ribbon; class:blue; text:说明;")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; class:fluid")
 				li
 					.ui.segment.compact
-						div(c-widget="Ribbon; ui:orange; text:简介; position:right")
-						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+						div(c-widget="Ribbon; class:orange; text:简介; position:right")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; class:fluid")
 				li
 					.ui.segment.compact
-						div(c-widget="Ribbon; ui:teal; text:新闻;position:right")
-						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; ui:fluid")
+						div(c-widget="Ribbon; class:teal; text:新闻;position:right")
+						img(c-widget="Image; src:/images/wireframe/short-paragraph.png; class:fluid")
 	style(name="ribbon").
 		.code > ul > li {
 			padding: 1em;

@@ -15,7 +15,7 @@ block content
 		h4.ui.header 标准按钮
 		.code
 			div(c-widget="button;") Hello
-			div(c-widget="button;ui:basic;") Hello
+			div(c-widget="button;class:basic;") Hello
 
 	+addCatalog("event","事件绑定")
 	.example(name="event")#event
@@ -53,7 +53,7 @@ block content
 		.code
 			- var emphasis={primary:"保存",secondary:"取消",positive:"提交",negative:"放弃"}
 			each val, index in emphasis
-				- var config="button; ui:"+index+"; caption:"+val
+				- var config="button; class:"+index+"; caption:"+val
 				div(c-widget=config)
 
 	+addCatalog("animated","动画")
@@ -61,15 +61,15 @@ block content
 		h4.ui.header 动画按钮
 		p
 		.code
-			div(c-widget="button; ui:animated;")
+			div(c-widget="button; class:animated;")
 				.visible.content 下一步
 				.hidden.content
 					i.right.arrow.icon
-			div(c-widget="button; ui:vertical animated;")
+			div(c-widget="button; class:vertical animated;")
 				.hidden.content 购买
 				.visible.content
 					i.shop.icon
-			div(c-widget="button; ui:fade animated;")
+			div(c-widget="button; class:fade animated;")
 				.visible.content 购买电子文档
 				.hidden.content ￥12.99
 
@@ -78,7 +78,7 @@ block content
 		h4.ui.header 流体按钮
 		p 此按钮将横向撑满容器：宽度为100%
 		.code
-			div(c-widget="button; ui:fluid;") 宽度100%
+			div(c-widget="button; class:fluid;") 宽度100%
 
 	+addCatalog("color","颜色")
 	.example#color
@@ -89,13 +89,13 @@ block content
 				- var config = "button; color:"+color+"; caption:"+color+";"
 				div(c-widget=config)
 
-	+addCatalog("basic-color","ui:basic + 颜色")
+	+addCatalog("basic-color","class:basic + 颜色")
 	.example#basic-color
-		h4.ui.header ui:basic + 颜色
+		h4.ui.header class:basic + 颜色
 		p 通过此模式可获得边框幽灵效果
 		.code
 			each color in colors
-				- var config = "button; ui:basic; color:"+color+"; caption:"+color+";"
+				- var config = "button; class:basic; color:"+color+"; caption:"+color+";"
 				div(c-widget=config)
 
 	+addCatalog("states","状态")
@@ -114,9 +114,9 @@ block content
 		h4.ui.header Inverted
 		p 深色背景条件下的反白效果
 		.code
-			div(c-widget="Segment; ui:inverted;")
+			div(c-widget="Segment; class:inverted;")
 				each color in colors
-					- var config = "button; ui:inverted; color:"+color+"; caption:"+color+";"
+					- var config = "button; class:inverted; color:"+color+"; caption:"+color+";"
 					div(c-widget=config)
 
 	+addCatalog("size","尺寸")
@@ -152,7 +152,7 @@ block content
 		h4.ui.header 纵向按钮组
 		p
 		.code
-			div(c-widget="ButtonGroup; ui:vertical")
+			div(c-widget="ButtonGroup; class:vertical")
 				div(c-widget="Button; caption:添加")
 				div(c-widget="Button; caption:删除")
 				div(c-widget="Button; caption:修改")
@@ -181,7 +181,7 @@ block content
 		h4.ui.header 纵向图标按钮组
 		p
 		.code
-			div(c-widget="ButtonGroup; ui:vertical")
+			div(c-widget="ButtonGroup; class:vertical")
 				div(c-widget="Button; icon:align left")
 				div(c-widget="Button; icon:align center")
 				div(c-widget="Button; icon:align right")
@@ -192,7 +192,7 @@ block content
 		h4.ui.header 流体按钮组
 		p
 		.code
-			div(c-widget="ButtonGroup; ui:fluid;")
+			div(c-widget="ButtonGroup; class:fluid;")
 				div(c-widget="Button; caption:添加")
 				div(c-widget="Button; caption:删除")
 				div(c-widget="Button; caption:修改")
@@ -201,9 +201,9 @@ block content
 	+addCatalog("vertical-button-group-fluid","纵向图标","按钮组")
 	.example#vertical-labeled-icon-button-group
 		h4.ui.header 纵向图标按钮组
-		p 需将设定<code>ui:vertical labeled icon</code>
+		p 需将设定<code>class:vertical labeled icon</code>
 		.code
-			div(c-widget="ButtonGroup; ui:vertical labeled icon")
+			div(c-widget="ButtonGroup; class:vertical labeled icon")
 				div(c-widget="Button; caption:暂停; icon:pause")
 				div(c-widget="Button; caption:播放; icon:play")
 				div(c-widget="Button; caption:随机; icon:shuffle")

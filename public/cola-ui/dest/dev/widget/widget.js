@@ -349,6 +349,11 @@
         config[k] = v;
       }
     }
+    if (typeof config === "string") {
+      config = {
+        $type: config
+      };
+    }
     oldParentConstr = context.constr;
     constr = cola.resolveType((oldParentConstr != null ? oldParentConstr.CHILDREN_TYPE_NAMESPACE : void 0) || "widget", config, cola.Widget);
     config.$constr = context.constr = constr;
@@ -627,7 +632,17 @@
         if (expression.repeat || expression.setAlias) {
           throw new cola.I18nException("cola.error.needSimpleBinding", bindStr);
         }
-        bindInfo.isWriteable = (expression.type === "MemberExpression" || expression.type === "Identifier") && !expression.hasCallStatement && !expression.convertors;
+        if ((expression.type === "MemberExpression" || expression.type === "Identifier") && !expression.hasCallStatement && !expression.convertors) {
+          bindInfo.isWriteable = true;
+          i = bindStr.lastIndexOf(".");
+          if (i > 0) {
+            bindInfo.entityPath = bindStr.substring(0, i);
+            bindInfo.property = bindStr.substring(i + 1);
+          } else {
+            bindInfo.entityPath = null;
+            bindInfo.property = bindStr;
+          }
+        }
         if (!this._bindProcessor) {
           this._bindProcessor = bindProcessor = {
             _processMessage: (function(_this) {
@@ -729,6 +744,13 @@
         throw new cola.I18nException("cola.error.bindingNotWritable", this._bindStr);
       }
       this._scope.set(this._bindStr, value);
+    },
+    _getBindingPropertyDef: function() {
+      var ref;
+      if (!(((ref = this._bindInfo) != null ? ref.expression : void 0) && this._bindInfo.isWriteable)) {
+        return;
+      }
+      return this._scope.data.getPropertyDef(this._bindStr);
     },
     _getBindingDataType: function() {
       var ref;
@@ -937,6 +959,9 @@
           delete config.dom;
         }
       }
+      if (this._doms == null) {
+        this._doms = {};
+      }
       RenderableElement.__super__.constructor.call(this, config);
       if (dom) {
         this._setDom(dom, true);
@@ -959,6 +984,7 @@
       }
       this._initDom(dom);
       this._refreshDom();
+      this._rendered = true;
     };
 
     RenderableElement.prototype._createDom = function() {
@@ -996,7 +1022,7 @@
 
     RenderableElement.prototype._refreshDom = function() {
       var newClassName;
-      if (!this._dom) {
+      if (!(this._dom || !this._destroyed)) {
         return;
       }
       this._classNamePool = new cola.ClassNamePool(this._dom.className, this.constructor.SEMANTIC_CLASS);
@@ -1078,13 +1104,48 @@
       this._destroyed = true;
     };
 
+    RenderableElement.prototype.addClass = function(value, continuous) {
+      if (continuous) {
+        cola.util.addClass(this._dom, value, true);
+      } else {
+        this.get$Dom().addClass(value);
+      }
+      return this;
+    };
+
+    RenderableElement.prototype.removeClass = function(value, continuous) {
+      if (continuous) {
+        cola.util.removeClass(this._dom, value, true);
+      } else {
+        this.get$Dom().removeClass(value);
+      }
+      return this;
+    };
+
+    RenderableElement.prototype.toggleClass = function(value, state, continuous) {
+      if (continuous) {
+        cola.util.toggleClass(this._dom, value, state, true);
+      } else {
+        this.get$Dom().toggleClass(value, state);
+      }
+      return this;
+    };
+
+    RenderableElement.prototype.hasClass = function(value, continuous) {
+      if (continuous) {
+        return cola.util.hasClass(this._dom, value, true);
+      } else {
+        return this.get$Dom().hasClass(value);
+      }
+    };
+
     return RenderableElement;
 
   })(cola.Element);
 
 
   /*
-      Dorado 基础组件
+  Dorado 基础组件
    */
 
   cola.Widget = (function(superClass) {
@@ -1116,15 +1177,15 @@
           this["_float"] = value;
         }
       },
-      ui: {
+      "class": {
         refreshDom: true,
         setter: function(value) {
           var oldValue;
-          oldValue = this["_ui"];
+          oldValue = this["_class"];
           if (oldValue && this._dom && oldValue !== value) {
             this.get$Dom().removeClass(oldValue);
           }
-          this["_ui"] = value;
+          this["_class"] = value;
         }
       },
       popup: {
@@ -1298,20 +1359,22 @@
     };
 
     Widget.prototype._doRefreshDom = function() {
-      var float, ui;
+      var j, len, name, ref;
       if (!this._dom) {
         return;
       }
       Widget.__super__._doRefreshDom.call(this);
-      float = this.get("float");
-      if (float) {
-        this._classNamePool.add(float + " floated");
-      }
-      ui = this.get("ui");
-      if (ui) {
-        this._classNamePool.add(ui);
+      if (this._float) {
+        this._classNamePool.add(this._float + " floated");
       }
       this._classNamePool.toggle("display-none", !!!this._display);
+      if (!this._rendered && this._class) {
+        ref = this._class.split(" ");
+        for (j = 0, len = ref.length; j < len; j++) {
+          name = ref[j];
+          this._classNamePool.add(name);
+        }
+      }
     };
 
     Widget.prototype._bindEvent = function(eventName) {
@@ -1467,6 +1530,7 @@
         delete this._hammer;
         delete this._bindedEvents;
         delete this._parent;
+        delete this._doms;
       }
       Widget.__super__.destroy.call(this);
       this._destroyed = true;

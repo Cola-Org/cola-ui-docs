@@ -6,7 +6,7 @@ block content
 	.example#standard
 		h4.ui.header 标准
 		.code
-			img(c-widget="image; ui:small; src:/images/wireframe/image.png")
+			img(c-widget="image; class:small; src:/images/wireframe/image.png")
 	+addCatalog("hidden","Hidden","状态")
 
 	.example#hidden
@@ -24,23 +24,23 @@ block content
 	.example#bordered
 		h4.ui.header 边框
 		.code
-			img(c-widget="image; size:medium; ui:bordered; src:/images/wireframe/white-image.png")
+			img(c-widget="image; size:medium; class:bordered; src:/images/wireframe/white-image.png")
 	+addCatalog("fluid","流体","UI")
 	.example#fluid
 		h4.ui.header 流体效果
 		.code
 			div(c-widget="Segment")
-				img(c-widget="image; ui:fluid; src:/images/wireframe/image.png")
+				img(c-widget="image; class:fluid; src:/images/wireframe/image.png")
 	+addCatalog("rounded","小圆角","UI")
 	.example#rounded
 		h4.ui.header 小圆角
 		.code
-			img(c-widget="image; ui:rounded; size:medium; src:/images/wireframe/square-image.png")
+			img(c-widget="image; class:rounded; size:medium; src:/images/wireframe/square-image.png")
 	+addCatalog("rounded","圆的","UI")
 	.example#circular
 		h4.ui.header 圆的
 		.code
-			img(c-widget="image; ui:circular; size:medium; src:/images/wireframe/square-image.png")
+			img(c-widget="image; class:circular; size:medium; src:/images/wireframe/square-image.png")
 
 
 	+addCatalog("vertically-aligned","纵向对齐","UI")
@@ -48,13 +48,13 @@ block content
 		h4.ui.header 纵向对齐
 		.code
 			div(c-widget="Segment")
-				img(c-widget="image; ui:top aligned; size:tiny; src:/images/wireframe/image.png")
+				img(c-widget="image; class:top aligned; size:tiny; src:/images/wireframe/image.png")
 				span Top Aligned
 				div(c-widget="divider")
-				img(c-widget="image; ui:middle aligned; size:tiny; src:/images/wireframe/image.png")
+				img(c-widget="image; class:middle aligned; size:tiny; src:/images/wireframe/image.png")
 				span Middle Aligned
 				div(c-widget="divider")
-				img(c-widget="image; ui:bottom aligned; size:tiny; src:/images/wireframe/image.png")
+				img(c-widget="image; class:bottom aligned; size:tiny; src:/images/wireframe/image.png")
 				span Bottom Aligned
 
 
@@ -62,7 +62,7 @@ block content
 	.example#centered
 		h4.ui.header 居中显示
 		.code
-			img(c-widget="image; ui:small centered; src:/images/wireframe/image.png")
+			img(c-widget="image; class:small centered; src:/images/wireframe/image.png")
 
 
 	+addCatalog("spaced","Spaced","UI")
@@ -70,7 +70,7 @@ block content
 		h4.ui.header Spaced
 		.code
 			span 左边内容
-			img(c-widget="image; ui:mini spaced; src:/images/wireframe/image.png")
+			img(c-widget="image; class:mini spaced; src:/images/wireframe/image.png")
 			span 右边内容
 
 	script(type="text/javascript").

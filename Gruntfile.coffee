@@ -50,11 +50,8 @@ module.exports = (grunt) ->
 				src: ['views/**/*.jade']
 				overwrite: true
 				replacements: [{
-					from: "dorado"
-					to: "cola"
-				},{
-					from: "d-widget"
-					to: "c-widget"
+					from: "ui:"
+					to: "class:"
 				}]
 
 

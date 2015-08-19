@@ -1,5 +1,5 @@
 (function() {
-  var ALIAS_REGEXP, EntityMessage, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_NONE, VALIDATION_OK, VALIDATION_VALIDATING, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildStyleFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRouteName, currentRoutePath, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, jsep, key, oldIE, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildStyleFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRouteName, currentRoutePath, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, jsep, key, oldIE, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
     slice = [].slice;
@@ -34,7 +34,8 @@
     MESSAGE_REFRESH: 0,
     MESSAGE_DATA_CHANGE: 1,
     MESSAGE_CURRENT_CHANGE: 10,
-    MESSAGE_STATE_CHANGE: 11,
+    MESSAGE_EDITING_STATE_CHANGE: 11,
+    MESSAGE_VALIDATION_STATE_CHANGE: 15,
     MESSAGE_INSERT: 20,
     MESSAGE_REMOVE: 21,
     MESSAGE_LOADING_START: 30,
@@ -44,7 +45,7 @@
   oldIE = !-[1,];
 
   $.xCreate = xCreate = function(template, context) {
-    var $el, child, content, el, element, elements, l, len1, len2, len3, m, o, part, ref, tagName, templateProcessor;
+    var $el, child, content, el, element, elements, l, len1, len2, len3, o, part, q, ref, tagName, templateProcessor;
     if (template instanceof Array) {
       elements = [];
       for (l = 0, len1 = template.length; l < len1; l++) {
@@ -58,8 +59,8 @@
     }
     if (xCreate.templateProcessors.length) {
       ref = xCreate.templateProcessors;
-      for (m = 0, len2 = ref.length; m < len2; m++) {
-        templateProcessor = ref[m];
+      for (o = 0, len2 = ref.length; o < len2; o++) {
+        templateProcessor = ref[o];
         element = templateProcessor(template);
         if (element != null) {
           return element;
@@ -94,8 +95,8 @@
         }
       } else {
         if (content instanceof Array) {
-          for (o = 0, len3 = content.length; o < len3; o++) {
-            part = content[o];
+          for (q = 0, len3 = content.length; q < len3; q++) {
+            part = content[q];
             if (typeof part === "string") {
               if (part.charAt(0) === '^') {
                 appendChild(el, document.createElement(part.substring(1)));
@@ -377,16 +378,48 @@
         if (styleProp && styleExpr) {
           style[styleProp] = styleExpr;
         }
-      } else if (i === 0 && headerProp) {
-        style[headerProp] = this.trim(part);
       } else {
         part = this.trim(part);
-        if (part) {
+        if (!part) {
+          continue;
+        }
+        if (i === 0 && headerProp) {
+          style[headerProp] = part;
+        } else {
           style[part] = true;
         }
       }
     }
     return style;
+  };
+
+  cola.util.parseFunctionArgs = function(func) {
+    var arg, argStr, args, i, l, len1, rawArgs;
+    argStr = func.toString().match(/\([^\(\)]*\)/)[0];
+    rawArgs = argStr.substring(1, argStr.length - 1).split(",");
+    args = [];
+    for (i = l = 0, len1 = rawArgs.length; l < len1; i = ++l) {
+      arg = rawArgs[i];
+      arg = cola.util.trim(arg);
+      if (arg) {
+        args.push(arg);
+      }
+    }
+    return args;
+  };
+
+  cola.util.parseListener = function(listener) {
+    var argStr, args, argsMode;
+    argsMode = 1;
+    argStr = listener.toString().match(/\([^\(\)]*\)/)[0];
+    args = argStr.substring(1, argStr.length - 1).split(",");
+    if (args.length) {
+      if (cola.util.trim(args[0]) === "arg") {
+        argsMode = 2;
+      }
+    }
+    listener._argsMode = argsMode;
+    return argsMode;
   };
 
   cola.util.isCompatibleType = function(baseType, type) {
@@ -548,20 +581,6 @@
     routerSwitch: {}
   };
 
-  cola._parseListener = function(listener) {
-    var argStr, args, argsMode;
-    argsMode = 1;
-    argStr = listener.toString().match(/\([^\(\)]*\)/)[0];
-    args = argStr.substring(1, argStr.length - 1).split(",");
-    if (args.length) {
-      if (cola.util.trim(args[0]) === "arg") {
-        argsMode = 2;
-      }
-    }
-    listener._argsMode = argsMode;
-    return argsMode;
-  };
-
   cola.on = function(eventName, listener) {
     var alias, aliasMap, i, listenerRegistry, listeners;
     i = eventName.indexOf(":");
@@ -664,7 +683,7 @@
         listener = listeners[l];
         argsMode = listener._argsMode;
         if (!listener._argsMode) {
-          argsMode = cola._parseListener(listener);
+          argsMode = cola.util.parseListener(listener);
         }
         if (argsMode === 1) {
           retValue = listener.call(this, self, arg);
@@ -748,8 +767,8 @@
   };
 
   cola.Exception = (function() {
-    function Exception(message1, error1) {
-      this.message = message1;
+    function Exception(message3, error1) {
+      this.message = message3;
       this.error = error1;
       if (this.error) {
         if (typeof console !== "undefined" && console !== null) {
@@ -947,6 +966,27 @@
     }
   };
 
+  _toJSON = function(data) {
+    var p, rawData, v;
+    if (data) {
+      if (typeof data === "object") {
+        if (data instanceof cola.Entity || data instanceof cola.EntityList) {
+          data = data.toJSON();
+        } else {
+          rawData = data;
+          data = {};
+          for (p in rawData) {
+            v = rawData[p];
+            data[p] = _toJSON(v);
+          }
+        }
+      } else if (typeof data === "function") {
+        data = void 0;
+      }
+    }
+    return data;
+  };
+
   cola.ajax = function(options, callback) {
     var error, p, realOptions, success, v;
     realOptions = {};
@@ -954,10 +994,11 @@
       v = options[p];
       realOptions[p] = v;
     }
-    if (cola.fire("beforeAjaxRequest", cola, options) === false) {
+    if (cola.fire("beforeAjaxRequest", cola, realOptions) === false) {
       return;
     }
-    success = options.success;
+    realOptions.data = _toJSON(realOptions.data);
+    success = realOptions.success;
     realOptions.success = function(result, status, xhr) {
       var arg;
       if (cola.getListeners("ajaxSuccess")) {
@@ -975,7 +1016,7 @@
         success(result, status, xhr);
       }
     };
-    error = options.error;
+    error = realOptions.error;
     realOptions.error = function(xhr, status, ex) {
       var arg;
       if (cola.getListeners("ajaxError")) {
@@ -1108,7 +1149,7 @@
           }
         },
         setter: function(tag) {
-          var l, len1, len2, m, ref, t, ts;
+          var l, len1, len2, o, ref, t, ts;
           if (this._tag) {
             ref = this._tag;
             for (l = 0, len1 = ref.length; l < len1; l++) {
@@ -1118,8 +1159,8 @@
           }
           if (tag) {
             this._tag = ts = tag.split(tagSplitter);
-            for (m = 0, len2 = ts.length; m < len2; m++) {
-              t = ts[m];
+            for (o = 0, len2 = ts.length; o < len2; o++) {
+              t = ts[o];
               cola.tagManager.reg(t, this);
             }
           } else {
@@ -1510,7 +1551,7 @@
     };
 
     Element.prototype.fire = function(eventName, self, arg) {
-      var argsMode, l, len1, len2, listener, listenerRegistry, listeners, m, onceListeners, result, retValue;
+      var argsMode, l, len1, len2, listener, listenerRegistry, listeners, o, onceListeners, result, retValue;
       if (!this._eventRegistry) {
         return true;
       }
@@ -1530,7 +1571,7 @@
             if (typeof listener === "function") {
               argsMode = listener._argsMode;
               if (!listener._argsMode) {
-                argsMode = cola._parseListener(listener);
+                argsMode = cola.util.parseListener(listener);
               }
               if (argsMode === 1) {
                 retValue = listener.call(self, self, arg);
@@ -1554,8 +1595,8 @@
           if (listenerRegistry.onceListeners) {
             onceListeners = listenerRegistry.onceListeners.slice();
             delete listenerRegistry.onceListeners;
-            for (m = 0, len2 = onceListeners.length; m < len2; m++) {
-              listener = onceListeners[m];
+            for (o = 0, len2 = onceListeners.length; o < len2; o++) {
+              listener = onceListeners[o];
               this.off(eventName, listener);
             }
           }
@@ -1597,26 +1638,26 @@
       elements = elements ? elements.slice(0) : [];
     }
     elements.set = function(attr, value) {
-      var element, len2, m;
-      for (m = 0, len2 = elements.length; m < len2; m++) {
-        element = elements[m];
+      var element, len2, o;
+      for (o = 0, len2 = elements.length; o < len2; o++) {
+        element = elements[o];
         element.set(attr, value);
       }
       return this;
     };
     elements.on = function(eventName, listener) {
-      var element, len2, m;
-      for (m = 0, len2 = elements.length; m < len2; m++) {
-        element = elements[m];
+      var element, len2, o;
+      for (o = 0, len2 = elements.length; o < len2; o++) {
+        element = elements[o];
         element.on(eventName, listener);
       }
       return this;
     };
     elements.off = function(arg1) {
-      var element, len2, m, string;
+      var element, len2, o, string;
       string = arg1.eventName;
-      for (m = 0, len2 = elements.length; m < len2; m++) {
-        element = elements[m];
+      for (o = 0, len2 = elements.length; o < len2; o++) {
+        element = elements[o];
         element.off(eventName);
       }
       return this;
@@ -1714,6 +1755,17 @@
     }
   };
 
+  cola.create = function(namespace, config, baseType) {
+    var constr;
+    if (typeof config === "string") {
+      config = {
+        $type: config
+      };
+    }
+    constr = cola.resolveType(namespace, config, baseType);
+    return new constr(config);
+  };
+
   if (typeof exports !== "undefined" && exports !== null) {
     XDate = require("./../lib/xdate");
     cola = require("./base");
@@ -1752,7 +1804,7 @@
       });
     }
     XDate.parsers.push(function(str) {
-      var c, dateStr, digit, digits, format, hasText, i, inQuota, l, len1, len2, m, part, parts, pattern, patterns, shouldReturn, start;
+      var c, dateStr, digit, digits, format, hasText, i, inQuota, l, len1, len2, o, part, parts, pattern, patterns, shouldReturn, start;
       if (str.indexOf("||") < 0) {
         return;
       }
@@ -1833,7 +1885,7 @@
         }
         if (patterns.length === digits.length) {
           shouldReturn = true;
-          for (i = m = 0, len2 = patterns.length; m < len2; i = ++m) {
+          for (i = o = 0, len2 = patterns.length; o < len2; i = ++o) {
             pattern = patterns[i];
             parts[pattern].value = parseInt(digits[i], 10);
           }
@@ -2021,9 +2073,9 @@
           });
         }
         comparator = function(item1, item2) {
-          var comparatorProp, len2, m, result, value1, value2;
-          for (m = 0, len2 = comparatorProps.length; m < len2; m++) {
-            comparatorProp = comparatorProps[m];
+          var comparatorProp, len2, o, result, value1, value2;
+          for (o = 0, len2 = comparatorProps.length; o < len2; o++) {
+            comparatorProp = comparatorProps[o];
             value1 = null;
             value2 = null;
             prop = comparatorProp.prop;
@@ -2331,7 +2383,7 @@
 
   cola.Expression = (function() {
     function Expression(exprStr, supportConvertor) {
-      var convertor, i, l, len1, len2, len3, m, mainExprCompiled, o, param, part, parts, ref, ref1, subPath;
+      var convertor, i, l, len1, len2, len3, mainExprCompiled, o, param, part, parts, q, ref, ref1, subPath;
       this.raw = exprStr;
       if (supportConvertor) {
         i = exprStr.indexOf("|");
@@ -2357,11 +2409,11 @@
       if (supportConvertor && this.convertors) {
         subPath = null;
         ref = this.convertors;
-        for (m = 0, len2 = ref.length; m < len2; m++) {
-          convertor = ref[m];
+        for (o = 0, len2 = ref.length; o < len2; o++) {
+          convertor = ref[o];
           ref1 = convertor.params;
-          for (o = 0, len3 = ref1.length; o < len3; o++) {
-            param = ref1[o];
+          for (q = 0, len3 = ref1.length; q < len3; q++) {
+            param = ref1[q];
             if (param instanceof cola.Expression && param.path) {
               if (subPath == null) {
                 subPath = [];
@@ -2395,7 +2447,7 @@
         }
       };
       stringify = function(node, parts, context) {
-        var argument, element, i, l, len1, len2, m, path, pathPart, ref, ref1, ref2, type;
+        var argument, element, i, l, len1, len2, o, path, pathPart, ref, ref1, ref2, type;
         type = node.type;
         switch (type) {
           case "MemberExpression":
@@ -2461,7 +2513,7 @@
           case "ArrayExpression":
             parts.push("[");
             ref2 = node.elements;
-            for (i = m = 0, len2 = ref2.length; m < len2; i = ++m) {
+            for (i = o = 0, len2 = ref2.length; o < len2; i = ++o) {
               element = ref2[i];
               if (i > 0) {
                 parts.push(",");
@@ -2479,7 +2531,7 @@
     };
 
     Expression.prototype.evaluate = function(scope, loadMode, dataCtx) {
-      var args, convertor, convertorDef, l, len1, len2, m, paramExpr, paramValue, ref, ref1, retValue;
+      var args, convertor, convertorDef, l, len1, len2, o, paramExpr, paramValue, ref, ref1, retValue;
       retValue = eval(this.expression);
       if (retValue instanceof cola.Entity || retValue instanceof cola.EntityList) {
         if (dataCtx != null) {
@@ -2497,8 +2549,8 @@
           if (convertor) {
             args = [retValue];
             ref1 = convertorDef.params;
-            for (m = 0, len2 = ref1.length; m < len2; m++) {
-              paramExpr = ref1[m];
+            for (o = 0, len2 = ref1.length; o < len2; o++) {
+              paramExpr = ref1[o];
               paramValue = paramExpr.evaluate(scope, "never");
               args.push(paramValue);
             }
@@ -2539,10 +2591,10 @@
   }
 
   cola.AjaxServiceInvoker = (function() {
-    function AjaxServiceInvoker(ajaxService1, context) {
+    function AjaxServiceInvoker(ajaxService1, invokerOptions1) {
       this.ajaxService = ajaxService1;
+      this.invokerOptions = invokerOptions1;
       this.callbacks = [];
-      this.invokerOptions = this.ajaxService.getInvokerOptions(context);
     }
 
     AjaxServiceInvoker.prototype.invokeCallback = function(success, result) {
@@ -2556,7 +2608,7 @@
       }
     };
 
-    AjaxServiceInvoker.prototype._invoke = function(async) {
+    AjaxServiceInvoker.prototype._internalInvoke = function(async) {
       var invokerOptions, options, p, retValue, v;
       if (async == null) {
         async = true;
@@ -2583,7 +2635,7 @@
       if (options.sendJson) {
         options.data = JSON.stringify(options.data);
       }
-      $.ajax(options);
+      cola.ajax(options);
       return retValue;
     };
 
@@ -2593,15 +2645,16 @@
         return false;
       }
       this.invoking = true;
-      this._invoke();
+      this._internalInvoke();
       return true;
     };
 
-    AjaxServiceInvoker.prototype.invokeSync = function() {
+    AjaxServiceInvoker.prototype.invokeSync = function(callback) {
       if (this.invoking) {
         throw new cola.I18nException("cola.error.getResultDuringAjax", this.url);
       }
-      return this._invoke(false);
+      this.callbacks.push(callback);
+      return this._internalInvoke(false);
     };
 
     return AjaxServiceInvoker;
@@ -2618,6 +2671,7 @@
     AjaxService.ATTRIBUTES = {
       url: null,
       sendJson: null,
+      method: null,
       parameter: null,
       ajaxOptions: null
     };
@@ -2640,13 +2694,13 @@
       options.data = this._parameter;
       options.sendJson = this._sendJson;
       if (options.sendJson && !options.method) {
-        options.method = "";
+        options.method = "post";
       }
       return options;
     };
 
     AjaxService.prototype.getInvoker = function(context) {
-      return new cola.AjaxServiceInvoker(this, context);
+      return new cola.AjaxServiceInvoker(this, this.getInvokerOptions(context));
     };
 
     return AjaxService;
@@ -2724,8 +2778,8 @@
     }
 
     Resolver.ATTRIBUTES = {
-      method: {
-        defaultValue: "post"
+      sendJson: {
+        defaultValue: true
       }
     };
 
@@ -2746,7 +2800,7 @@
     if (!(config && config.$type)) {
       return;
     }
-    return cola[$.camelCase(config.$type) + "Validator"];
+    return cola[cola.util.capitalize(config.$type) + "Validator"];
   });
 
   cola.registerTypeResolver("validator", function(config) {
@@ -2765,60 +2819,75 @@
     }
 
     Validator.ATTRIBUTES = {
+      message: null,
+      messageType: {
+        defaultValue: "error",
+        "enum": ["error", "warning", "info"]
+      },
       disabled: null
     };
 
-    Validator.prototype.validate = function() {
-      if (this._disabled) {
-        return;
+    Validator.prototype._getDefaultMessage = function(data) {
+      return "\"" + data + "\" is not a valid value.";
+    };
+
+    Validator.prototype._parseValidResult = function(result, data) {
+      if (typeof result === "boolean") {
+        if (result) {
+          result = null;
+        } else {
+          result = {
+            type: this._messageType,
+            text: this._message || this._getDefaultMessage(data)
+          };
+        }
+      } else if (result && typeof result === "string") {
+        result = {
+          type: this._messageType,
+          text: result
+        };
       }
-      return this._validate.apply(this, arguments);
+      return result;
+    };
+
+    Validator.prototype.validate = function(data) {
+      var result;
+      result = this._validate(data);
+      return this._parseValidResult(result, data);
     };
 
     return Validator;
 
   })(cola.Element);
 
-  cola.CustomValidator = (function(superClass) {
-    extend(CustomValidator, superClass);
+  cola.RequiredValidator = (function(superClass) {
+    extend(RequiredValidator, superClass);
 
-    CustomValidator.ATTRIBUTES = {
-      func: null
-    };
-
-    function CustomValidator(config) {
-      if (typeof config === "function") {
-        this.set("func", config);
-      } else {
-        CustomValidator.__super__.constructor.call(this, config);
-      }
+    function RequiredValidator() {
+      return RequiredValidator.__super__.constructor.apply(this, arguments);
     }
 
-    CustomValidator.prototype._validate = function() {
-      var ref;
-      return (ref = this._func) != null ? ref.apply(this, arguments) : void 0;
-    };
-
-    return CustomValidator;
-
-  })(cola.Element);
-
-  cola.RequireValidator = (function(superClass) {
-    extend(RequireValidator, superClass);
-
-    function RequireValidator() {
-      return RequireValidator.__super__.constructor.apply(this, arguments);
-    }
-
-    RequireValidator.ATTRIBUTES = {
+    RequiredValidator.ATTRIBUTES = {
       trim: {
         defaultValue: true
       }
     };
 
-    RequireValidator.prototype._validate = function(data) {};
+    RequiredValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.required", data);
+    };
 
-    return RequireValidator;
+    RequiredValidator.prototype._validate = function(data) {
+      if (!(typeof data === "string")) {
+        return data != null;
+      }
+      if (this._trim) {
+        data = cola.util.trim(data);
+      }
+      return !!data;
+    };
+
+    return RequiredValidator;
 
   })(cola.Validator);
 
@@ -2840,7 +2909,21 @@
       }
     };
 
-    NumberValidator.prototype._validate = function(data) {};
+    NumberValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.number", data);
+    };
+
+    NumberValidator.prototype._validate = function(data) {
+      var result;
+      result = true;
+      if (this._min != null) {
+        result = this._minInclude ? data >= this._min : data > this._min;
+      }
+      if (result && (this._max != null)) {
+        result = this._maxInclude ? data <= this._max : data < this._max;
+      }
+      return result;
+    };
 
     return NumberValidator;
 
@@ -2858,7 +2941,25 @@
       max: null
     };
 
-    LengthValidator.prototype._validate = function(data) {};
+    LengthValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.length", data);
+    };
+
+    LengthValidator.prototype._validate = function(data) {
+      var len, result;
+      if (typeof data === "string" || typeof data === "number") {
+        result = true;
+        len = (data + "").length;
+        if (this._min != null) {
+          result = len >= this._min;
+        }
+        if (result && (this._max != null)) {
+          result = len <= this._max;
+        }
+        return result;
+      }
+      return true;
+    };
 
     return LengthValidator;
 
@@ -2879,7 +2980,26 @@
       }
     };
 
-    RegExpValidator.prototype._validate = function(data) {};
+    RegExpValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.regExp", data);
+    };
+
+    RegExpValidator.prototype._validate = function(data) {
+      var regExp, result;
+      regExp = this._regExp;
+      if (regExp && typeof data === "string") {
+        if (!regExp instanceof RegExp) {
+          regExp = new RegExp(regExp);
+        }
+        result = true;
+        result = !!data.match(regExp);
+        if (this._mode === "black") {
+          result = !result;
+        }
+        return result;
+      }
+      return true;
+    };
 
     return RegExpValidator;
 
@@ -2892,9 +3012,40 @@
       return EmailValidator.__super__.constructor.apply(this, arguments);
     }
 
-    EmailValidator.prototype._validate = function(data) {};
+    EmailValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.email", data);
+    };
+
+    EmailValidator.prototype._validate = function(data) {
+      if (typeof data === "string") {
+        return !!data.match(/^[a-z]([a-z0-9]*[-_\.]?[a-z0-9]+)*@([a-z0-9]*[-_]?[a-z0-9]+)+[\.][a-z]{2,3}([\.][a-z]{2})?$/i);
+      }
+      return true;
+    };
 
     return EmailValidator;
+
+  })(cola.Validator);
+
+  cola.UrlValidator = (function(superClass) {
+    extend(UrlValidator, superClass);
+
+    function UrlValidator() {
+      return UrlValidator.__super__.constructor.apply(this, arguments);
+    }
+
+    UrlValidator.prototype._getDefaultMessage = function(data) {
+      return cola.i18n("cola.validator.error.email", data);
+    };
+
+    UrlValidator.prototype._validate = function(data) {
+      if (typeof data === "string") {
+        return !!data.match(/^(https?:\/\/(?:www\.|(?!www))[^\s\.]+\.[^\s]{2,}|www\.[^\s]+\.[^\s]{2,})/i);
+      }
+      return true;
+    };
+
+    return UrlValidator;
 
   })(cola.Validator);
 
@@ -2906,62 +3057,130 @@
     }
 
     AsyncValidator.ATTRIBUTES = {
-      defaultValue: true
+      async: {
+        defaultValue: true
+      }
+    };
+
+    AsyncValidator.prototype.validate = function(data, callback) {
+      var result;
+      if (this._disabled) {
+        return;
+      }
+      if (this._async) {
+        result = this._validate(data, {
+          callback: (function(_this) {
+            return function(success, result) {
+              if (success) {
+                result = _this._parseValidResult(result);
+              }
+              cola.callback(callback, success, result);
+            };
+          })(this)
+        });
+      } else {
+        result = this._validate(data);
+        result = this._parseValidResult(result);
+        cola.callback(callback, true, result);
+      }
+      return result;
     };
 
     return AsyncValidator;
 
   })(cola.Validator);
 
-  cola.ActionValidator = (function(superClass) {
-    extend(ActionValidator, superClass);
+  cola.AjaxValidator = (function(superClass) {
+    extend(AjaxValidator, superClass);
 
-    function ActionValidator() {
-      return ActionValidator.__super__.constructor.apply(this, arguments);
+    function AjaxValidator() {
+      return AjaxValidator.__super__.constructor.apply(this, arguments);
     }
 
-    ActionValidator.ATTRIBUTES = {
-      action: null,
-      async: {
-        getter: function() {
-          var ref;
-          return (ref = this._action) != null ? ref.get("async") : void 0;
+    AjaxValidator.ATTRIBUTES = {
+      url: null,
+      sendJson: null,
+      method: null,
+      ajaxOptions: null,
+      data: null
+    };
+
+    AjaxValidator.prototype._validate = function(data, callback) {
+      var ajaxOptions, invoker, options, p, realSendData, sendData, v;
+      sendData = this._data;
+      if ((sendData == null) || sendData === ":data") {
+        sendData = data;
+      } else if (typeof sendData === "object") {
+        realSendData = {};
+        for (p in sendData) {
+          v = sendData[p];
+          if (v === ":data") {
+            v = data;
+          }
+          realSendData[p] = v;
         }
+        sendData = realSendData;
+      }
+      options = {};
+      ajaxOptions = this._ajaxOptions;
+      if (ajaxOptions) {
+        for (p in ajaxOptions) {
+          v = ajaxOptions[p];
+          options[p] = v;
+        }
+      }
+      options.async = !!callback;
+      options.url = this._url;
+      options.data = sendData;
+      options.sendJson = this._sendJson;
+      options.method = this._method;
+      if (options.sendJson && !options.method) {
+        options.method = "post";
+      }
+      invoker = new cola.AjaxServiceInvoker(this, options);
+      if (callback) {
+        return invoker.invokeAsync(callback);
+      } else {
+        return invoker.invokeSync();
       }
     };
 
-    ActionValidator.prototype._validate = function(data, callback) {
-      var action, oldParameter, parameter;
-      if (this._action) {
-        action = this._action;
-        parameter = action.get("parameter");
-        if (parameter) {
-          if (cola.util.isSimpleValue(parameter)) {
-            oldParameter = parameter;
-            parameter = {
-              data: data,
-              parameter: oldParameter
-            };
-          } else {
-            parameter.data = data;
-          }
-        } else {
-          parameter = {
-            data: parameter
-          };
-        }
-        action.set("parameter", parameter).execute({
-          scope: this,
-          callback: function(success, result) {
-            cola.callback(callback, success, result);
-          }
+    return AjaxValidator;
+
+  })(cola.AsyncValidator);
+
+  cola.CustomValidator = (function(superClass) {
+    extend(CustomValidator, superClass);
+
+    CustomValidator.ATTRIBUTES = {
+      func: null
+    };
+
+    function CustomValidator(config) {
+      if (typeof config === "function") {
+        CustomValidator.__super__.constructor.call(this);
+        this.set({
+          func: config,
+          async: cola.util.parseFunctionArgs(config).length > 1
         });
       } else {
-        cola.callback(callback, true, null);
+        CustomValidator.__super__.constructor.call(this, config);
+      }
+    }
+
+    CustomValidator.prototype._validate = function(data, callback) {
+      if (callback) {
+        if (this._func) {
+          this._func(data, callback);
+        } else {
+          cola.callback(callback, true);
+        }
+      } else {
+        return typeof this._func === "function" ? this._func(data) : void 0;
       }
     };
 
-    return ActionValidator;
+    return CustomValidator;
 
   })(cola.AsyncValidator);
 
@@ -3151,7 +3370,7 @@
       readOnly: null,
       properties: {
         setter: function(properties) {
-          var l, len1, property, results;
+          var config, l, len1, name, property, results, results1;
           this._properties.clear();
           if (properties instanceof Array) {
             results = [];
@@ -3160,6 +3379,20 @@
               results.push(this.addProperty(property));
             }
             return results;
+          } else {
+            results1 = [];
+            for (name in properties) {
+              config = properties[name];
+              if (config) {
+                if (!(property instanceof cola.Property)) {
+                  config.name = name;
+                }
+                results1.push(this.addProperty(config));
+              } else {
+                results1.push(void 0);
+              }
+            }
+            return results1;
           }
         }
       }
@@ -3236,6 +3469,25 @@
 
   })(cola.DataType);
 
+  cola.DataType.dataTypeSetter = function(dataType) {
+    var name, scope;
+    if (typeof dataType === "string") {
+      name = dataType;
+      scope = this._scope;
+      if (scope) {
+        dataType = scope.dataType(name);
+      } else {
+        dataType = cola.DataType.defaultDataTypes[name];
+      }
+      if (!dataType) {
+        throw new cola.I18nException("cola.error.unrecognizedDataType", name);
+      }
+    } else if ((dataType != null) && !(dataType instanceof cola.DataType)) {
+      dataType = new cola.EntityDataType(dataType);
+    }
+    this._dataType = dataType || null;
+  };
+
   cola.Property = (function(superClass) {
     extend(Property, superClass);
 
@@ -3284,11 +3536,37 @@
         readOnlyAfterCreate: true
       },
       validators: {
-        setter: function(validators) {},
-        getter: function() {
-          return null;
+        setter: function(validators) {
+          var addValidator, l, len1, validator;
+          addValidator = (function(_this) {
+            return function(validator) {
+              if (!(validator instanceof cola.Validator)) {
+                validator = cola.create("validator", validator, cola.Validator);
+              }
+              _this._validators.push(validator);
+              if (validator instanceof cola.RequiredValidator && !_this._required) {
+                _this._required = true;
+              }
+            };
+          })(this);
+          delete this._validators;
+          if (validators) {
+            this._validators = [];
+            if (typeof validators === "string") {
+              validator = cola.create("validator", validators, cola.Validator);
+              addValidator(validator);
+            } else if (validators instanceof Array) {
+              for (l = 0, len1 = validators.length; l < len1; l++) {
+                validator = validators[l];
+                addValidator(validator);
+              }
+            } else {
+              addValidator(validators);
+            }
+          }
         }
-      }
+      },
+      rejectInvalidValue: null
     };
 
     BaseProperty.EVENTS = {
@@ -3329,25 +3607,6 @@
     return ComputeProperty;
 
   })(cola.Property);
-
-  cola.DataType.dataTypeSetter = function(dataType) {
-    var name, scope;
-    if (typeof dataType === "string") {
-      name = dataType;
-      scope = cola.currentScope;
-      if (scope) {
-        dataType = scope.dataType(name);
-      } else {
-        dataType = cola.DataType.defaultDataTypes[name];
-      }
-      if (!dataType) {
-        throw new cola.I18nException("cola.error.unrecognizedDataType", name);
-      }
-    } else if ((dataType != null) && !(dataType instanceof cola.DataType)) {
-      dataType = new cola.EntityDataType(dataType);
-    }
-    this._dataType = dataType || null;
-  };
 
   cola.DataType.jsonToEntity = function(json, dataType, aggregated) {
     if (aggregated === void 0) {
@@ -3623,7 +3882,7 @@
     };
 
     Entity.prototype._set = function(prop, value) {
-      var actualType, changed, convert, dataType, expectedType, item, matched, oldValue, property, ref, ref1;
+      var actualType, changed, convert, dataType, expectedType, item, l, len1, len2, len3, matched, message, messages, o, oldValue, property, q, ref, ref1, ref2, ref3, ref4, validator;
       oldValue = this._data[prop];
       property = (ref = this.dataType) != null ? ref.getProperty(prop) : void 0;
       if (property && property instanceof cola.ComputeProperty) {
@@ -3688,6 +3947,38 @@
         changed = oldValue !== value;
       }
       if (changed) {
+        if (property && property instanceof cola.BaseProperty) {
+          if (property._validators && property._rejectInvalidValue) {
+            messages = null;
+            ref2 = property._validators;
+            for (l = 0, len1 = ref2.length; l < len1; l++) {
+              validator = ref2[l];
+              if ((value != null) || validator instanceof cola.RequiredValidator) {
+                if (!(validator._disabled && validator instanceof cola.AsyncValidator && validator.get("async"))) {
+                  message = validator.validate(value);
+                  if (message) {
+                    if (messages == null) {
+                      messages = [];
+                    }
+                    if (message instanceof Array) {
+                      Array.prototype.push.apply(messages, message);
+                    } else {
+                      messages.push(message);
+                    }
+                  }
+                }
+              }
+            }
+            if (messages) {
+              for (o = 0, len2 = messages.length; o < len2; o++) {
+                message = messages[o];
+                if (message === VALIDATION_ERROR) {
+                  throw new cola.Exception(message.text);
+                }
+              }
+            }
+          }
+        }
         if (this._disableWriteObservers === 0) {
           if ((oldValue != null) && (oldValue instanceof _Entity || oldValue instanceof _EntityList)) {
             delete oldValue._parent;
@@ -3716,6 +4007,29 @@
             value: value,
             oldValue: oldValue
           });
+        }
+        if (messages !== void 0) {
+          if ((ref3 = this._messageHolder) != null) {
+            ref3.clear(prop);
+          }
+          this.addMessage(prop, messages);
+          if (value != null) {
+            ref4 = property._validators;
+            for (q = 0, len3 = ref4.length; q < len3; q++) {
+              validator = ref4[q];
+              if (!validator._disabled && validator instanceof cola.AsyncValidator && validator.get("async")) {
+                validator.validate(value, (function(_this) {
+                  return function(message) {
+                    if (message) {
+                      _this.addMessage(prop, message);
+                    }
+                  };
+                })(this));
+              }
+            }
+          }
+        } else {
+          this.validate(prop);
         }
       }
       return value;
@@ -3880,7 +4194,7 @@
       }
       oldState = this.state;
       this.state = state;
-      this._notify(cola.constants.MESSAGE_STATE_CHANGE, {
+      this._notify(cola.constants.MESSAGE_EDITING_STATE_CHANGE, {
         entity: this,
         oldState: oldState,
         state: state
@@ -4030,7 +4344,7 @@
       var path;
       if (this._disableObserverCount === 0) {
         path = this.getPath(true);
-        if (type === cola.constants.MESSAGE_DATA_CHANGE) {
+        if ((type === cola.constants.MESSAGE_DATA_CHANGE || type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE) && arg.property) {
           if (path) {
             path = path.concat(arg.property);
           } else {
@@ -4048,30 +4362,139 @@
       }
     };
 
-    Entity.prototype.validate = function() {
-      this.Message = null;
+    Entity.prototype._validate = function(prop) {
+      var data, l, len1, message, messageChanged, property, ref, validator;
+      property = this.dataType.getProperty(prop);
+      if (property && property instanceof cola.BaseProperty) {
+        if (property._validators) {
+          data = this._data[prop];
+          if (data && (data instanceof cola.Provider || data instanceof cola.AjaxServiceInvoker)) {
+            return;
+          }
+          ref = property._validators;
+          for (l = 0, len1 = ref.length; l < len1; l++) {
+            validator = ref[l];
+            if (!validator._disabled) {
+              if (validator instanceof cola.AsyncValidator && validator.get("async")) {
+                if (data != null) {
+                  validator.validate(data, (function(_this) {
+                    return function(message) {
+                      if (message) {
+                        _this.addMessage(prop, message);
+                      }
+                    };
+                  })(this));
+                }
+              } else if (((data != null) && data !== "") || validator instanceof cola.RequiredValidator) {
+                message = validator.validate(data);
+                if (message) {
+                  this._addMessage(prop, message);
+                  messageChanged = true;
+                }
+              }
+            }
+          }
+        }
+      }
+      return messageChanged;
+    };
+
+    Entity.prototype.validate = function(prop) {
+      var keyMessage, l, len1, oldKeyMessage, property, ref, ref1;
+      if (this._messageHolder) {
+        oldKeyMessage = this._messageHolder.getKeyMessage();
+        this._messageHolder.clear(prop);
+      }
+      if (this.dataType) {
+        if (prop) {
+          this._validate(prop);
+          this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+            entity: this,
+            property: prop
+          });
+        } else {
+          ref = this.dataType.getProperties().elements;
+          for (l = 0, len1 = ref.length; l < len1; l++) {
+            property = ref[l];
+            this._validate(property._name);
+            this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+              entity: this,
+              property: property._name
+            });
+          }
+        }
+      }
+      keyMessage = (ref1 = this._messageHolder) != null ? ref1.getKeyMessage() : void 0;
+      if ((oldKeyMessage || keyMessage) && oldKeyMessage !== keyMessage) {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this
+        });
+      }
+      return keyMessage;
+    };
+
+    Entity.prototype._addMessage = function(prop, message) {
+      var l, len1, m, messageHolder, topKeyChanged;
+      messageHolder = this._messageHolder;
+      if (!messageHolder) {
+        this._messageHolder = messageHolder = new _Entity.MessageHolder();
+      }
+      if (message instanceof Array) {
+        for (l = 0, len1 = message.length; l < len1; l++) {
+          m = message[l];
+          if (messageHolder.add(prop, m)) {
+            topKeyChanged = true;
+          }
+        }
+      } else {
+        if (messageHolder.add(prop, message)) {
+          topKeyChanged = true;
+        }
+      }
+      return topKeyChanged;
+    };
+
+    Entity.prototype.clearMessages = function(prop) {
+      var ref;
+      if ((ref = this._messageHolder) != null) {
+        ref.clear(prop);
+      }
       return this;
     };
 
     Entity.prototype.addMessage = function(prop, message) {
-      (this.Message != null ? this.Message : this.Message = new EntityMessage()).addDetail(prop, message);
+      var topKeyChanged;
+      if (arguments.length === 1) {
+        message = prop;
+        prop = "$";
+      }
+      if (prop === "$") {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this
+        });
+      } else {
+        topKeyChanged = this._addMessage(prop, message);
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this,
+          property: prop
+        });
+        if (topKeyChanged) {
+          this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+            entity: this
+          });
+        }
+      }
       return this;
     };
 
     Entity.prototype.getKeyMessage = function(prop) {
-      if (this.Message) {
-        if (prop) {
-          return this.Message.getKeyMessage(prop);
-        } else {
-          return this.Message.keyMessage;
-        }
-      }
-      return null;
+      var ref;
+      return (ref = this._messageHolder) != null ? ref.getKeyMessage(prop) : void 0;
     };
 
-    Entity.prototype.getMessages = function(prop) {
+    Entity.prototype.findMessages = function(prop, type) {
       var ref;
-      return (ref = this.Message) != null ? ref.getDetail(prop) : void 0;
+      return (ref = this._messageHolder) != null ? ref.findMessages(prop, type) : void 0;
     };
 
     Entity.prototype.toJSON = function(options) {
@@ -4270,7 +4693,7 @@
       if (providerInvoker) {
         ajaxService = providerInvoker.ajaxService;
         ajaxService.set("pageNo", this.pageNo);
-        providerInvoker = new cola.AjaxServiceInvoker(ajaxService);
+        providerInvoker = ajaxService.getInvoker();
         if (callback) {
           providerInvoker.invokeAsync({
             callback: (function(_this) {
@@ -4990,36 +5413,143 @@
 
   VALIDATION_NONE = "none";
 
-  VALIDATION_OK = "ok";
+  VALIDATION_INFO = "info";
 
-  VALIDATION_WARN = "warn";
+  VALIDATION_WARN = "warning";
 
   VALIDATION_ERROR = "error";
 
-  VALIDATION_VALIDATING = "validating";
+  TYPE_SEVERITY = {
+    VALIDATION_INFO: 1,
+    VALIDATION_WARN: 2,
+    VALIDATION_ERROR: 4
+  };
 
-  EntityMessage = (function() {
-    function EntityMessage() {
+  cola.Entity.MessageHolder = (function() {
+    function MessageHolder() {
       this.keyMessage = {};
       this.propertyMessages = {};
     }
 
-    EntityMessage.prototype.addMessage = function(prop, message) {
-      return this;
+    MessageHolder.prototype.compare = function(message1, message2) {
+      return (TYPE_SEVERITY[message1.type] || 0) - (TYPE_SEVERITY[message2.type] || 0);
     };
 
-    EntityMessage.prototype.getMessages = function(prop) {
-      return null;
+    MessageHolder.prototype.add = function(prop, message) {
+      var isTopKey, keyMessage, messages, topKeyChanged;
+      messages = this.propertyMessages[prop];
+      if (!messages) {
+        this.propertyMessages[prop] = [message];
+      } else {
+        messages.push(message);
+      }
+      isTopKey = prop === "$";
+      if (keyMessage) {
+        if (this.compare(message, keyMessage) > 0) {
+          this.keyMessage[prop] = message;
+          topKeyChanged = isTopKey;
+        }
+      } else {
+        this.keyMessage[prop] = message;
+        topKeyChanged = isTopKey;
+      }
+      if (!topKeyChanged && !isTopKey) {
+        keyMessage = this.keyMessage["$"];
+        if (keyMessage) {
+          if (this.compare(message, keyMessage) > 0) {
+            this.keyMessage["$"] = message;
+            topKeyChanged = true;
+          }
+        } else {
+          this.keyMessage["$"] = message;
+          topKeyChanged = true;
+        }
+      }
+      return topKeyChanged;
     };
 
-    EntityMessage.prototype.clear = function() {
-      this.propertyMessages = {};
-      return this;
+    MessageHolder.prototype.clear = function(prop) {
+      var keyMessage, l, len1, message, messages, p, ref;
+      if (prop) {
+        delete this.propertyMessages[prop];
+        delete this.keyMessage[prop];
+        ref = this.propertyMessages;
+        for (p in ref) {
+          messages = ref[p];
+          for (l = 0, len1 = messages.length; l < len1; l++) {
+            message = messages[l];
+            if (!keyMessage) {
+              keyMessage = message;
+            } else if (this.compare(message, keyMessage) > 0) {
+              keyMessage = message;
+            } else {
+              continue;
+            }
+            if (keyMessage.type === VALIDATION_ERROR) {
+              break;
+            }
+          }
+        }
+        this.keyMessage["$"] = keyMessage;
+      } else {
+        this.keyMessage = {};
+        this.propertyMessages = {};
+      }
     };
 
-    return EntityMessage;
+    MessageHolder.prototype.getMessages = function(prop) {
+      if (prop == null) {
+        prop = "$";
+      }
+      return this.propertyMessages[prop];
+    };
+
+    MessageHolder.prototype.getKeyMessage = function(prop) {
+      if (prop == null) {
+        prop = "$";
+      }
+      return this.keyMessage[prop];
+    };
+
+    MessageHolder.prototype.findMessages = function(prop, type) {
+      var l, len1, len2, m, messages, ms, o, p, ref;
+      if (prop) {
+        ms = this.propertyMessages[prop];
+        if (type) {
+          messages = [];
+          for (l = 0, len1 = ms.length; l < len1; l++) {
+            m = ms[l];
+            if (m.type === type) {
+              messages.push(m);
+            }
+          }
+        } else {
+          messages = ms;
+        }
+      } else {
+        messages = [];
+        ref = this.propertyMessages;
+        for (p in ref) {
+          ms = ref[p];
+          for (o = 0, len2 = ms.length; o < len2; o++) {
+            m = ms[o];
+            if (!type || m.type === type) {
+              messages.push(m);
+            }
+          }
+        }
+      }
+      return messages;
+    };
+
+    return MessageHolder;
 
   })();
+
+
+  /*
+  Functions
+   */
 
   cola.each = function(collection, fn) {
     if (collection instanceof cola.EntityList) {
@@ -5147,7 +5677,6 @@
       async: {
         defaultValue: true
       },
-      timeout: null,
       executingMesssage: null
     };
 
@@ -5213,7 +5742,9 @@
 
     AjaxAction.ATTRIBUTES = {
       url: null,
-      method: null
+      sendJson: null,
+      method: null,
+      ajaxOptions: null
     };
 
     AjaxAction.prototype._getData = function() {
@@ -5221,23 +5752,29 @@
     };
 
     AjaxAction.prototype._execute = function(callback) {
-      $.ajax({
-        async: this._async,
-        url: this._url,
-        method: this._method,
-        data: this._getData(),
-        timeout: this._timeout,
-        success: function(result) {
-          if (callback) {
-            cola.callback(callback, true, result);
-          }
-        },
-        error: function(error) {
-          if (callback) {
-            cola.callback(callback, false, error);
-          }
+      var ajaxOptions, invoker, options, p, v;
+      options = {};
+      ajaxOptions = this._ajaxOptions;
+      if (ajaxOptions) {
+        for (p in ajaxOptions) {
+          v = ajaxOptions[p];
+          options[p] = v;
         }
-      });
+      }
+      options.async = this._async;
+      options.url = this.getUrl();
+      options.data = this._getData();
+      options.sendJson = this._sendJson;
+      options.method = this._method;
+      if (options.sendJson && !options.method) {
+        options.method = "post";
+      }
+      invoker = new cola.AjaxServiceInvoker(this, options);
+      if (this._async) {
+        return invoker.invokeAsync(callback);
+      } else {
+        return invoker.invokeSync(callback);
+      }
     };
 
     return AjaxAction;
@@ -5391,12 +5928,8 @@
       return this;
     };
 
-    AbstractModel.prototype.getDataType = function(path) {
-      return this.getDataType(path);
-    };
-
-    AbstractModel.prototype.setDataType = function(path, dataType) {
-      return this.setDataType(path, dataType);
+    AbstractModel.prototype.describe = function(name, config) {
+      return this.data.describe(name, config);
     };
 
     AbstractModel.prototype.dataType = function(name) {
@@ -5460,7 +5993,7 @@
       }
       this.data = new cola.DataModel(this);
       this.action = function(name, action) {
-        var ActionConstr, a, config, fn, n, scope, store;
+        var a, config, fn, n, scope, store;
         store = this.action;
         if (arguments.length === 1) {
           if (typeof name === "string") {
@@ -5490,8 +6023,7 @@
               fn = action;
             } else if (!(action instanceof cola.Action)) {
               config = action;
-              ActionConstr = cola.resolveType("action", config);
-              action = new ActionConstr(config);
+              action = cola.create("action", config, cola.Action);
               fn = function() {
                 return action.execute.apply(action, arguments);
               };
@@ -5870,7 +6402,7 @@
     };
 
     ItemsScope.prototype.isRootOfTarget = function(changedPath, targetPath) {
-      var i, isRoot, l, len1, len2, len3, m, o, part, targetPaths;
+      var i, isRoot, l, len1, len2, len3, o, part, q, targetPaths;
       if (!targetPath) {
         return false;
       }
@@ -5882,7 +6414,7 @@
         for (l = 0, len1 = targetPaths.length; l < len1; l++) {
           targetPath = targetPaths[l];
           isRoot = true;
-          for (i = m = 0, len2 = changedPath.length; m < len2; i = ++m) {
+          for (i = o = 0, len2 = changedPath.length; o < len2; i = ++o) {
             part = changedPath[i];
             if (part !== targetPath[i]) {
               isRoot = false;
@@ -5895,7 +6427,7 @@
         }
         return false;
       } else {
-        for (i = o = 0, len3 = changedPath.length; o < len3; i = ++o) {
+        for (i = q = 0, len3 = changedPath.length; q < len3; i = ++q) {
           part = changedPath[i];
           if (part !== targetPath[i]) {
             return false;
@@ -6020,7 +6552,10 @@
     }
 
     AbstractDataModel.prototype.get = function(path, loadMode, context) {
-      var aliasData, aliasHolder, callback, firstPart, i, prop, ref, rootData;
+      var aliasData, aliasHolder, callback, firstPart, i, prop, ref, ref1, rootData;
+      if (!path) {
+        return this._getRootData() || ((ref = this.model.parent) != null ? ref.get() : void 0);
+      }
       if (this._aliasMap) {
         i = path.indexOf('.');
         firstPart = i > 0 ? path.substring(0, i) : path;
@@ -6056,7 +6591,7 @@
           return rootData.get(path, loadMode, context);
         }
       } else {
-        return (ref = this.model.parent) != null ? ref.data.get(path, loadMode, context) : void 0;
+        return (ref1 = this.model.parent) != null ? ref1.data.get(path, loadMode, context) : void 0;
       }
     };
 
@@ -6346,7 +6881,7 @@
         }
       }
       if (notifyChildren) {
-        notifyChildren2 = type !== cola.constants.MESSAGE_STATE_CHANGE && !((cola.constants.MESSAGE_LOADING_START <= type && type <= cola.constants.MESSAGE_LOADING_END));
+        notifyChildren2 = !((cola.constants.MESSAGE_EDITING_STATE_CHANGE <= type && type <= cola.constants.MESSAGE_VALIDATION_STATE_CHANGE)) && !((cola.constants.MESSAGE_LOADING_START <= type && type <= cola.constants.MESSAGE_LOADING_END));
         for (part in node) {
           subNode = node[part];
           if (subNode && (part === "**" || notifyChildren2) && part !== "__processorMap" && part !== "__path") {
@@ -6370,7 +6905,9 @@
     DataModel.prototype._getRootData = function() {
       var dataModel, rootData;
       if (this._rootData == null) {
-        this._rootDataType = new cola.EntityDataType();
+        if (this._rootDataType == null) {
+          this._rootDataType = new cola.EntityDataType();
+        }
         this._rootData = rootData = new cola.Entity(this._rootDataType);
         rootData.state = cola.Entity.STATE_NEW;
         dataModel = this;
@@ -6383,36 +6920,50 @@
       return this._rootData;
     };
 
-    DataModel.prototype.getDataType = function(path) {
-      var dataType, property, ref;
-      property = (ref = this._rootDataType) != null ? ref.getProperty(path) : void 0;
-      dataType = property != null ? property.get("dataType") : void 0;
-      return dataType;
+    DataModel.prototype.describe = function(name, config) {
+      var dataType, property, propertyConfig, propertyName, ref;
+      if (this._rootDataType == null) {
+        this._rootDataType = new cola.EntityDataType();
+      }
+      if (typeof name === "string") {
+        property = (ref = this._rootDataType) != null ? ref.getProperty(name) : void 0;
+        if (config) {
+          if (!property) {
+            property = this._rootDataType.addProperty({
+              name: name
+            });
+          }
+          if (typeof config === "string") {
+            dataType = this.getDataTypeByName(config);
+            if (!dataType) {
+              throw new cola.I18nException("cola.error.unrecognizedDataType", config);
+            }
+            property.set("dataType", dataType);
+          } else {
+            property.set(config);
+          }
+        } else {
+          return property;
+        }
+      } else if (name) {
+        config = name;
+        for (propertyName in config) {
+          propertyConfig = config[propertyName];
+          this.describe(propertyName, propertyConfig);
+        }
+      }
     };
 
-    DataModel.prototype.setDataType = function(path, dataType) {
-      var name, property, ref;
-      if (typeof dataType === "string") {
-        name = dataType;
-        dataType = (ref = this._dataTypeStore) != null ? ref[name] : void 0;
-        if (dataType == null) {
-          dataType = cola.DataType.defaultDataTypes[name];
-        }
-      } else if (!(dataType instanceof cola.DataType)) {
-        dataType = new cola.EntityDataType(dataType);
-      }
-      if (!this._rootDataType) {
-        this._getRootData();
-      }
-      property = this._rootDataType.getProperty(path);
-      if (!property) {
-        if (path.indexOf(".") < 0) {
-          this._rootDataType.addProperty({
-            name: path,
-            dataType: dataType
-          });
-        }
-      }
+    DataModel.prototype.getPropertyDef = function(path) {
+      var ref;
+      return (ref = this._rootDataType) != null ? ref.getProperty(path) : void 0;
+    };
+
+    DataModel.prototype.getDataType = function(path) {
+      var dataType, property;
+      property = this.getPropertyDef(path);
+      dataType = property != null ? property.get("dataType") : void 0;
+      return dataType;
     };
 
     DataModel.prototype.getDataTypeByName = function(name) {
@@ -6504,6 +7055,14 @@
       }
     };
 
+    AliasDataModel.prototype.describe = function(name, config) {
+      if (name === this.alias) {
+        return AliasDataModel.__super__.describe.call(this, name, config);
+      } else {
+        return this.parent.describe(name, config);
+      }
+    };
+
     AliasDataModel.prototype.getDataType = function(path) {
       var dataType, i, property, ref;
       i = path.indexOf(".");
@@ -6524,42 +7083,16 @@
       }
     };
 
-    AliasDataModel.prototype.setDataType = function(path, dataType) {
-      var convertDataType, i, property, ref;
-      convertDataType = function(dataType) {
-        var name, ref;
-        if (typeof dataType === "string") {
-          name = dataType;
-          dataType = (ref = this._dataTypeStore) != null ? ref[name] : void 0;
-          if (dataType == null) {
-            dataType = cola.DataType.defaultDataTypes[name];
-          }
-        } else if (!(dataType instanceof cola.DataType)) {
-          dataType = new cola.EntityDataType(dataType);
-        }
-        return dataType;
-      };
-      i = path.indexOf(".");
-      if (i > 0) {
-        if (path.substring(0, i) === this.alias) {
-          if (this.dataType) {
-            property = (ref = this.dataType) != null ? ref.getProperty(path.substring(i + 1)) : void 0;
-            if (property) {
-              property.set("dataType", convertDataType(dataType));
-            }
-          }
-        } else {
-          this.parent.setDataType(path, dataType);
-        }
-      } else if (path === this.alias) {
-        this.dataType = convertDataType(dataType);
-      } else {
-        this.parent.setDataType(path, dataType);
-      }
-    };
-
     AliasDataModel.prototype.getDataTypeByName = function(name) {
       return this.parent.getDataTypeByName(name);
+    };
+
+    AliasDataModel.prototype.regDataType = function(dataType) {
+      return this.parent.regDataType(dataType);
+    };
+
+    AliasDataModel.prototype.unregDataType = function(dataType) {
+      return this.parent.unregDataType(dataType);
     };
 
     AliasDataModel.prototype._bind = function(path, processor, nonCurrent) {
@@ -7089,7 +7622,7 @@
   }
 
   cola.loadSubView = function(targetDom, context) {
-    var cssUrl, cssUrls, failed, htmlUrl, jsUrl, jsUrls, l, len1, len2, len3, len4, loadingUrls, m, o, q, ref, ref1, resourceLoadCallback;
+    var cssUrl, cssUrls, failed, htmlUrl, jsUrl, jsUrls, l, len1, len2, len3, len4, loadingUrls, o, q, r, ref, ref1, resourceLoadCallback;
     loadingUrls = [];
     failed = false;
     resourceLoadCallback = function(success, context, url) {
@@ -7160,8 +7693,8 @@
       cssUrls = [];
       if (context.cssUrl instanceof Array) {
         ref1 = context.cssUrl;
-        for (m = 0, len2 = ref1.length; m < len2; m++) {
-          cssUrl = ref1[m];
+        for (o = 0, len2 = ref1.length; o < len2; o++) {
+          cssUrl = ref1[o];
           cssUrl = _compileResourceUrl(cssUrl, htmlUrl, ".css");
           if (cssUrl) {
             cssUrls.push(cssUrl);
@@ -7183,8 +7716,8 @@
       });
     }
     if (jsUrls) {
-      for (o = 0, len3 = jsUrls.length; o < len3; o++) {
-        jsUrl = jsUrls[o];
+      for (q = 0, len3 = jsUrls.length; q < len3; q++) {
+        jsUrl = jsUrls[q];
         _loadJs(context, jsUrl, {
           callback: function(success, result) {
             return resourceLoadCallback(success, (success ? context : result), jsUrl);
@@ -7193,8 +7726,8 @@
       }
     }
     if (cssUrls) {
-      for (q = 0, len4 = cssUrls.length; q < len4; q++) {
-        cssUrl = cssUrls[q];
+      for (r = 0, len4 = cssUrls.length; r < len4; r++) {
+        cssUrl = cssUrls[r];
         _loadCss(cssUrl);
       }
     }
@@ -7394,7 +7927,7 @@
   };
 
   _findRouter = function(path) {
-    var defPart, defPathParts, i, l, len1, len2, m, matching, param, pathParts, ref, routerDef;
+    var defPart, defPathParts, i, l, len1, len2, matching, o, param, pathParts, ref, routerDef;
     if (!routerRegistry) {
       return null;
     }
@@ -7409,7 +7942,7 @@
       matching = true;
       param = {};
       defPathParts = routerDef.pathParts;
-      for (i = m = 0, len2 = defPathParts.length; m < len2; i = ++m) {
+      for (i = o = 0, len2 = defPathParts.length; o < len2; i = ++o) {
         defPart = defPathParts[i];
         if (typeof defPart === "string") {
           if (defPart !== pathParts[i]) {
@@ -7584,17 +8117,10 @@
     setTimeout(function() {
       var path, routerDef;
       $fly(window).on("hashchange", _onHashChange).on("popstate", function() {
-        var path, state;
-        state = window.history.state;
-        if (state) {
-          path = state.path;
-          if (path.indexOf("#") > -1) {
-            _onHashChange();
-          } else {
-            _onStateChange(path);
-          }
-        } else {
-          _onStateChange("");
+        var state;
+        if (!location.hash) {
+          state = window.history.state;
+          _onStateChange((state != null ? state.path : void 0) || "");
         }
       });
       $(document.body).delegate("a.state", "click", function() {
@@ -8504,7 +9030,7 @@
       }
     }
     init = function(dom, model, param) {
-      var len2, m, oldScope, viewDoms;
+      var len2, o, oldScope, viewDoms;
       oldScope = cola.currentScope;
       cola.currentScope = model;
       try {
@@ -8522,8 +9048,8 @@
         }
         if (dom.length) {
           doms = dom;
-          for (m = 0, len2 = doms.length; m < len2; m++) {
-            dom = doms[m];
+          for (o = 0, len2 = doms.length; o < len2; o++) {
+            dom = doms[o];
             cola._renderDomTemplate(dom, model);
           }
         } else {
@@ -8617,7 +9143,6 @@
         documentFragment.appendChild(child);
         child = child.nextSibling;
       }
-      div = null;
     } else {
       oldScope = cola.currentScope;
       cola.currentScope = model;
@@ -8681,7 +9206,7 @@
   };
 
   _doRrenderDomTemplate = function(dom, scope, context) {
-    var attr, attrName, attrValue, bindingExpr, bindingType, child, childContext, customDomCompiler, defaultPath, domBinding, expression, feature, features, initializer, initializers, k, l, len1, len2, len3, len4, m, newFeatures, o, parts, q, ref, ref1, removeAttr, removeAttrs, result, tailDom, v;
+    var attr, attrName, attrValue, bindingExpr, bindingType, child, childContext, customDomCompiler, defaultPath, domBinding, expression, feature, features, initializer, initializers, k, l, len1, len2, len3, len4, newFeatures, o, parts, q, r, ref, ref1, removeAttr, removeAttrs, result, tailDom, v;
     if (dom.nodeType === 8) {
       return dom;
     }
@@ -8803,8 +9328,8 @@
       }
     }
     ref1 = cola._userDomCompiler.$;
-    for (m = 0, len2 = ref1.length; m < len2; m++) {
-      customDomCompiler = ref1[m];
+    for (o = 0, len2 = ref1.length; o < len2; o++) {
+      customDomCompiler = ref1[o];
       result = customDomCompiler(scope, dom, context);
       if (result) {
         if (result instanceof cola._BindingFeature) {
@@ -8819,8 +9344,8 @@
       }
     }
     if (removeAttrs) {
-      for (o = 0, len3 = removeAttrs.length; o < len3; o++) {
-        removeAttr = removeAttrs[o];
+      for (q = 0, len3 = removeAttrs.length; q < len3; q++) {
+        removeAttr = removeAttrs[q];
         dom.removeAttribute(removeAttr);
       }
     }
@@ -8855,8 +9380,8 @@
       if (context.inRepeatTemplate || domBinding instanceof cola._RepeatDomBinding) {
         cola.util.userData(dom, cola.constants.DOM_INITIALIZER_KEY, initializers);
       } else {
-        for (q = 0, len4 = initializers.length; q < len4; q++) {
-          initializer = initializers[q];
+        for (r = 0, len4 = initializers.length; r < len4; r++) {
+          initializer = initializers[r];
           initializer(scope, dom);
         }
       }

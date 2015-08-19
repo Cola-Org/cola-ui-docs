@@ -26,6 +26,28 @@
       readOnly: {
         refreshDom: true,
         defaultValue: false
+      },
+      state: {
+        setter: function(state) {
+          var dom, oldState;
+          oldState = this._state;
+          if (oldState !== state) {
+            dom = this._dom;
+            if (dom && oldState) {
+              cola.util.removeClass(dom, oldState);
+              if (this._fieldDom) {
+                cola.util.removeClass(this._fieldDom, oldState);
+              }
+            }
+            this._state = state;
+            if (dom && state) {
+              cola.util.addClass(dom, state);
+              if (this._fieldDom) {
+                cola.util.addClass(this._fieldDom, state);
+              }
+            }
+          }
+        }
       }
     };
 
@@ -34,6 +56,18 @@
       post: null,
       beforeChange: null,
       change: null
+    };
+
+    AbstractEditor.prototype._initDom = function(dom) {
+      var fieldDom;
+      if (this._state) {
+        cola.util.addClass(dom, this._state);
+      }
+      fieldDom = dom.parentNode;
+      if (fieldDom && !jQuery.find.matchesSelector(fieldDom, ".field")) {
+        fieldDom = null;
+      }
+      this._fieldDom = fieldDom;
     };
 
     AbstractEditor.prototype._setValue = function(value) {
@@ -69,15 +103,35 @@
       this._writeBindingValue(this._value);
     };
 
+    AbstractEditor.prototype._filterDataMessage = function(path, type, arg) {
+      return (cola.constants.MESSAGE_REFRESH <= type && type <= cola.constants.MESSAGE_CURRENT_CHANGE) || type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE || this._watchingMoreMessage;
+    };
+
     AbstractEditor.prototype._processDataMessage = function(path, type, arg) {
-      var value;
-      value = this._readBindingValue();
-      if (this._dataType) {
-        value = this._dataType.parse(value);
-      }
-      this._modelValue = value;
-      if (this._setValue(value)) {
-        cola.util.delay(this, "refreshDom", 50, this._refreshDom);
+      var $formDom, form, keyMessage, value;
+      if (type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE) {
+        if (this._formDom === void 0) {
+          if (this._fieldDom) {
+            $formDom = $fly(this._fieldDom).closest(".ui.form");
+          }
+          this._formDom = ($formDom != null ? $formDom[0] : void 0) || null;
+        }
+        if (this._formDom) {
+          form = cola.widget(this._formDom);
+          if (form && form instanceof cola.Form) {
+            keyMessage = arg.entity.getKeyMessage(arg.property);
+            return form.setFieldMessages(this, keyMessage);
+          }
+        }
+      } else {
+        value = this._readBindingValue();
+        if (this._dataType) {
+          value = this._dataType.parse(value);
+        }
+        this._modelValue = value;
+        if (this._setValue(value)) {
+          cola.util.delay(this, "refreshDom", 50, this._refreshDom);
+        }
       }
     };
 
@@ -99,8 +153,12 @@
     AbstractCheckbox.INPUT_TYPE = "checkbox";
 
     AbstractCheckbox.ATTRIBUTES = {
-      label: null,
-      name: null,
+      label: {
+        refreshDom: true
+      },
+      name: {
+        refreshDom: true
+      },
       onValue: {
         defaultValue: true
       },
@@ -141,7 +199,9 @@
       if (this._doms == null) {
         this._doms = {};
       }
-      this._$dom = $(dom);
+      if (this._$dom == null) {
+        this._$dom = $(dom);
+      }
       child = dom.firstChild;
       while (child) {
         if (child.nodeType === 1) {
@@ -206,7 +266,7 @@
             name: this.get("name") || ""
           }, {
             tagName: "label",
-            content: this.get("label") || "",
+            content: this._label || "",
             contextKey: "label"
           }
         ]
@@ -470,8 +530,7 @@
         refreshDom: true,
         defaultValue: "right",
         "enum": ["left", "right"]
-      },
-      state: null
+      }
     };
 
     AbstractInput.prototype.destroy = function() {
@@ -633,11 +692,13 @@
       btnDom = actionButton.getDom();
       leftAction = buttonPosition === "left";
       this._classNamePool.add(leftAction ? "left action" : "action");
+      cola._ignoreNodeRemoved = true;
       if (leftAction) {
         $(this._doms.input).before(btnDom);
       } else {
         this._dom.appendChild(btnDom);
       }
+      cola._ignoreNodeRemoved = false;
     };
 
     AbstractInput.prototype._refreshIcon = function() {
@@ -655,11 +716,13 @@
         $(iconDom).addClass(icon + " icon");
         leftIcon = iconPosition === "left";
         classNamePool.add(leftIcon ? "left icon" : "icon");
+        cola._ignoreNodeRemoved = true;
         if (leftIcon) {
           $(this._doms.input).before(iconDom);
         } else {
           this._dom.appendChild(iconDom);
         }
+        cola._ignoreNodeRemoved = false;
       } else {
         if (this._doms.iconDom) {
           $(this._doms.iconDom).remove();
@@ -743,6 +806,7 @@
     };
 
     Input.prototype._initDom = function(dom) {
+      Input.__super__._initDom.call(this, dom);
       $(this._doms.input).on("change", (function(_this) {
         return function() {
           var dataType, inputFormat, readOnly, value;
@@ -773,9 +837,19 @@
         };
       })(this)).on("blur", (function(_this) {
         return function() {
+          var entity, propertyDef;
           _this._inputFocused = false;
           _this._refreshInputValue(_this._value);
           _this.fire("blur", _this);
+          if ((_this._value == null) || _this._value === "" && _this._bindInfo.isWriteable) {
+            propertyDef = _this._getBindingPropertyDef();
+            if ((propertyDef != null ? propertyDef._required : void 0) && propertyDef._validators) {
+              entity = _this._scope.get(_this._bindInfo.entityPath);
+              if (entity) {
+                entity.validate(_this._bindInfo.property);
+              }
+            }
+          }
         };
       })(this));
     };
@@ -1166,8 +1240,12 @@
           return this;
         }
       },
-      label: null,
-      name: null,
+      label: {
+        refreshDom: true
+      },
+      name: {
+        refreshDom: true
+      },
       disabled: {
         refreshDom: true,
         defaultValue: false
@@ -1917,7 +1995,7 @@
       }
       this._finalOpenMode = openMode = this._getFinalOpenMode();
       config = {
-        ui: "drop-container",
+        "class": "drop-container",
         dom: $.xCreate({
           tagName: "div",
           content: this._getDropdownContent()
@@ -2359,5 +2437,163 @@
     return CustomDropdown;
 
   })(cola.AbstractDropdown);
+
+  cola.Form = (function(superClass) {
+    extend(Form, superClass);
+
+    Form.CLASS_NAME = "form";
+
+    Form.ATTRIBUTES = {
+      bind: {
+        setter: function(bindStr) {
+          return this._bindSetter(bindStr);
+        }
+      },
+      state: {
+        setter: function(state) {
+          var STATES, classPool, cls, p;
+          if (this._state === state) {
+            return;
+          }
+          this._state = state;
+          if (this._dom) {
+            STATES = this.constructor.STATES;
+            classPool = new cola.ClassNamePool(this._dom.className);
+            for (p in STATES) {
+              cls = STATES[p];
+              classPool.remove(cls);
+            }
+            if (state) {
+              classPool.add(STATES[state]);
+            }
+            this._dom.className = classPool.join();
+          }
+        }
+      }
+    };
+
+    Form.STATES = {
+      "error": "error",
+      "warning": "warning",
+      "info": "success"
+    };
+
+    function Form(config) {
+      this._messageHolder = new cola.Entity.MessageHolder();
+      Form.__super__.constructor.call(this, config);
+    }
+
+    Form.prototype._initDom = function(dom) {
+      var $dom;
+      $dom = $(dom);
+      if (this._state) {
+        $dom.addClass(this._state);
+      }
+      this._inline = $dom.find(".ui.message").length === 0;
+      cola.ready((function(_this) {
+        return function() {
+          $dom.form({
+            on: "_disabled",
+            inline: _this._inline
+          });
+        };
+      })(this));
+    };
+
+    Form.prototype._filterDataMessage = function(path, type, arg) {
+      return type === cola.constants.MESSAGE_REFRESH || type === cola.constants.MESSAGE_CURRENT_CHANGE || type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE;
+    };
+
+    Form.prototype._processDataMessage = function(path, type, arg) {
+      var entity;
+      entity = this._bindInfo.expression.evaluate(this._scope, "never");
+      if (entity && entity instanceof dorado.Entity) {
+        this._resetEntityMessages();
+      } else {
+        entity = null;
+      }
+      this._entity = entity;
+      this._refreshState();
+    };
+
+    Form.prototype._getEntity = function() {
+      if (this._entity) {
+        return this._entity;
+      }
+      return this._scope.get();
+    };
+
+    Form.prototype._refreshState = function() {
+      var errors, i, keyMessage, len, m, messages, type;
+      keyMessage = this._messageHolder.getKeyMessage();
+      type = keyMessage != null ? keyMessage.type : void 0;
+      this.set("state", type);
+      if (type === "error" && !this._inline) {
+        errors = [];
+        messages = this._messageHolder.findMessages(null, type);
+        if (messages) {
+          for (i = 0, len = messages.length; i < len; i++) {
+            m = messages[i];
+            errors.push(m.text);
+          }
+        }
+        this._$dom.form("add errors", errors);
+      }
+    };
+
+    Form.prototype._resetEntityMessages = function() {
+      var entity, i, len, message, messageHolder, messages;
+      messageHolder = this._messageHolder;
+      messageHolder.clear("fields");
+      entity = this._getEntity();
+      if (entity) {
+        messages = entity.findMessages();
+        if (messages) {
+          for (i = 0, len = messages.length; i < len; i++) {
+            message = messages[i];
+            messageHolder.add("fields", message);
+          }
+        }
+      }
+    };
+
+    Form.prototype.setMessages = function(messages) {
+      var i, len, message, messageHolder;
+      messageHolder = this._messageHolder;
+      messageHolder.clear("$");
+      if (messages) {
+        for (i = 0, len = messages.length; i < len; i++) {
+          message = messages[i];
+          messageHolder.add("$", message);
+        }
+      }
+      this._refreshState();
+    };
+
+    Form.prototype.setFieldMessages = function(editor, message) {
+      var editorDom;
+      if (this._inline) {
+        editorDom = editor._$dom.find("input, textarea, select")[0];
+        if (editorDom) {
+          editorDom.id || (editorDom.id = cola.uniqueId());
+          if ((message != null ? message.type : void 0) === "error") {
+            this._$dom.form("add prompt", editorDom.id, message.text);
+          } else {
+            this._$dom.form("remove prompt", {
+              identifier: editorDom.id
+            });
+          }
+        }
+      } else {
+        this._resetEntityMessages();
+        this._refreshState();
+      }
+    };
+
+    return Form;
+
+  })(cola.Widget);
+
+  cola.Element.mixin(cola.Form, cola.DataWidgetMixin);
 
 }).call(this);

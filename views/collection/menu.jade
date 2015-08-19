@@ -38,7 +38,7 @@ block content
 					div(c-widget="input; icon:search")
 				div.right.menu
 					div(c-widget="controlItem;")
-						div(c-widget="Button; caption:注册; ui:primary")
+						div(c-widget="Button; caption:注册; class:primary")
 					div(c-widget="controlItem;")
 						div(c-widget="Button; caption:登陆")
 	+addCatalog("verticalMenu","纵向菜单")
@@ -46,7 +46,7 @@ block content
 
 		h4.ui.header 纵向菜单
 		.code
-			div(c-widget="menu; ui:vertical;")
+			div(c-widget="menu; class:vertical;")
 				a(c-widget="item; caption:收件箱")
 					div.ui.label.teal.pointing.left 1
 				a(c-widget="item; caption:垃圾邮件")
@@ -54,12 +54,12 @@ block content
 				a(c-widget="item; caption:草稿箱")
 					div.ui.label 2
 				div(c-widget="controlItem")
-					div(c-widget="input; ui:transparent; icon:search;placeholder:搜索邮件...")
+					div(c-widget="input; class:transparent; icon:search;placeholder:搜索邮件...")
 	+addCatalog("subMenu","子菜单")
 	.example#subMenu
 		h4.ui.header 子菜单
 		.code
-			div(c-widget="menu; ui:vertical;")
+			div(c-widget="menu; class:vertical;")
 				div(c-widget="item")
 					div(c-widget="input; icon:search;placeholder:搜索...")
 				div(c-widget="item; caption:产品维护")
@@ -71,37 +71,37 @@ block content
 	.example#tabular
 		h4.ui.header Tabular
 		.code
-			div(c-widget="menu; ui:tabular;")
-				a(c-widget="item; ui:active") 首页
+			div(c-widget="menu; class:tabular;")
+				a(c-widget="item; class:active") 首页
 				a(c-widget="item;") 产品维护
 	+addCatalog("fixed","锁定")
 
 	.example#fixed
 		h4.ui.header Fixed
-		p 通过<code>ui:top fixed</code> 获得页面顶部锁定,<code>ui:bottom fixed</code> 获得页面底部锁定
+		p 通过<code>class:top fixed</code> 获得页面顶部锁定,<code>class:bottom fixed</code> 获得页面底部锁定
 		.code
-			div(c-widget="menu; ui:bottom fixed;")
-				a(c-widget="item; ui:active") 首页
+			div(c-widget="menu; class:bottom fixed;")
+				a(c-widget="item; class:active") 首页
 				a(c-widget="item;") 产品维护
 	+addCatalog("stackable","Stackable")
 
 	.example#stackable
 		h4.ui.header Stackable
 		.code
-			div(c-widget="menu; ui:stackable;")
+			div(c-widget="menu; class:stackable;")
 				a(c-widget="item;")
 					img(c-widget="image; src:/images/logo.png")
-				a(c-widget="item; ui:active") 首页
+				a(c-widget="item; class:active") 首页
 				a(c-widget="item;") 产品维护
 	+addCatalog("icon","图标")
 	.example#icon
 		h4.ui.header Icon
 		.code
-			div(c-widget="menu; ui:icon;")
+			div(c-widget="menu; class:icon;")
 				a(c-widget="item; icon:gamepad")
 				a(c-widget="item; icon:video camera")
 				a(c-widget="item; icon:video play")
-			div(c-widget="menu; ui:vertical icon;")
+			div(c-widget="menu; class:vertical icon;")
 				a(c-widget="item; icon:gamepad")
 				a(c-widget="item; icon:video camera")
 				a(c-widget="item; icon:video play")
@@ -109,11 +109,11 @@ block content
 	.example#labeled-icon
 		h4.ui.header Icon
 		.code
-			div(c-widget="menu; ui:labeled icon;")
+			div(c-widget="menu; class:labeled icon;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
-			div(c-widget="menu; ui:labeled vertical icon;")
+			div(c-widget="menu; class:labeled vertical icon;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
@@ -121,7 +121,7 @@ block content
 	.example#fluid
 		h4.ui.header 流体
 		.code
-			div(c-widget="menu; ui:fluid vertical;")
+			div(c-widget="menu; class:fluid vertical;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
@@ -129,20 +129,20 @@ block content
 	.example#compact
 		h4.ui.header 自由宽度
 		.code
-			div(c-widget="menu; ui:compact;")
+			div(c-widget="menu; class:compact;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
 	+addCatalog("divided","均分宽度")
 	.example#divided
 		h4.ui.header 均分宽度
-		p 需将ui定义为子项数量英文单词+item 如：4个(<code>ui:four item;</code>)3个(<code>ui:three item;</code>)
+		p 需将ui定义为子项数量英文单词+item 如：4个(<code>class:four item;</code>)3个(<code>class:three item;</code>)
 		.code
-			div(c-widget="menu; ui:three item;")
+			div(c-widget="menu; class:three item;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
-			div(c-widget="menu; ui:four item;")
+			div(c-widget="menu; class:four item;")
 				a(c-widget="item; icon:gamepad;caption:游戏;")
 				a(c-widget="item; icon:video camera; caption:电视")
 				a(c-widget="item; icon:video play; caption:视频")
@@ -153,18 +153,18 @@ block content
 		p 将获得边角的处理
 		.code
 
-				div(c-widget="menu; ui:top attached;")
+				div(c-widget="menu; class:top attached;")
 					a(c-widget="item; icon:home;caption:首页;")
 				div.ui.attached.segment
 					img(c-widget="image; src:/images/wireframe/short-paragraph.png")
-				div(c-widget="menu; ui:bottom attached;")
+				div(c-widget="menu; class:bottom attached;")
 					a(c-widget="item; icon:gamepad;caption:游戏;")
 	+addCatalog("borderless","无分割线")
 	.example#borderless
 		h4.ui.header 无分割线
-		p 通过<code>ui:borderless</code>获得item 无分割线效果
+		p 通过<code>class:borderless</code>获得item 无分割线效果
 		.code
-			div(c-widget="menu; ui:borderless;")
+			div(c-widget="menu; class:borderless;")
 				a(c-widget="item;") 1
 				a(c-widget="item;") 2
 				a(c-widget="item;") 3

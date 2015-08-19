@@ -2505,7 +2505,7 @@
       highlightCurrentItem = this._autoSplit && this._largeScreen && index === 0;
       listConfig = {
         $type: "listView",
-        ui: this._ui,
+        "class": this._ui,
         highlightCurrentitem: true,
         allowNoCurrent: !highlightCurrentItem,
         highlightCurrentItem: highlightCurrentItem,
@@ -2561,7 +2561,7 @@
                   contextKey: "titleBar",
                   "c-widget": {
                     $type: "titleBar",
-                    ui: this._ui,
+                    "class": this._ui,
                     items: menuItemsConfig
                   }
                 }
@@ -2883,7 +2883,7 @@
               tagName: "div",
               "c-widget": {
                 $type: "checkbox",
-                ui: "node-checkbox",
+                "class": "node-checkbox",
                 triState: true
               }
             }
@@ -3496,7 +3496,7 @@
       var checkbox;
       if (!dom.firstChild) {
         this._headerCheckbox = checkbox = new cola.Checkbox({
-          ui: "in-cell",
+          "class": "in-cell",
           triState: true,
           click: (function(_this) {
             return function(self) {
@@ -3512,7 +3512,7 @@
       var checkbox;
       if (!dom.firstChild) {
         checkbox = new cola.Checkbox({
-          ui: "in-cell",
+          "class": "in-cell",
           bind: this._table._alias + "." + this._table._selectedProperty,
           change: (function(_this) {
             return function() {
@@ -3591,7 +3591,7 @@
   })(ContentColumn);
 
   _columnsSetter = function(table, columnConfigs) {
-    var column, columnConfig, columnType, columns, l, len1, len2, m, ref;
+    var column, columnConfig, columns, l, len1, len2, m, ref;
     if (table != null ? table._columns : void 0) {
       ref = table._columns;
       for (l = 0, len1 = ref.length; l < len1; l++) {
@@ -3609,8 +3609,7 @@
         if (columnConfig instanceof Column) {
           column = columnConfig;
         } else {
-          columnType = cola.resolveType("table.column", columnConfig);
-          column = new columnType(columnConfig);
+          column = cola.create("table.column", columnConfig, Column);
         }
         column._setTable(table);
         columns.push(column);
@@ -3673,11 +3672,11 @@
       },
       "checkbox-column": {
         tagName: "div",
-        "c-widget": "checkbox;ui:in-cell;bind:$default"
+        "c-widget": "checkbox;class:in-cell;bind:$default"
       },
       "input-column": {
         tagName: "div",
-        "c-widget": "input;ui:in-cell;bind:$default",
+        "c-widget": "input;class:in-cell;bind:$default",
         style: {
           width: "100%"
         }

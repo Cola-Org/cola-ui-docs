@@ -27,11 +27,11 @@ block content
 	.example#inverted
 		h4.ui.header 反白效果
 		.code
-			div(c-widget="segment; height:160; ui:inverted")
+			div(c-widget="segment; height:160; class:inverted")
 				p(style={height: "40px"})
-				div(c-widget="divider; ui:inverted;")
+				div(c-widget="divider; class:inverted;")
 				p(style={height: "40px"})
-				div(c-widget="divider; direction:horizontal;ui:inverted;content:分割线")
+				div(c-widget="divider; direction:horizontal;class:inverted;content:分割线")
 
 	+addCatalog("fitted","贴合模式","UI")
 	.example#fitted
@@ -39,7 +39,7 @@ block content
 		.code
 			div(c-widget="segment;")
 				p Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.
-				div(c-widget="divider; ui:fitted;")
+				div(c-widget="divider; class:fitted;")
 				p Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.
 
 	+addCatalog("hidden","隐藏","UI")
@@ -48,7 +48,7 @@ block content
 		.code
 			div(c-widget="segment;")
 				h3.ui.header Section One
-				div(c-widget="divider; ui:hidden;")
+				div(c-widget="divider; class:hidden;")
 				h3.ui.header Section Two
 	+addCatalog("clearing","Clearing","UI")
 	.example#clearing
@@ -57,7 +57,7 @@ block content
 		.code
 			div(c-widget="segment;")
 				h2.ui.right.floated.header Floated Content
-				div(c-widget="divider; ui:clearing;")
+				div(c-widget="divider; class:clearing;")
 				h3.ui.header
 
 	script(type="text/javascript").

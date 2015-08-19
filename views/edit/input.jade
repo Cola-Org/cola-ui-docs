@@ -25,7 +25,7 @@ block content
 		h4.ui.header Error
 
 		.code
-			div(c-widget="Input; ui:error; placeholder:密码;")
+			div(c-widget="Input; class:error; placeholder:密码;")
 
 	+addCatalog("loading","Loading")
 	.example#loading
@@ -33,7 +33,7 @@ block content
 		p.
 			输入框结合loading 图标可展示加载数据的状态
 		.code
-			div(c-widget="Input; placeholder:搜索...; ui:loading; icon:search")
+			div(c-widget="Input; placeholder:搜索...; class:loading; icon:search")
 
 	+addCatalog("label","标签")
 	.example#label
@@ -55,7 +55,7 @@ block content
 			div(c-widget="Input; placeholder:搜索...; value:mysite.com ")
 				div(c-widget="Button; caption:搜索")
 			div(c-widget="Input; value:$53.5; buttonPosition:left")
-				div(c-widget="Button; caption:购买; icon:cart; ui:teal")
+				div(c-widget="Button; caption:购买; icon:cart; class:teal")
 			div(c-widget="Input; placeholder:关键字;")
 				div(c-widget="MenuButton; caption:Google; icon:dropdown;color:blue; iconPosition:right")
 					div(c-widget="Menu")
@@ -74,26 +74,26 @@ block content
 		h4.ui.header 透明
 		p 透明输入框无背景色,可在menu或者部分反白的容器内使用此UI
 		.code
-			div(c-widget="Input; placeholder:搜索...;ui:transparent;icon:search")
+			div(c-widget="Input; placeholder:搜索...;class:transparent;icon:search")
 
 	+addCatalog("inverted","反白")
 	.example#inverted
 		h4.ui.header 反白
 		.ui.segment.inverted
 			.code
-				div(c-widget="Input; placeholder:搜索...;ui:inverted;icon:search")
+				div(c-widget="Input; placeholder:搜索...;class:inverted;icon:search")
 				div.ui.inverted.divider
-				div(c-widget="Input; placeholder:搜索...;ui:inverted transparent;icon:search")
+				div(c-widget="Input; placeholder:搜索...;class:inverted transparent;icon:search")
 
 	+addCatalog("fluid","流体")
 	.example#fluid
 		h4.ui.header 流体
 		p 输入框横向撑满父容器
 		.code
-			div(c-widget="Input; placeholder:搜索...; value:mysite.com; ui:fluid")
+			div(c-widget="Input; placeholder:搜索...; value:mysite.com; class:fluid")
 				div(c-widget="Button; caption:搜索")
-			div(c-widget="Input; value:$53.5; buttonPosition:left; ui:fluid")
-				div(c-widget="Button; caption:购买; icon:cart; ui:teal")
+			div(c-widget="Input; value:$53.5; buttonPosition:left; class:fluid")
+				div(c-widget="Button; caption:购买; icon:cart; class:teal")
 
 	+addCatalog("size","尺寸")
 	.example#size
@@ -103,7 +103,7 @@ block content
 		.code
 			each size in ["mini","small","medium","large","big","huge","massive"]
 				.ui.divider.hidden
-				- var config = "input; ui:"+size+"; placeholder:搜索...;"
+				- var config = "input; class:"+size+"; placeholder:搜索...;"
 				div(c-widget=config)
 
 	script(type="text/javascript").

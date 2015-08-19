@@ -99,7 +99,7 @@
     };
 
     AbstractItemGroup.prototype._doOnItemsChange = function() {
-      cola.util.delay(this, "_refreshItems", 50, this.refreshItems);
+      return cola.util.delay(this, "_refreshItems", 50, this.refreshItems);
     };
 
     AbstractItemGroup.prototype.refreshItems = function() {
@@ -109,30 +109,14 @@
 
     AbstractItemGroup.prototype.addItem = function(config) {
       var active, item;
-      if (config.constructor === Object.prototype.constructor) {
-        active = config.active;
-        delete config.active;
-        if (config.$type) {
-          item = cola.widget(config);
-        } else {
-          item = $.xCreate(config);
-        }
-      } else if (config.nodeType === 1) {
-        active = cola.util.hasClass(config, "active");
-        item = cola.widget(config);
-        if (item == null) {
-          item = config;
-        }
-      }
+      item = cola.xRender(config, this._scope);
       if (!item) {
         return this;
       }
-      if (this._items.indexOf(item) > -1) {
-        return this;
-      }
+      active = cola.util.hasClass(item, "active");
       this._items.push(item);
       this._addItemToDom(item);
-      if (!!active) {
+      if (active) {
         this.setCurrentIndex(this._items.indexOf(item));
       }
       this._doOnItemsChange();
@@ -141,9 +125,6 @@
 
     AbstractItemGroup.prototype.clearItems = function() {
       var item, j, len, ref;
-      if (this._items == null) {
-        this._items = [];
-      }
       if (this._items.length === 0) {
         return this;
       }
@@ -203,6 +184,8 @@
 
     Section.CLASS_NAME = "section";
 
+    Section.TAG_NAME = "a";
+
     Section.ATTRIBUTES = {
       text: {
         refreshDom: true
@@ -210,38 +193,53 @@
       active: {
         refreshDom: true,
         defaultValue: false
+      },
+      href: {
+        refreshDom: true
+      },
+      target: {
+        refreshDom: true
       }
     };
 
     Section.prototype._parseDom = function(dom) {
-      var text;
+      var href, target, text;
       if (!this._text) {
         text = cola.util.getTextChildData(dom);
         if (text) {
           this._text = text;
         }
       }
-    };
-
-    Section.prototype._createDom = function() {
-      var dom;
-      dom = document.createElement("a");
-      dom.className = "section";
-      return dom;
+      if (!this._href) {
+        href = dom.getAttribute("href");
+        if (href) {
+          this._href = href;
+        }
+      }
+      if (!this._target) {
+        target = dom.getAttribute("target");
+        if (target) {
+          this._target = target;
+        }
+      }
     };
 
     Section.prototype._doRefreshDom = function() {
-      var active, text;
+      var $dom, text;
       if (!this._dom) {
         return;
       }
       Section.__super__._doRefreshDom.call(this);
       text = this.get("text");
-      if (text) {
-        this.get$Dom().text(text);
+      this.get$Dom().text(text || "");
+      this._classNamePool.toggle("active", this._active);
+      $dom = this.get$Dom();
+      if (this._href) {
+        $dom.attr("href", this._href);
+      } else {
+        $dom.removeAttr("href");
       }
-      active = this.get("active");
-      this._classNamePool.toggle("active", !!active);
+      $dom.attr("target", this._target || "");
     };
 
     return Section;
@@ -284,22 +282,14 @@
           this.clear();
           for (j = 0, len = value.length; j < len; j++) {
             section = value[j];
-            if (section instanceof cola.breadcrumb.Section) {
-              this.addSection(section);
-            } else if (typeof section === "string") {
-              this.addSection(new cola.breadcrumb.Section({
-                text: section
-              }));
-            } else if (section.constructor === Object.prototype.constructor) {
-              this.addSection(new cola.breadcrumb.Section(section));
-            }
+            this.addSection(section);
           }
           return this;
         }
       },
       currentIndex: {
         setter: function(value) {
-          this["_currentIndex"] = value;
+          this._currentIndex = value;
           return this.setCurrent(value);
         },
         getter: function() {
@@ -313,24 +303,37 @@
     };
 
     Breadcrumb.EVENTS = {
-      beforeChange: null,
+      sectionClick: null,
       change: null
     };
 
     Breadcrumb.prototype._initDom = function(dom) {
-      return Breadcrumb.__super__._initDom.call(this, dom);
-    };
-
-    Breadcrumb.prototype._setDom = function(dom, parseChild) {
-      var j, len, ref, ref1, section;
-      Breadcrumb.__super__._setDom.call(this, dom, parseChild);
+      var active, activeSection, j, len, ref, ref1, section;
+      Breadcrumb.__super__._initDom.call(this, dom);
       if ((ref = this._sections) != null ? ref.length : void 0) {
         ref1 = this._sections;
         for (j = 0, len = ref1.length; j < len; j++) {
           section = ref1[j];
           this._rendSection(section);
+          if (section.get("active")) {
+            active = section;
+          }
+        }
+        if (active) {
+          this._doChange(active);
         }
       }
+      activeSection = (function(_this) {
+        return function(targetDom) {
+          _this.fire("sectionClick", _this, {
+            sectionDom: targetDom
+          });
+          return _this._doChange(targetDom);
+        };
+      })(this);
+      return this.get$Dom().delegate(">.section", "click", function(event) {
+        return activeSection(this, event);
+      });
     };
 
     Breadcrumb.prototype._parseDom = function(dom) {
@@ -351,7 +354,7 @@
             }
             section = new cola.breadcrumb.Section(sectionConfig);
           }
-          if (section && section instanceof cola.breadcrumb.Section) {
+          if (section instanceof cola.breadcrumb.Section) {
             this.addSection(section);
           }
         }
@@ -413,37 +416,63 @@
     };
 
     Breadcrumb.prototype._doChange = function(section) {
-      var arg, newCurrent, oldCurrent;
-      oldCurrent = this._current;
-      newCurrent = section;
-      if (oldCurrent === newCurrent) {
+      var j, len, ref, s, targetDom, targetSection;
+      if (section.nodeType === 1) {
+        targetDom = section;
+      } else if (section instanceof cola.breadcrumb.Section) {
+        targetDom = section.getDom();
+      } else {
         return;
       }
-      arg = {
-        oldSection: oldCurrent,
-        newSection: newCurrent
-      };
-      this.fire("beforeChange", this, arg);
-      if (arg.processDefault === false) {
-        newCurrent.set("active", false);
-        return;
+      $(">.section.active", this._dom).each(function(index, itemDom) {
+        if (itemDom !== targetDom) {
+          section = cola.widget(itemDom);
+          if (section) {
+            section.set("active", false);
+          } else {
+            $fly(itemDom).removeClass("active");
+          }
+        }
+      });
+      targetSection = cola.widget(targetDom);
+      ref = this._sections;
+      for (j = 0, len = ref.length; j < len; j++) {
+        s = ref[j];
+        if (s !== targetSection) {
+          s.set("active", false);
+        }
       }
-      if (oldCurrent) {
-        oldCurrent.set("active", false);
+      this._current = targetSection;
+      if (targetSection) {
+        targetSection.set("active", true);
+      } else {
+        $fly(targetDom).addClass("active");
       }
-      newCurrent.set("active", true);
-      this.fire("change", this, arg);
+      if (this._rendered) {
+        this.fire("change", this, {
+          currentDom: targetDom
+        });
+      }
     };
 
-    Breadcrumb.prototype.addSection = function(section) {
-      var active;
+    Breadcrumb.prototype.addSection = function(config) {
+      var active, section;
       if (this._destroyed) {
         return this;
       }
       if (this._sections == null) {
         this._sections = [];
       }
-      if (section instanceof cola.breadcrumb.Section) {
+      if (config instanceof cola.breadcrumb.Section) {
+        section = config;
+      } else if (typeof config === "string") {
+        section = new cola.breadcrumb.Section({
+          text: config
+        });
+      } else if (config.constructor === Object.prototype.constructor) {
+        section = new cola.breadcrumb.Section(config);
+      }
+      if (section) {
         this._sections.push(section);
         if (this._dom) {
           this._rendSection(section);
@@ -589,8 +618,8 @@
       return null;
     };
 
-    CardBook.prototype._setDom = function(dom, parseChild) {
-      CardBook.__super__._setDom.call(this, dom, parseChild);
+    CardBook.prototype._initDom = function(dom) {
+      CardBook.__super__._initDom.call(this, dom);
       if (this._items) {
         this._itemsRender();
       }
@@ -729,9 +758,8 @@
       return null;
     };
 
-    Carousel.prototype._setDom = function(dom, parseChild) {
+    Carousel.prototype._initDom = function(dom) {
       var carousel;
-      Carousel.__super__._setDom.call(this, dom, parseChild);
       if (!this._doms.indicators) {
         this._createIndicatorContainer(dom);
       }
@@ -755,20 +783,28 @@
     };
 
     Carousel.prototype.setCurrentIndex = function(index) {
-      var activeSpan, e;
+      var activeSpan, e, pos;
       this.fire("change", this, {
         index: index
       });
       this._currentIndex = index;
-      if (this._dom && this._doms.indicators) {
-        try {
-          $(".active", this._doms.indicators).removeClass("active");
-          activeSpan = this._doms.indicators.children[index];
-          if (activeSpan != null) {
-            activeSpan.className = "active";
+      if (this._dom) {
+        if (this._doms.indicators) {
+          try {
+            $(".active", this._doms.indicators).removeClass("active");
+            activeSpan = this._doms.indicators.children[index];
+            if (activeSpan != null) {
+              activeSpan.className = "active";
+            }
+          } catch (_error) {
+            e = _error;
           }
-        } catch (_error) {
-          e = _error;
+        }
+        if (this._scroller) {
+          pos = this._scroller.getPos();
+          if (pos !== index) {
+            this._scroller.setPos(index);
+          }
         }
       }
       return this;
@@ -857,14 +893,39 @@
     }
 
     AbstractMenuItem.ATTRIBUTES = {
-      parent: null
+      parent: null,
+      active: {
+        defaultValue: false,
+        setter: function(value) {
+          var oldValue;
+          oldValue = this._active;
+          this._active = value;
+          if (oldValue !== value && value) {
+            return this.onActive(this);
+          }
+        },
+        getter: function() {
+          if (!this._active && this._rendered) {
+            this._active = this.get$Dom().hasClass("active");
+          }
+          return this._active;
+        }
+      }
     };
 
     AbstractMenuItem.prototype.onItemClick = function(event, item) {
       var parentMenu;
       parentMenu = this._parent;
-      if (parentMenu && parentMenu instanceof cola.Menu) {
+      if (parentMenu instanceof cola.Menu) {
         parentMenu.onItemClick(event, item);
+      }
+    };
+
+    AbstractMenuItem.prototype.onActive = function(item) {
+      var parentMenu;
+      parentMenu = this._parent;
+      if (parentMenu instanceof cola.Menu) {
+        return parentMenu.setActiveItem(item);
       }
     };
 
@@ -874,6 +935,14 @@
 
     AbstractMenuItem.prototype.hasSubMenu = function() {
       return !!this._subMenu;
+    };
+
+    AbstractMenuItem.prototype.destroy = function() {
+      if (this._destroyed) {
+        return;
+      }
+      AbstractMenuItem.__super__.destroy.call(this);
+      return delete this._parent;
     };
 
     return AbstractMenuItem;
@@ -892,12 +961,21 @@
     MenuItem.TAG_NAME = "a";
 
     MenuItem.ATTRIBUTES = {
-      caption: null,
-      icon: null,
+      caption: {
+        refreshDom: true
+      },
+      icon: {
+        refreshDom: true
+      },
+      href: {
+        refreshDom: true
+      },
+      target: {
+        refreshDom: true
+      },
       items: {
         setter: function(value) {
-          this._items = value;
-          this._resetSubMenu(value);
+          return this._resetSubMenu(value);
         },
         getter: function() {
           var ref;
@@ -915,7 +993,7 @@
       while (child) {
         if (child.nodeType === 1) {
           subMenu = cola.widget(child);
-          if (subMenu && subMenu instanceof cola.Menu) {
+          if (subMenu instanceof cola.Menu) {
             this._subMenu = subMenu;
             subMenu._isSubMemu = true;
           } else if (child.nodeName === "I") {
@@ -938,18 +1016,45 @@
       }
     };
 
-    MenuItem.prototype._setDom = function(dom, parseChild) {
-      var $dom;
-      MenuItem.__super__._setDom.call(this, dom, parseChild);
-      $dom = $(dom);
-      $dom.click((function(_this) {
+    MenuItem.prototype._initDom = function(dom) {
+      var subMenuDom;
+      MenuItem.__super__._initDom.call(this, dom);
+      if (this._$dom == null) {
+        this._$dom = $(dom);
+      }
+      this._$dom.click((function(_this) {
         return function(event) {
+          if (_this._subMenu) {
+            return;
+          }
           return _this.onItemClick(event, _this);
         };
       })(this));
-      if (this._subMenu && this._subMenu.parentNode !== dom) {
-        $dom.append(this._subMenu.getDom());
+      if (this._subMenu) {
+        subMenuDom = this._subMenu.getDom();
+        if (subMenuDom.parentNode !== dom) {
+          dom.appendChild(subMenuDom);
+        }
       }
+    };
+
+    MenuItem.prototype._setDom = function(dom, parseChild) {
+      var href, target;
+      if (parseChild) {
+        if (!this._href) {
+          href = dom.getAttribute("href");
+          if (href) {
+            this._href = href;
+          }
+        }
+        if (!this._target) {
+          target = dom.getAttribute("target");
+          if (target) {
+            this._target = target;
+          }
+        }
+      }
+      return MenuItem.__super__._setDom.call(this, dom, parseChild);
     };
 
     MenuItem.prototype._createDom = function() {
@@ -969,39 +1074,49 @@
       }, this._doms);
     };
 
-    MenuItem.prototype._doRefreshDom = function() {
-      var subMenuDom;
-      if (!this._dom) {
-        return;
-      }
-      MenuItem.__super__._doRefreshDom.call(this);
-      if (this._doms == null) {
-        this._doms = {};
-      }
-      if (!this._caption && this._icon) {
+    MenuItem.prototype._refreshIcon = function() {
+      var $dom;
+      $dom = this.get$Dom();
+      if (this._icon && !this._caption) {
         this._classNamePool.add("icon");
       }
       if (this._icon) {
         if (!this._doms.iconDom) {
           this._doms.iconDom = $.xCreate({
             tagName: "i",
-            "class": (this._icon || "") + " icon"
+            "class": "icon"
           });
         }
         if (this._doms.iconDom.parentNode !== this._dom) {
-          this.get$Dom().prepend(this._doms.iconDom);
+          $dom.prepend(this._doms.iconDom);
         }
-        $fly(this._doms.iconDom).addClass(this._icon);
+        return $fly(this._doms.iconDom).addClass(this._icon);
       } else {
-        $(this._doms.iconDom).remove();
+        return $fly(this._doms.iconDom).remove();
       }
-      $(this._dom).find(">.ui.menu").removeClass("ui");
+    };
+
+    MenuItem.prototype._doRefreshDom = function() {
+      var $dom, subMenuDom;
+      if (!this._dom) {
+        return;
+      }
+      MenuItem.__super__._doRefreshDom.call(this);
+      $dom = this.get$Dom();
+      $dom.find(">.ui.menu").removeClass("ui");
+      this._refreshIcon();
       if (this._subMenu) {
         subMenuDom = this._subMenu.getDom();
         if (subMenuDom.parentNode !== this._dom) {
           this._dom.appendChild(subMenuDom);
         }
       }
+      if (this._href) {
+        $dom.attr("href", this._href);
+      } else {
+        $dom.removeAttr("href");
+      }
+      $dom.attr("target", this._target || "");
     };
 
     MenuItem.prototype._resetSubMenu = function(config) {
@@ -1020,6 +1135,17 @@
       }
     };
 
+    MenuItem.prototype.destroy = function() {
+      var ref;
+      if (this._destroyed) {
+        return;
+      }
+      if ((ref = this._subMenu) != null) {
+        ref.destroy();
+      }
+      return MenuItem.__super__.destroy.call(this);
+    };
+
     return MenuItem;
 
   })(cola.menu.AbstractMenuItem);
@@ -1032,6 +1158,13 @@
     }
 
     DropdownMenuItem.CLASS_NAME = "dropdown item";
+
+    DropdownMenuItem.ATTRIBUTES = {
+      icon: {
+        refreshDom: true,
+        defaultValue: "dropdown"
+      }
+    };
 
     DropdownMenuItem.prototype._createDom = function() {
       var caption;
@@ -1053,13 +1186,12 @@
       }, this._doms);
     };
 
-    DropdownMenuItem.prototype._parseDom = function(dom) {
-      var iconDom;
-      DropdownMenuItem.__super__._parseDom.call(this, dom);
-      iconDom = this._doms.iconDom;
-      if (iconDom) {
-        $(iconDom).addClass("dropdown icon");
+    DropdownMenuItem.prototype._refreshIcon = function() {
+      if (!this._doms.iconDom) {
+        this._doms.iconDom = document.createElement("i");
+        this._dom.appendChild(this._doms.iconDom);
       }
+      return this._doms.iconDom.className = (this._icon || "dropdown") + " icon";
     };
 
     return DropdownMenuItem;
@@ -1078,20 +1210,14 @@
     ControlMenuItem.ATTRIBUTES = {
       control: {
         setter: function(value) {
-          var control, oldControl;
-          oldControl = this["_control"];
-          if (oldControl) {
-            oldControl.destroy();
-          }
-          if (value.constructor === Object.prototype.constructor && value.$type) {
-            control = cola.widget(value);
-          } else if (value instanceof cola.Widget) {
-            control = value;
-          }
-          this["_control"] = control;
+          var control;
+          $fly(this._control).remove();
+          control = cola.xRender(value);
+          this._control = control;
           if (control && this._dom) {
-            this._dom.appendChild(control.getDom());
+            this._dom.appendChild(control);
           }
+          return this;
         }
       }
     };
@@ -1122,9 +1248,14 @@
     ControlMenuItem.prototype._setDom = function(dom, parseChild) {
       var control;
       ControlMenuItem.__super__._setDom.call(this, dom, parseChild);
-      control = this.get("control");
-      if (control) {
+      control = this._control;
+      if (!control) {
+        return;
+      }
+      if (control instanceof cola.RenderableElement) {
         dom.appendChild(control.getDom());
+      } else if (control.nodeType === 1) {
+        dom.appendChild(control);
       }
     };
 
@@ -1239,11 +1370,10 @@
             _this._rightItems = [];
           }
           while (childNode) {
-            if (childNode.nodeTypes === 1) {
+            if (childNode.nodeType === 1) {
               menuItem = cola.widget(child);
               if (menuItem) {
-                menuItem._parent = _this;
-                _this._rightItems.push(menuItem);
+                _this.addRightItem(menuItem);
               }
             }
             childNode = childNode.nextSibling;
@@ -1258,8 +1388,7 @@
             if (childNode.nodeType === 1) {
               menuItem = cola.widget(childNode);
               if (menuItem) {
-                menuItem._parent = _this;
-                _this._items.push(menuItem);
+                _this.addItem(menuItem);
               } else if (!_this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
                 _this._rightMenuDom = childNode;
                 parseRightMenu(childNode);
@@ -1291,7 +1420,7 @@
     };
 
     Menu.prototype._initDom = function(dom) {
-      var container, firstChild, fragmentElement, item, itemDom, j, k, len, len1, menu, menuItems, rItemDom, rightMenuItems;
+      var container, item, itemDom, j, k, len, len1, menu, menuItems, rItemDom, rightMenuItems;
       menuItems = this._items;
       rightMenuItems = this._rightItems;
       menu = this;
@@ -1318,19 +1447,14 @@
           }
         }
       }
-      firstChild = dom.children[0];
-      fragmentElement = $.xCreate({
+      $(dom).prepend($.xCreate({
         tagName: "div",
         "class": "left-items"
-      });
-      if (firstChild) {
-        $(firstChild).before(fragmentElement);
-      } else {
-        dom.appendChild(fragmentElement);
-      }
-      $(dom).hover((function(_this) {
+      })).hover((function(_this) {
         return function() {
-          _this.get$Dom().find(">.dropdown.item,.right.menu>.dropdown.item").each(function(index, item) {
+          var $dom;
+          $dom = _this.get$Dom();
+          $dom.find(">.dropdown.item,.right.menu>.dropdown.item").each(function(index, item) {
             var $item;
             $item = $(item);
             if ($item.hasClass("c-dropdown")) {
@@ -1346,6 +1470,23 @@
       })(this)).delegate(">.item,.right.menu>.item", "click", function() {
         return menu._setActive(this);
       });
+    };
+
+    Menu.prototype._setDom = function(dom, parseChild) {
+      Menu.__super__._setDom.call(this, dom, parseChild);
+      if (this._activeItem) {
+        this._setActive(this._activeItem.getDom());
+      }
+    };
+
+    Menu.prototype.setActiveItem = function(item) {
+      if (!item.get("active")) {
+        item.set("active", true);
+      }
+      this._activeItem = item;
+      if (this._rendered) {
+        return this._setActive(item.getDom());
+      }
     };
 
     Menu.prototype._setActive = function(itemDom) {
@@ -1420,12 +1561,14 @@
         } else {
           menuItem = new cola.menu.MenuItem(config);
         }
+      } else if (config instanceof cola.menu.AbstractMenuItem) {
+        menuItem = config;
       }
       return menuItem;
     };
 
     Menu.prototype.addItem = function(config) {
-      var container, itemDom, menuItem;
+      var active, container, itemDom, menuItem;
       menuItem = this._createItem(config);
       if (!menuItem) {
         return;
@@ -1435,6 +1578,10 @@
         this._items = [];
       }
       this._items.push(menuItem);
+      active = menuItem.get("active");
+      if (active) {
+        this._activeItem = menuItem;
+      }
       if (this._dom) {
         container = this._getItemsContainer();
         itemDom = menuItem.getDom();
@@ -1450,7 +1597,7 @@
     };
 
     Menu.prototype.addRightItem = function(config) {
-      var container, itemDom, menuItem;
+      var active, container, itemDom, menuItem;
       menuItem = this._createItem(config);
       if (!menuItem) {
         return this;
@@ -1460,6 +1607,10 @@
         this._rightItems = [];
       }
       this._rightItems.push(menuItem);
+      active = menuItem.get("active");
+      if (active) {
+        this._activeItem = menuItem;
+      }
       if (this._dom) {
         container = this._getItemsContainer();
         itemDom = menuItem.getDom();
@@ -1556,6 +1707,18 @@
       });
     };
 
+    Menu.prototype.destroy = function() {
+      if (this._destroyed) {
+        return;
+      }
+      Menu.__super__.destroy.call(this);
+      delete this._activeItem;
+      this.clearRightItems();
+      this.clearItems();
+      delete this._containerDom;
+      return this;
+    };
+
     return Menu;
 
   })(cola.Widget);
@@ -1604,7 +1767,6 @@
     };
 
     TitleBar.prototype._doRefreshDom = function() {
-      var firstChild;
       if (!this._dom) {
         return;
       }
@@ -1618,12 +1780,7 @@
             tagName: "div",
             "class": "title"
           });
-          firstChild = this._dom.children[0];
-          if (firstChild) {
-            $(firstChild).before(this._doms.title);
-          } else {
-            this._dom.appendChild(this._doms.title);
-          }
+          this.get$Dom().prepend(this._doms.title);
         }
         $(this._doms.title).text(this._title);
       } else {
@@ -1688,8 +1845,11 @@
     MenuButton.ATTRIBUTES = {
       menuItems: {
         setter: function(value) {
-          this._menuItems = value;
-          this._resetMenu(value);
+          return this._resetMenu(value);
+        },
+        getter: function() {
+          var ref;
+          return (ref = this._menu) != null ? ref.get("items") : void 0;
         }
       }
     };
@@ -1726,12 +1886,10 @@
     };
 
     MenuButton.prototype.onItemClick = function(event, item) {
-      var arg;
-      arg = {
+      this.fire("menuItemClick", this, {
         item: item,
         event: event
-      };
-      this.fire("menuItemClick", this, arg);
+      });
     };
 
     MenuButton.prototype._resetMenu = function(menuItems) {
@@ -1748,25 +1906,15 @@
       }
     };
 
-    MenuButton.prototype.getDom = function() {
-      if (this._destroyed) {
-        return null;
-      }
-      if (!this._dom) {
-        MenuButton.__super__.getDom.call(this);
-      }
-      return this._dom;
-    };
-
     MenuButton.prototype.destroy = function() {
+      var ref;
       if (this._destroyed) {
         return;
       }
-      if (this._menu) {
-        this._menu.destroy();
-        delete this._menu;
-        delete this._menuItems;
+      if ((ref = this._menu) != null) {
+        ref.destroy();
       }
+      delete this._menu;
       MenuButton.__super__.destroy.call(this);
     };
 
@@ -2167,7 +2315,7 @@
           _this._doms.description = node;
           description = cola.util.getTextChildData(node);
           content = _this._content || {};
-          if (!content.description && description) {
+          if (description && !content.description) {
             if (_this._content == null) {
               _this._content = {};
             }
@@ -2227,7 +2375,7 @@
     };
 
     Step.prototype._doRefreshDom = function() {
-      var $contentDom, $dom, base, base1, base2, base3, classNamePool, content, icon, states;
+      var $contentDom, $dom, base, base1, base2, base3, classNamePool, content, icon;
       if (!this._dom) {
         return;
       }
@@ -2246,7 +2394,7 @@
         this._doms.iconDom.className = icon + " icon";
         $dom.append(this._doms.iconDom);
       } else {
-        $(this._doms.iconDom).remove();
+        $fly(this._doms.iconDom).remove();
       }
       if (content) {
         if ((base1 = this._doms).contentDom == null) {
@@ -2261,25 +2409,24 @@
             if ((base2 = this._doms).titleDom == null) {
               base2.titleDom = document.createElement("div");
             }
-            $(this._doms.titleDom).addClass("title").text(content.title);
+            $fly(this._doms.titleDom).addClass("title").text(content.title);
             $contentDom.append(this._doms.titleDom);
           }
           if (content.description) {
             if ((base3 = this._doms).descriptionDom == null) {
               base3.descriptionDom = document.createElement("div");
             }
-            $(this._doms.descriptionDom).addClass("description").text(content.description);
+            $fly(this._doms.descriptionDom).addClass("description").text(content.description);
             $contentDom.append(this._doms.descriptionDom);
           }
         }
         $dom.append($contentDom);
       }
       classNamePool = this._classNamePool;
-      states = this.get("states");
-      if (states) {
-        classNamePool.add(states);
+      if (this._states) {
+        classNamePool.add(this._states);
       }
-      return classNamePool.toggle("disabled", !!this._disabled);
+      return classNamePool.toggle("disabled", this._disabled);
     };
 
     Step.prototype.destroy = function() {
