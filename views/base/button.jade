@@ -104,7 +104,7 @@ block content
 		p 通过states属性设定按钮状态，可选值有<code>disabled、loading、active</code>（默认状态可以传空字符串）
 		.code
 			div(c-widget="button; caption:默认状态")
-			- var states={active:"激活态",disabled:"禁用态",loading:"装载态"}
+			- var states={active:"激活态",loading:"装载态"}
 			each val, index in states
 				- var config="button; states:"+index+"; caption:"+val
 				div(c-widget=config)
@@ -116,7 +116,7 @@ block content
 		.code
 			div(c-widget="Segment; class:inverted;")
 				each color in colors
-					- var config = "button; class:inverted; color:"+color+"; caption:"+color+";"
+					- var config = "button; class:inverted "+color+"; caption:"+color+";"
 					div(c-widget=config)
 
 	+addCatalog("size","尺寸")
@@ -230,5 +230,7 @@ block content
 				div(c-widget="ButtonGroup; attached:bottom;")
 					div(c-widget="Button; caption:开启")
 					div(c-widget="Button; caption:关闭")
+	script(type="text/javascript").
+		cola( function (model) {});
 
 
