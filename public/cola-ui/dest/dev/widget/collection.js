@@ -18,6 +18,7 @@
         }
       },
       currentIndex: {
+        type: "boolean",
         defaultValue: -1,
         setter: function(value) {
           this.setCurrentIndex(value);
@@ -191,6 +192,7 @@
         refreshDom: true
       },
       active: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
@@ -288,6 +290,7 @@
         }
       },
       currentIndex: {
+        type: "number",
         setter: function(value) {
           this._currentIndex = value;
           return this.setCurrent(value);
@@ -895,6 +898,7 @@
     AbstractMenuItem.ATTRIBUTES = {
       parent: null,
       active: {
+        type: "boolean",
         defaultValue: false,
         setter: function(value) {
           var oldValue;
@@ -1329,6 +1333,7 @@
         }
       },
       showActivity: {
+        type: "boolean",
         defaultValue: true
       },
       rightItems: {
@@ -1348,6 +1353,7 @@
         }
       },
       centered: {
+        type: "boolean",
         defaultValue: false
       }
     };
@@ -1357,8 +1363,7 @@
     };
 
     Menu.prototype._parseDom = function(dom) {
-      var child, container, parseItems, parseRightMenu;
-      child = dom.firstChild;
+      var container, parseItems, parseRightMenu;
       if (this._items == null) {
         this._items = [];
       }
@@ -1371,7 +1376,7 @@
           }
           while (childNode) {
             if (childNode.nodeType === 1) {
-              menuItem = cola.widget(child);
+              menuItem = cola.widget(childNode);
               if (menuItem) {
                 _this.addRightItem(menuItem);
               }
@@ -1979,6 +1984,7 @@
         }
       },
       active: {
+        type: "boolean",
         defaultValue: false
       }
     };
@@ -2056,6 +2062,7 @@
         }
       },
       currentIndex: {
+        type: "number",
         setter: function(sides) {
           var config, j, len;
           this.clear();
@@ -2285,6 +2292,7 @@
         }
       },
       disabled: {
+        type: "boolean",
         defaultValue: false
       }
     };
@@ -2483,6 +2491,7 @@
         }
       },
       currentIndex: {
+        type: "number",
         setter: function(value) {
           this["_currentIndex"] = value;
           return this.setCurrent(value);
@@ -2496,6 +2505,7 @@
         }
       },
       autoComplete: {
+        type: "boolean",
         defaultValue: true
       }
     };

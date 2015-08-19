@@ -326,10 +326,12 @@
         "enum": ["left", "right"]
       },
       focusable: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
       disabled: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
@@ -507,11 +509,13 @@
 
     ButtonGroup.ATTRIBUTES = {
       fluid: {
+        type: "boolean",
         refreshDom: true,
         attrName: "c-fuild",
         defaultValue: false
       },
       mutuallyExclusive: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: true
       },
@@ -1017,6 +1021,7 @@
 
     SlotList.ATTRIBUTES = {
       viewItemCount: {
+        type: "number",
         refreshDom: true,
         defalutValue: 3
       },
@@ -1058,6 +1063,7 @@
       },
       defaultValue: null,
       currentIndex: {
+        type: "number",
         refreshDom: true,
         defaultValue: 0
       },
@@ -1945,9 +1951,11 @@
       DateGrid.ATTRIBUTES = {
         calendar: null,
         columnCount: {
+          type: "number",
           defaultValue: 1
         },
         rowCount: {
+          type: "number",
           defaultValue: 1
         },
         cellClassName: null,
@@ -2978,6 +2986,7 @@
         }
       },
       disabled: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       }
@@ -3073,6 +3082,7 @@
         "enum": ["left", "right"]
       },
       horizontal: {
+        type: "boolean",
         defaultValue: false,
         refreshDom: true
       },
@@ -3712,14 +3722,17 @@
         }
       },
       active: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
       instant: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
       disabled: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },

@@ -1406,6 +1406,15 @@
         value = elementAttrBinding.evaluate();
       }
       if (attrConfig) {
+        if (attrConfig.type === "boolean") {
+          if ((value != null) && typeof value !== "boolean") {
+            value = value === "true";
+          }
+        } else if (attrConfig.type === "number") {
+          if ((value != null) && typeof value !== "number") {
+            value = parseFloat(value) || 0;
+          }
+        }
         if (attrConfig["enum"] && attrConfig["enum"].indexOf(value) < 0) {
           throw new cola.I18nException("cola.error.attributeEnumOutOfRange", attr, value);
         }
@@ -2824,7 +2833,8 @@
         defaultValue: "error",
         "enum": ["error", "warning", "info"]
       },
-      disabled: null
+      disabled: null,
+      validateEmptyValue: null
     };
 
     Validator.prototype._getDefaultMessage = function(data) {
@@ -2852,6 +2862,11 @@
 
     Validator.prototype.validate = function(data) {
       var result;
+      if (!this._validateEmptyValue) {
+        if ((data != null) && data !== "") {
+          return;
+        }
+      }
       result = this._validate(data);
       return this._parseValidResult(result, data);
     };
@@ -2868,6 +2883,9 @@
     }
 
     RequiredValidator.ATTRIBUTES = {
+      validateEmptyValue: {
+        defaultValue: true
+      },
       trim: {
         defaultValue: true
       }
@@ -3064,8 +3082,10 @@
 
     AsyncValidator.prototype.validate = function(data, callback) {
       var result;
-      if (this._disabled) {
-        return;
+      if (!this._validateEmptyValue) {
+        if ((data != null) && data !== "") {
+          return;
+        }
       }
       if (this._async) {
         result = this._validate(data, {
@@ -3153,6 +3173,9 @@
     extend(CustomValidator, superClass);
 
     CustomValidator.ATTRIBUTES = {
+      validateEmptyValue: {
+        defaultValue: true
+      },
       func: null
     };
 
@@ -4376,16 +4399,14 @@
             validator = ref[l];
             if (!validator._disabled) {
               if (validator instanceof cola.AsyncValidator && validator.get("async")) {
-                if (data != null) {
-                  validator.validate(data, (function(_this) {
-                    return function(message) {
-                      if (message) {
-                        _this.addMessage(prop, message);
-                      }
-                    };
-                  })(this));
-                }
-              } else if (((data != null) && data !== "") || validator instanceof cola.RequiredValidator) {
+                validator.validate(data, (function(_this) {
+                  return function(message) {
+                    if (message) {
+                      _this.addMessage(prop, message);
+                    }
+                  };
+                })(this));
+              } else {
                 message = validator.validate(data);
                 if (message) {
                   this._addMessage(prop, message);
@@ -8094,11 +8115,11 @@
   _onStateChange = function(path) {
     var i, routerDef;
     path = trimPath(path);
-    i = path.indexOf("?");
+    i = path.indexOf("#");
     if (i > -1) {
-      path = path.substring(0, i);
+      path = path.substring(i + 1);
     } else {
-      i = path.indexOf("#");
+      i = path.indexOf("?");
       if (i > -1) {
         path = path.substring(0, i);
       }

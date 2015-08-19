@@ -1162,7 +1162,8 @@
     Widget.ATTRIBUTES = {
       display: {
         defaultValue: true,
-        refreshDom: true
+        refreshDom: true,
+        type: "boolean"
       },
       float: {
         refreshDom: true,

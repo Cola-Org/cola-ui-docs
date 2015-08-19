@@ -38,6 +38,8 @@
     return el.appendChild(codeEl);
   });
 
+  $(".markdown-content>pre>code").addClass("prettyprint linenums");
+
   prettyPrint();
 
   $('#catalog').sticky({

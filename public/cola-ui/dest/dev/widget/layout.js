@@ -106,6 +106,7 @@
         defaultValue: 300
       },
       visible: {
+        type: "boolean",
         readOnly: true,
         getter: function() {
           return this.isVisible();
@@ -280,15 +281,19 @@
         }
       },
       modal: {
+        type: "boolean",
         defaultValue: true
       },
       closeable: {
+        type: "boolean",
         defaultValue: true
       },
       modalOpacity: {
+        type: "number",
         defaultValue: 0.6
       },
       dimmerClose: {
+        type: "boolean",
         defaultValue: false
       }
     };
@@ -536,6 +541,7 @@
         defaultValue: 100
       },
       duration: {
+        type: "number",
         defaultValue: 200
       },
       transition: {
@@ -547,6 +553,7 @@
         "enum": ["overlay", "push"]
       },
       closable: {
+        type: "boolean",
         defaultValue: true
       }
     };
@@ -783,13 +790,16 @@
         }
       },
       closeable: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
       caption: {
         refreshDom: true
       },
-      name: null
+      name: {
+        refreshDom: true
+      }
     };
 
     AbstractTabButton.prototype.getCaptionDom = function() {

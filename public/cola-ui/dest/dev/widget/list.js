@@ -14,6 +14,7 @@
 
     ItemsView.ATTRIBUTES = {
       allowNoCurrent: {
+        type: "boolean",
         defaultValue: true
       },
       currentItem: {
@@ -33,9 +34,11 @@
         }
       },
       highlightCurrentItem: {
+        type: "boolean",
         defaultValue: true
       },
       autoLoadPage: {
+        type: "boolean",
         defaultValue: true
       },
       changeCurrentitem: null,
@@ -980,6 +983,7 @@
         refreshItems: true
       },
       groupCollapsible: {
+        type: "boolean",
         defaultValue: true
       },
       indexBar: {
@@ -2412,12 +2416,14 @@
         }
       },
       autoSplit: {
+        type: "boolean",
         defaultValue: true
       },
       navBarWidth: {
         defaultValue: 280
       },
       showTitleBar: {
+        type: "boolean",
         defaultValue: true
       },
       title: null
@@ -3366,6 +3372,7 @@
       },
       caption: null,
       visible: {
+        type: "boolean",
         defaultValue: true
       },
       headerTemplate: null
@@ -3648,10 +3655,14 @@
         setter: cola.DataType.dataTypeSetter
       },
       showHeader: {
+        type: "boolean",
         defaultValue: true
       },
-      showFooter: null,
+      showFooter: {
+        type: "boolean"
+      },
       columnStrecthable: {
+        type: "boolean",
         defaultValue: true
       },
       selectedProperty: {

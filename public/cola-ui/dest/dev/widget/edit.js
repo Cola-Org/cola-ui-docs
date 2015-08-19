@@ -25,6 +25,7 @@
       },
       readOnly: {
         refreshDom: true,
+        type: "boolean",
         defaultValue: false
       },
       state: {
@@ -167,10 +168,12 @@
       },
       disabled: {
         refreshDom: true,
+        type: "boolean",
         defaultValue: false
       },
       checked: {
         refreshDom: true,
+        type: "boolean",
         defaultValue: false,
         getter: function() {
           return this._value === this._onValue;
@@ -342,6 +345,7 @@
     Checkbox.ATTRIBUTES = {
       indeterminateValue: null,
       triState: {
+        type: "boolean",
         defaultValue: false
       }
     };
@@ -901,6 +905,7 @@
 
     Progress.ATTRIBUTES = {
       total: {
+        type: "number",
         defaultValue: 0,
         setter: function(value) {
           this._total = isFinite(value) ? parseFloat(value) : value;
@@ -910,6 +915,7 @@
         }
       },
       value: {
+        type: "number",
         defaultValue: 0,
         setter: function(value) {
           this._value = value;
@@ -964,6 +970,7 @@
         }
       },
       showActivity: {
+        type: "boolean",
         defaultValue: true,
         setter: function(value) {
           this._showActivity = !!value;
@@ -973,6 +980,7 @@
         }
       },
       limitValues: {
+        type: "boolean",
         defaultValue: true,
         setter: function(value) {
           this._limitValues = !!value;
@@ -982,6 +990,7 @@
         }
       },
       precision: {
+        type: "number",
         refreshDom: true,
         defaultValue: 1
       },
@@ -1247,10 +1256,12 @@
         refreshDom: true
       },
       disabled: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
       checked: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
@@ -1259,6 +1270,7 @@
         refreshDom: true
       },
       readOnly: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       }
@@ -1639,10 +1651,12 @@
 
     Rating.ATTRIBUTES = {
       rating: {
+        type: "number",
         defaultValue: 0,
         refreshDom: true
       },
       maxRating: {
+        type: "number",
         refreshDom: true,
         defaultValue: 1,
         setter: function(value) {
@@ -1651,6 +1665,7 @@
         }
       },
       disabled: {
+        type: "boolean",
         refreshDom: true,
         defaultValue: false
       },
@@ -1806,6 +1821,7 @@
       valueProperty: null,
       textProperty: null,
       openOnActive: {
+        type: "boolean",
         defaultValue: true
       },
       openMode: {
