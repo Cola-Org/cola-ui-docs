@@ -14,7 +14,7 @@ block content
 	.example#standard
 		h4.ui.header 标准按钮
 		.code
-			div(c-widget="button;") Hello
+			div(c-widget="button; caption:Hello")
 			div(c-widget="button;class:basic;") Hello
 
 	+addCatalog("event","事件绑定")
@@ -164,7 +164,7 @@ block content
 		.code
 			div(c-widget="ButtonGroup")
 				div(c-widget="Button; caption:添加; class:green")
-				div(c-widget="Separator;")
+				div(c-widget="Separator; text:或")
 				div(c-widget="Button; caption:删除")
 	+addCatalog("icon-groups","图标","按钮组")
 	.example#icon-groups

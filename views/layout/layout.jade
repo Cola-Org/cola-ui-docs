@@ -1,0 +1,117 @@
+extends ../doc-layout
+block content
+	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
+	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+	.markdown-content
+		:markdown
+			# Cola-UI快速入门
+			## 栅格系统
+			Cola 提供了一套响应式、移动设备优先的流式栅格系统，随着屏幕尺寸的变化将会自适应显示模式，默认分为最多12列。它包含了易于使用的预定义类，还有强大的mixin 用于生成更具语义的布局。使用方法类似于Bootstrap,但Cola比传统栅格系统更适合mis类应用界面的设计。
+			### 简介
+			栅格系统用于通过一系列的行`row`与列`columns`的组合来创建页面布局，你的内容就可以放入columns中。下面就介绍 Cola 栅格系统的工作原理：
+
+			* `行row`可放置任何区域,row将区域等比例划分12格。
+			* 通过“行` row`在水平方向创建一组“列`columns`”。
+			* 你的内容应当放置于“列`columns`”内，并且，只有“列`columns`”可以作为行`row`”的直接子元素。
+			*  类似 .row 和 .small-4 这种预定义的类，可以用来快速创建栅格布局。
+			*  栅格系统中的列是通过指定1到12的值来表示其跨越的范围。例如，三个等宽的列可以使用三个 .small-4 来创建。
+			*  如果一“行`row`”中包含了的“列`columns`”大于 12，多余的“列`columns`”所在的元素将被作为一个整体另起一行排列。
+			*  栅格类适用于与屏幕宽度大于或等于分界点大小的设备 ， 并且针对小屏幕设备覆盖栅格类。 因此，在元素上应用任何 .small-* 栅格类适用于与屏幕宽度大于或等于分界点大小的设备 ， 并且针对小屏幕设备覆盖栅格类。 因此，在元素上应用任何 .large-* 不存在， 也影响大屏幕设备。
+
+			### 设备宽度定义
+
+			*  手机屏幕(`small-*`):`小于等于768px;`
+			*  平板屏幕(`medium-*`):`大于769px and 小于等于1024px;`
+			*  大屏幕(`large-*`):`大于1024px and 小于等于1440px;`
+			*  超大屏幕(`xlarge-*`):`大于1440px;`
+		.gs-example
+			.row
+				.medium-4.columns .medium-4
+				.medium-4.columns .medium-4
+				.medium-4.columns .medium-4
+			p
+			.row
+				.small-12.medium-4.large-2.columns .small-12 .medium-4 .large-2
+				.small-12.medium-4.large-4.columns .small-12 .medium-4 .large-4
+				.small-12.medium-4.large-6.columns .small-12 .medium-4 .large-6
+		pre.code
+			.row
+				.medium-4.columns ...
+				.medium-4.columns ...
+				.medium-4.columns ...
+			p
+			.row
+				.small-12.medium-4.large-2.columns ...
+				.small-12.medium-4.large-4.columns ...
+				.small-12.medium-4.large-6.columns ...
+
+		h3 列定义继承
+		p 列的定义可从小屏幕继承到大屏，如small-2将未定义medium-*和large-*的条件下直接影响到比small大的所有尺寸
+		.gs-example
+			.row
+				.small-4.columns 4
+				.small-4.columns 4
+				.small-4.columns 4
+			p
+			.row
+				.small-2.columns 2
+				.small-4.columns 4
+				.small-6.columns 6
+		pre.code
+			.row
+				.small-4.columns ...
+				.small-4.columns ...
+				.small-4.columns ...
+
+			.row
+				.small-2.columns ...
+				.small-4.columns ...
+				.small-6.columns ...
+		h3 小屏幕占满12列
+		p 当只定义大屏幕列数时，小屏幕将自动占满12格。如定义medium-2但未定义small-*时 small尺寸下会占满12列
+		.gs-example
+			.row
+				.medium-4.columns .medium-4
+				.medium-4.columns .medium-4
+				.medium-4.columns .medium-4
+
+		pre.code
+			.row
+				.medium-4.columns ...
+				.medium-4.columns ...
+				.medium-4.columns ...
+
+		h3 末尾元素自动靠右
+		.gs-example
+
+			.row
+				.small-4.columns .small-4
+				.small-2.columns .small-2
+			p
+			.row
+				.small-4.columns .small-4
+				.small-2.columns.end .small-2.end
+		pre.code
+			.row
+				.small-4.columns .small-4
+				.small-2.columns .small-2
+			.row
+				.small-4.columns .small-4
+				.small-2.columns.end .small-2.end
+		p 当列数不完整时当前行的最后一个元素将靠右显示，可通过也可添加end className进行消除此效果
+		h3 多余的列将另起一行排列
+		.gs-example
+			.row
+				.small-9.columns .small-9
+				.small-4.columns .small-4
+				.small-6.columns.end .small-6.end
+		pre.code
+			.row
+				.small-9.columns .small-9
+				.small-4.columns .small-4
+				.small-6.columns.end .small-6
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

@@ -194,8 +194,10 @@
         };
         if (isHorizontal) {
           configs.x = isShow ? 0 : x;
+          configs.y = 0;
         } else {
           configs.y = isShow ? 0 : y;
+          configs.x = 0;
         }
         $dom.removeClass("hidden").addClass("visible").transit(configs);
       }

@@ -14,7 +14,7 @@
 
   $examples = $(".example");
 
-  $examples.each(function(index, el) {
+  $(".example:not(.ignore)").each(function(index, el) {
     var code, codeEl, html, modelName, name, reg, script, style;
     name = $fly(el).attr("name");
     modelName = $fly(el).attr("model") || name;
@@ -28,14 +28,22 @@
       style = "<style>" + style + "</style>";
     }
     html = $(el).find(".code").html();
-    code = html + script + style;
-    code = html_beautify(code, jsBeautifyOptions);
-    codeEl = $.xCreate({
-      tagName: "pre",
-      "class": "prettyprint lang-html",
-      content: code
-    });
-    return el.appendChild(codeEl);
+    if (html) {
+      code = html + script + style;
+      code = html_beautify(code, jsBeautifyOptions);
+      codeEl = $.xCreate({
+        tagName: "pre",
+        "class": "prettyprint lang-html",
+        content: code
+      });
+      return el.appendChild(codeEl);
+    }
+  });
+
+  $(".markdown-content>pre.code").each(function(index, el) {
+    var code;
+    code = html_beautify($(el).html(), jsBeautifyOptions);
+    return $(el).addClass("prettyprint lang-html").text(code);
   });
 
   $(".markdown-content>pre>code").addClass("prettyprint linenums");

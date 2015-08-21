@@ -677,6 +677,12 @@
     Carousel.CLASS_NAME = "carousel";
 
     Carousel.ATTRIBUTES = {
+      bind: {
+        readonlyAfterCreate: true,
+        setter: function(bindStr) {
+          return this._bindSetter(bindStr);
+        }
+      },
       orientation: {
         defaultValue: "horizontal",
         "enum": ["horizontal", "vertical"]
@@ -688,9 +694,6 @@
     };
 
     Carousel.prototype.getContentContainer = function() {
-      if (this._doms == null) {
-        this._doms = {};
-      }
       if (!this._doms.wrap) {
         this._createItemsWrap(dom);
       }
@@ -698,14 +701,11 @@
     };
 
     Carousel.prototype._parseDom = function(dom) {
-      var child, parseItem;
-      child = dom.firstChild;
-      if (this._doms == null) {
-        this._doms = {};
-      }
+      var child, doms, parseItem;
       parseItem = (function(_this) {
         return function(node) {
           var childNode;
+          _this._items = [];
           childNode = node.firstChild;
           while (childNode) {
             if (childNode.nodeType === 1) {
@@ -715,24 +715,27 @@
           }
         };
       })(this);
+      doms = this._doms;
+      child = dom.firstChild;
       while (child) {
         if (child.nodeType === 1) {
-          if (!this._doms.wrap && cola.util.hasClass(child, "items-wrap")) {
-            this._doms.wrap = child;
+          if (cola.util.hasClass(child, "items-wrap")) {
+            doms.wrap = child;
             parseItem(child);
-          } else if (!_doms.indicators && cola.util.hasClass(child, "indicators")) {
-            _doms.indicators = child;
+          } else if (!doms.indicators && cola.util.hasClass(child, "indicators")) {
+            doms.indicators = child;
+          } else if (child.nodeName === "TEMPLATE") {
+            this._regTemplate(child);
           }
         }
         child = child.nextSibling;
       }
-      if (!this._doms.indicators) {
+      if (!doms.indicators) {
         this._createIndicatorContainer(dom);
       }
-      if (!this._doms.wrap) {
+      if (!doms.wrap) {
         this._createItemsWrap(dom);
       }
-      return null;
     };
 
     Carousel.prototype._createIndicatorContainer = function(dom) {
@@ -762,12 +765,20 @@
     };
 
     Carousel.prototype._initDom = function(dom) {
-      var carousel;
+      var carousel, template;
       if (!this._doms.indicators) {
         this._createIndicatorContainer(dom);
       }
       if (!this._doms.wrap) {
         this._createItemsWrap(dom);
+      }
+      template = this._getTemplate();
+      if (template) {
+        if (this._bindStr) {
+          $fly(template).attr("c-repeat", this._bindStr);
+        }
+        this._doms.wrap.appendChild(template);
+        cola.xRender(template, this._scope);
       }
       if (this._items) {
         this._itemsRender();
@@ -880,9 +891,33 @@
       this.refreshIndicators();
     };
 
+    Carousel.prototype._onItemsRefresh = function(arg) {
+      return this._itemDomsChanged();
+    };
+
+    Carousel.prototype._onItemInsert = function(arg) {
+      return this._itemDomsChanged();
+    };
+
+    Carousel.prototype._onItemRemove = function(arg) {
+      return this._itemDomsChanged();
+    };
+
+    Carousel.prototype._itemDomsChanged = function() {
+      setTimeout((function(_this) {
+        return function() {
+          _this._parseDom(_this._dom);
+        };
+      })(this), 0);
+    };
+
     return Carousel;
 
   })(cola.AbstractItemGroup);
+
+  cola.Element.mixin(cola.Carousel, cola.TemplateSupport);
+
+  cola.Element.mixin(cola.Carousel, cola.DataItemsWidgetMixin);
 
   if (cola.menu == null) {
     cola.menu = {};

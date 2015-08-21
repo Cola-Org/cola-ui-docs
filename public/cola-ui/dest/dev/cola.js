@@ -1209,7 +1209,7 @@
     }
 
     Element.prototype.destroy = function() {
-      var classType, destructor, elementAttrBinding, l, len1, ref;
+      var classType, destructor, elementAttrBinding, l, len1, p, ref, ref1;
       classType = this.constructor;
       if (classType._destructors) {
         ref = classType._destructors;
@@ -1219,7 +1219,9 @@
         }
       }
       if (this._elementAttrBindings) {
-        for (elementAttrBinding in this._elementAttrBindings) {
+        ref1 = this._elementAttrBindings;
+        for (p in ref1) {
+          elementAttrBinding = ref1[p];
           elementAttrBinding.destroy();
         }
       }
@@ -2842,13 +2844,18 @@
     };
 
     Validator.prototype._parseValidResult = function(result, data) {
+      var text;
       if (typeof result === "boolean") {
         if (result) {
           result = null;
         } else {
+          text = this._message;
+          if (text == null) {
+            text = this._getDefaultMessage(data);
+          }
           result = {
             type: this._messageType,
-            text: this._message || this._getDefaultMessage(data)
+            text: text
           };
         }
       } else if (result && typeof result === "string") {
@@ -6903,6 +6910,9 @@
       }
       if (notifyChildren) {
         notifyChildren2 = !((cola.constants.MESSAGE_EDITING_STATE_CHANGE <= type && type <= cola.constants.MESSAGE_VALIDATION_STATE_CHANGE)) && !((cola.constants.MESSAGE_LOADING_START <= type && type <= cola.constants.MESSAGE_LOADING_END));
+        if (type === cola.constants.MESSAGE_CURRENT_CHANGE) {
+          type = cola.constants.MESSAGE_REFRESH;
+        }
         for (part in node) {
           subNode = node[part];
           if (subNode && (part === "**" || notifyChildren2) && part !== "__processorMap" && part !== "__path") {

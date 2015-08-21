@@ -1,0 +1,34 @@
+extends ../doc-layout
+block content
+	+addCatalog("slide","Slide")
+	.example#slide(name="slide")
+		h4.ui.header Slide
+		div#slideRadio(c-widget="RadioGroup; name:animation; value:slide left;")
+		div#slideBtn(c-widget="Button; caption:toggle; click:click")
+
+		div.ui.segment
+			.code
+				div#slideLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+
+	script(type="text/javascript" name="slide").
+		cola("slide", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("slideLayer").toggle({animation: cola.widget("slideRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				slideRadio: {
+					name: "slide",
+					items: [
+						"slide left", "slide right", "slide up", "slide down"
+					]
+				}
+			})
+		});
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

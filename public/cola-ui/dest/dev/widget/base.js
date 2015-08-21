@@ -939,73 +939,6 @@
       return AbstractSlotList.__super__.constructor.apply(this, arguments);
     }
 
-    AbstractSlotList.prototype._resetDimension = function() {};
-
-    AbstractSlotList.prototype._setDom = function(dom) {};
-
-    AbstractSlotList.prototype._doRefreshDom = function() {
-      if (!this._dom) {
-        return;
-      }
-      AbstractSlotList.__super__._doRefreshDom.call(this);
-      this._resetDimension();
-    };
-
-    AbstractSlotList.prototype.getDom = function() {
-      var arg, dom;
-      if (this._destroyed) {
-        return null;
-      }
-      if (!this._dom) {
-        dom = this._dom = this._createDom();
-        this._setDom(dom);
-        arg = {
-          dom: dom,
-          returnValue: null
-        };
-        this.fire("createDom", this, arg);
-      }
-      return this._dom;
-    };
-
-    AbstractSlotList.prototype.get$Dom = function() {
-      if (this._destroyed) {
-        return null;
-      }
-      if (this._$dom == null) {
-        this._$dom = $(this.getDom());
-      }
-      return this._$dom;
-    };
-
-    AbstractSlotList.prototype.refresh = function() {
-      var arg;
-      if (!this._dom) {
-        return this;
-      }
-      this._refreshDom();
-      arg = {
-        dom: this._dom,
-        returnValue: null
-      };
-      this.fire("refreshDom", this, arg);
-      return this;
-    };
-
-    AbstractSlotList.prototype.appendTo = function(dom) {
-      if (dom && this.getDom()) {
-        $(dom).append(this._dom);
-      }
-      return this;
-    };
-
-    AbstractSlotList.prototype.remove = function() {
-      if (this._dom) {
-        this.get$Dom().remove();
-      }
-      return this;
-    };
-
     return AbstractSlotList;
 
   })(cola.RenderableElement);
@@ -1071,7 +1004,7 @@
     };
 
     SlotList.EVENTS = {
-      onValueChange: null
+      valueChange: null
     };
 
     SlotList.prototype.doTouchStart = function(touches, timeStamp) {
@@ -1161,7 +1094,7 @@
       return dom;
     };
 
-    SlotList.prototype._setDom = function(dom) {
+    SlotList.prototype._initDom = function(dom) {
       var defaultValue, index, item, items, list, position, scrollTop;
       list = this;
       items = this.doGetItems();
@@ -1183,7 +1116,7 @@
         if (position === arg.top) {
           list._currentIndex = Math.abs(itemIndex);
           value = list.get("value");
-          return list.fire("onValueChange", list, {
+          return list.fire("valueChange", list, {
             currentIndex: Math.abs(itemIndex),
             value: value
           });
@@ -1371,7 +1304,7 @@
             range: slotConfig.range,
             formatter: slotConfig.formatter,
             defaultValue: slotConfig.defaultValue,
-            onValueChange: function(self, arg) {
+            valueChange: function(self, arg) {
               var value;
               value = arg.value;
               return picker.setSlotValue(self._slotIndex, value);
@@ -1382,7 +1315,7 @@
             items: slotConfig.items,
             formatter: slotConfig.formatter,
             defaultValue: slotConfig.defaultValue,
-            onValueChange: function(self, arg) {
+            valueChange: function(self, arg) {
               var value;
               value = arg.value;
               return picker.setSlotValue(self._slotIndex, value);
@@ -1860,7 +1793,7 @@
         type: options.type || "date"
       });
       timerLayer = new cola.Layer({
-        animation: "slide down",
+        animation: "slide up",
         vertical: true,
         horizontal: true,
         "class": "date-timer"
@@ -2619,7 +2552,8 @@
       Calendar.prototype.setDate = function(date) {
         this._date = new Date(this._year, this._month, date);
         this._monthDate = date;
-        return this._datePicker.setDate(date);
+        this._datePicker.setDate(date);
+        return this;
       };
 
       Calendar.prototype.prevMonth = function() {
@@ -2629,8 +2563,9 @@
         if (year !== void 0 && month !== void 0) {
           newYear = month === 0 ? year - 1 : year;
           newMonth = month === 0 ? 11 : month - 1;
-          return this.setState(newYear, newMonth);
+          this.setState(newYear, newMonth);
         }
+        return this;
       };
 
       Calendar.prototype.nextMonth = function() {
@@ -2640,8 +2575,9 @@
         if (year !== void 0 && month !== void 0) {
           newYear = month === 11 ? year + 1 : year;
           newMonth = month === 11 ? 0 : month + 1;
-          return this.setState(newYear, newMonth);
+          this.setState(newYear, newMonth);
         }
+        return this;
       };
 
       Calendar.prototype.prevYear = function() {
@@ -2649,8 +2585,9 @@
         year = this._year;
         month = this._month;
         if (year !== void 0 && month !== void 0) {
-          return this.setState(year - 1, month);
+          this.setState(year - 1, month);
         }
+        return this;
       };
 
       Calendar.prototype.setYear = function(newYear) {
@@ -2667,8 +2604,9 @@
         year = this._year;
         month = this._month;
         if (year !== void 0 && month !== void 0) {
-          return this.setState(year + 1, month);
+          this.setState(year + 1, month);
         }
+        return this;
       };
 
       Calendar.prototype._doRefreshDom = function() {
