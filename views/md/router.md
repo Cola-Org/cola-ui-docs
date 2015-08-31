@@ -12,7 +12,7 @@ Router的功能是用于管理网页内的跳转，方便用户实现SPA类应�
 目前页面内的Path管理有两种实现方式：
 
 * 利用Hash，即URL中"#"后面的内容。开发者可以在不刷新页面的情况下改变这部分内容。并将其作为Path与页面子内容或行为相关联。这样的做法难以对SEO的伤害较大。
- 为了解决这个问题Google曾提出了"#!"规范（https://developers.google.com/webmasters/ajax-crawling/docs/specification），目前大多数的收缩引擎都已经支持了此规范。
+ 为了解决这个问题Google曾提出了"#!"规范（https://developers.google.com/webmasters/ajax-crawling/docs/specification ），目前大多数的收缩引擎都已经支持了此规范。
  尽管如此，这入了Hash的URL看起来不符合多数人的视频审美习惯却也是个不争的事实。
 * 利用State。在HTML5中提供了两个新的方法——pushState()和replaceState()使得开发者可以在不刷新页面的情况下改变页面的URL。同时还提供了onStateChange事件来监听state的改变。
  有了这个方法只要再配合一些Server端的处理技巧，我们就可以有机会完美的解决SPA和SEO之间的冲突了。
