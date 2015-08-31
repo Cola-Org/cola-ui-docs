@@ -9,7 +9,7 @@ jsBeautifyOptions =
 	indent_size: 4
 
 $examples = $(".example")
-$examples.each((index, el)->
+$(".example:not(.ignore)").each((index, el)->
 	name = $fly(el).attr("name")
 	modelName = $fly(el).attr("model") or name
 
@@ -21,17 +21,22 @@ $examples.each((index, el)->
 	if style then style = "<style>#{style}</style>"
 
 	html = $(el).find(".code").html()
+	if html
+		code = html + script + style
+		code = html_beautify(code, jsBeautifyOptions)
 
-	code = html + script + style
-	code = html_beautify(code, jsBeautifyOptions)
+		codeEl = $.xCreate({
+			tagName: "pre"
+			class: "prettyprint lang-html"
+			content: code
+		})
 
-	codeEl = $.xCreate({
-		tagName: "pre"
-		class: "prettyprint lang-html"
-		content: code
-	})
+		el.appendChild(codeEl)
+)
 
-	el.appendChild(codeEl)
+$(".markdown-content>pre.code").each((index, el)->
+	code = html_beautify($(el).html(), jsBeautifyOptions)
+	$(el).addClass("prettyprint lang-html").text(code)
 )
 $(".markdown-content>pre>code").addClass("prettyprint linenums")
 prettyPrint()

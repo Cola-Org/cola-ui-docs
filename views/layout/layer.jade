@@ -1,38 +1,171 @@
 extends ../doc-layout
 block content
+	- defaultGroupName="动画"
 	style.
-		.example>.ui.segment{
+		.example > .ui.segment {
 			width: 200px;
 			height: 200px;
 		}
-	div#radioGroup(c-widget="RadioGroup; name:animation; value:slide left;")
-	+addCatalog("standard","Layer")
-	.example#standard
-		h4.ui.header Layer 层控件
 
-		div#standardBtn(c-widget="Button; caption:toggle; click:click")
+		.example .grouped {
+			margin-bottom: 1em;
+		}
+	h4.ui.header Layer 层控件
+	p 此控件可定义显示和隐藏动画。并可设置动画时间和监听动画结束事件
+	+addCatalog("slide","Slide")
+	.example#slide(name="slide")
+		h4.ui.header Slide
+		div#slideRadio(c-widget="RadioGroup; name:animation; value:slide left;")
+		div#slideBtn(c-widget="Button; caption:toggle; click:click")
+
 		div.ui.segment
 			.code
-				div#standardLayer.blue-background(c-widget="Layer;")
-	script(type="text/javascript").
-		cola(function (model) {
+				div#slideLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+
+	script(type="text/javascript" name="slide").
+		cola("slide", function (model) {
 			model.action({
-				click:function(){
-					cola.widget("standardLayer").toggle({animation:cola.widget("radioGroup").get("value")})
+				click: function () {
+					cola.widget("slideLayer").toggle({animation: cola.widget("slideRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				slideRadio: {
+					name: "slide",
+					items: [
+						"slide left", "slide right", "slide up", "slide down"
+					]
 				}
 			})
+		});
+	+addCatalog("fade","Fade")
 
+	.example#fade(name="fade")
+		h4.ui.header Fade
+		div#fadeRadio(c-widget="RadioGroup; name:animation; value:fade left;")
+		div#fadeBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#fadeLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+	script(type="text/javascript" name="fade").
+		cola("fade", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("fadeLayer").toggle({animation: cola.widget("fadeRadio").get("value")})
+				}
+			});
 			model.widgetConfig({
-				radioGroup:{
+				fadeRadio: {
+					name: "fade",
 					items: [
-						"scale", "drop", "browse right", "browse",
-						"slide left", "slide right", "slide up", "slide down",
-						"fade left", "fade right", "fade up", "fade down",
-						"fly left", "fly right", "fly up", "fly down",
-						"swing left", "swing right", "swing up", "swing down",
+						"fade left", "fade right", "fade up", "fade down"
+					]
+				}
+			})
+		});
+	+addCatalog("fly","Fly")
+	.example#fly(name="fly")
+		h4.ui.header Fly
+		div#flyRadio(c-widget="RadioGroup; name:animation; value:fly left;")
+		div#flyBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#flyLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+	script(type="text/javascript" name="fly").
+		cola("fly", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("flyLayer").toggle({animation: cola.widget("flyRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				flyRadio: {
+					name: "fly",
+					items: [
+						"fly left", "fly right", "fly up", "fly down"
+					]
+				}
+			})
+		});
+	+addCatalog("swing","Swing")
+	.example#swing(name="swing")
+		h4.ui.header Swing
+		div#swingRadio(c-widget="RadioGroup; name:animation; value:swing left;")
+		div#swingBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#swingLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+	script(type="text/javascript" name="swing").
+		cola("swing", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("swingLayer").toggle({animation: cola.widget("swingRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				swingRadio: {
+					name: "swing",
+					items: [
+						"swing left", "swing right", "swing up", "swing down"
+					]
+				}
+			})
+		});
+	+addCatalog("flip","Flip")
+	.example#flip(name="flip")
+		h4.ui.header Flip
+		div#flipRadio(c-widget="RadioGroup; name:animation; value:horizontal flip;")
+		div#flipBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#flipLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+	script(type="text/javascript" name="flip").
+		cola("flip", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("flipLayer").toggle({animation: cola.widget("flipRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				flipRadio: {
+					name: "flip",
+					items: [
 						"horizontal flip", "vertical flip"
 					]
 				}
 			})
-
 		});
+	+addCatalog("other","其他")
+	.example#other(name="other")
+		h4.ui.header 其他的
+		div#otherRadio(c-widget="RadioGroup; name:animation; value:scale;")
+		div#otherBtn(c-widget="Button; caption:toggle; click:click")
+		div.ui.segment
+			.code
+				div#otherLayer(c-widget="Layer;")
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+	script(type="text/javascript" name="other").
+		cola("other", function (model) {
+			model.action({
+				click: function () {
+					cola.widget("otherLayer").toggle({animation: cola.widget("otherRadio").get("value")})
+				}
+			});
+			model.widgetConfig({
+				otherRadio: {
+					name: "other",
+					items: [
+						"scale", "drop", "browse right", "browse"
+					]
+				}
+			})
+		});
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

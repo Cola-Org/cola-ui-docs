@@ -392,7 +392,7 @@ template {
     clear: both;
   }
 }
-@media only screen and (min-width:40.0625em) {
+@media only screen and (min-width: 48.0625em ) {
   .medium-row-list > li {
     list-style: none;
     width: 100%;
@@ -518,7 +518,7 @@ template {
     clear: both;
   }
 }
-@media only screen and (min-width:58.5em) {
+@media only screen and (min-width: 64.0625em ) {
   .large-row-list > li {
     list-style: none;
     width: 100%;
@@ -644,7 +644,7 @@ template {
     clear: both;
   }
 }
-@media only screen and (min-width:90.0625em) {
+@media only screen and (min-width: 90.0625em ) {
   .xlarge-row-list > li {
     list-style: none;
     width: 100%;
@@ -770,7 +770,7 @@ template {
     clear: both;
   }
 }
-@media only screen and (min-width:120.0625em) {
+@media only screen and (min-width: 120.0625em ) {
   .xxlarge-row-list > li {
     list-style: none;
     width: 100%;
@@ -1231,7 +1231,7 @@ template {
     padding-right: 0rem;
   }
 }
-@media only screen and (min-width:40.0625em) {
+@media only screen and (min-width: 48.0625em ) {
   .medium-push-0 {
     position: relative;
     left: 0%;
@@ -1477,7 +1477,7 @@ template {
     padding-right: 0rem;
   }
 }
-@media only screen and (min-width:58.5em) {
+@media only screen and (min-width: 64.0625em ) {
   .large-push-0 {
     position: relative;
     left: 0%;
@@ -1723,7 +1723,7 @@ template {
     padding-right: 0rem;
   }
 }
-@media only screen and (min-width:90.0625em) {
+@media only screen and (min-width: 90.0625em ) {
   .xlarge-push-0 {
     position: relative;
     left: 0%;

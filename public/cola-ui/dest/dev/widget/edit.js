@@ -111,6 +111,8 @@
     AbstractEditor.prototype._processDataMessage = function(path, type, arg) {
       var $formDom, form, keyMessage, value;
       if (type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE) {
+        keyMessage = arg.entity.getKeyMessage(arg.property);
+        this.set("state", keyMessage != null ? keyMessage.type : void 0);
         if (this._formDom === void 0) {
           if (this._fieldDom) {
             $formDom = $fly(this._fieldDom).closest(".ui.form");
@@ -120,7 +122,6 @@
         if (this._formDom) {
           form = cola.widget(this._formDom);
           if (form && form instanceof cola.Form) {
-            keyMessage = arg.entity.getKeyMessage(arg.property);
             return form.setFieldMessages(this, keyMessage);
           }
         }
@@ -2540,21 +2541,27 @@
     };
 
     Form.prototype._refreshState = function() {
-      var errors, i, keyMessage, len, m, messages, type;
+      var errors, i, keyMessage, len, m, messages, state, type;
+      state = null;
       keyMessage = this._messageHolder.getKeyMessage();
       type = keyMessage != null ? keyMessage.type : void 0;
-      this.set("state", type);
       if (type === "error" && !this._inline) {
         errors = [];
         messages = this._messageHolder.findMessages(null, type);
         if (messages) {
           for (i = 0, len = messages.length; i < len; i++) {
             m = messages[i];
-            errors.push(m.text);
+            if (m.text) {
+              errors.push(m.text);
+            }
           }
         }
         this._$dom.form("add errors", errors);
+        if (errors.length > 0) {
+          state = type;
+        }
       }
+      this.set("state", state);
     };
 
     Form.prototype._resetEntityMessages = function() {
@@ -2592,7 +2599,7 @@
         editorDom = editor._$dom.find("input, textarea, select")[0];
         if (editorDom) {
           editorDom.id || (editorDom.id = cola.uniqueId());
-          if ((message != null ? message.type : void 0) === "error") {
+          if ((message != null ? message.type : void 0) === "error" && message.text) {
             this._$dom.form("add prompt", editorDom.id, message.text);
           } else {
             this._$dom.form("remove prompt", {
