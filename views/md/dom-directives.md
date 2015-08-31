@@ -57,6 +57,13 @@ DOM指令用于建立DOM元素与数据模型间的双向数据绑定。DOM指�
 `model.set("sortOptions", ["done", "-done", "title", "-title", "done,title"]);`
 也可以利用JSON数组来声明sortOptions变量，以便于声明每一个Option的value和text。
 
+### c-i18n
+用于在DOM中引用国际化资源。
+
+基本的形式是： `<国际化资源的名称>[;参数1][;参数2][;参数3]...`
+
+TODO
+
 ### c-watch
 用于监听某个数据路径上的数据变化然后触发某个指定的Action。
 

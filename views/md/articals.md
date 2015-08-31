@@ -11,6 +11,8 @@
  * [Element](element)
  * [Action(动作)](action)
  * [router(路由)](router)
+ * [国际化](i18n)
+ * [Ajax](ajax)
 * 控件
  * [Button(按钮)](base/button)
  * [Divider(分割线)](base/divider)

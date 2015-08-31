@@ -49,6 +49,7 @@ model.describe("age", {
 	validators: [
 		"required",
 		{
+			$type: "number",
 			min: 1,
 			max: 120
 		}
@@ -76,6 +77,7 @@ model.dataType({
 		age: {
 			dataType: "int",
 			validator: {
+				$type: "number",
 				min: 1,
 				max: 120
 			}

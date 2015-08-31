@@ -75,8 +75,6 @@ employees.each(function(employee) {
 ```   
 EntityList的更多用法请参考API文档。
 
-## 
-
 ## EntityDataType（实体数据类型）
 model.EntityDataType是专门用于描述Entity的DataType。例如我们可以用这样的一段声明来描述person这种数据实体...
 ```
@@ -110,67 +108,60 @@ Cola会自动根据此处dataType对应的那段JSON创建一个EntityDataType�
 
 我们也可以利用EntityDataType来定义属性的数据懒装载，例如在下面的例子中指定了Category的products属性是一个支持数据懒装载的属性，同时还用一段子JSON还声明了products中每一个数据实体的DataType。
 ```
-model.setDataType("categories", {
-	properties:[
-		{
-			name: "id"
+model.describe("categories", {
+	properties:{
+		id: {
+			required: true
 		},
-		{
-			name: "name",
+		name: {
 			label: "分类名称",
 			required: true
 		},
-		{
-			name: "products",
+		products: {
 			provider: {
 				url: "/data/products.action",
 				parameter: ":id"
 			},
 			dataType: {
-				properties:[
-					{
-						name: "id",
+				properties: {
+					id: {
 						dataType: "int",
 						required: true
 					},
-					{
-						name: "name",
+					name: {
 						label: "产品名称",
 						required: true
 					},
-					{
-						name: "price",
+					price: {
 						label: "价格",
 						dataType: "float"
 					}
-				]
+				}
 			}
 		}
-	]
+	}
 });
 ```        
 下面的例子定义一个递归的树状结构，我们在定义DataType时为其声明了name属性，例如指定name为"Category"。之后我们就可以在其他地方通过"Category"这个名称来引用这个DataType了。例如此例中我们在categories属性中引用了"Category"，那就相当于又引用了自身。
 ```
-model.setDataType("categories", {
+model.describe("categories", {
 	name: "Category",
-	properties:[
-		{
-			name: "id"
+	properties:{
+		id: {
+			required: true
 		},
-		{
-			name: "name",
+		name: {
 			label: "分类名称",
 			required: true
 		},
-		{
-			name: "categories",
+		categories: {
 			provider: {
 				url: "/data/categories.action",
 				parameter: ":id"
 			},
 			dataType: "Category"
 		}
-	]
+	}
 });
 ```    
 也可以预先利用Model.dataType()声明好DataType，再到cola.data()中使用，就像下面的这个例子...
@@ -179,18 +170,15 @@ model.dataType([
 	{
 		name: "Product",
 		properties:[
-			{
-				name: "id",
+			id: {
 				dataType: "int",
 				required: true
 			},
-			{
-				name: "name",
+			name: {
 				label: "产品名称",
 				required: true
 			},
-			{
-				name: "price",
+			price: {
 				label: "价格",
 				dataType: "int"
 			}
@@ -198,64 +186,68 @@ model.dataType([
 	},
 	{
 		name: "Category",
-		properties:[
-			{
-				name: "id"
-			},
-			{
-				name: "name",
+		properties: {
+			name: {
 				label: "分类名称",
 				required: true
 			},
-			{
-				name: "products",
+			products: {
 				provider: {
 					url: "/data/products.action",
 					parameter: ":id"
 				},
 				dataType: "Product"
 			}
-		]
+		}
 	}
 ]);
 
-model.setDataType("categories", "Category");
+model.describe("categories", "Category");
 ```
 
 ## Provider（数据装载器）
 
 ### Provider的基本用法
-Provider是用于为数据模型提供数据，通常是用于从Server端通过Ajax装载数据。如果我们把一个Provider作为数据设置到Model或Entity中，那么当我们再次尝试从Model和Entity中读取这项数据时，Cola会自动调用该Provider尝试获得真正的数据。例如:
+Provider是用于为数据模型提供数据的，通常是用于声明让Model自动从Server端通过Ajax装载数据。
+
+如果我们把一个Provider作为数据设置到Model或Entity中，或者利用describe为某个数据项声明好了Provider。那么当我们之后尝试从Model和Entity中读取这项数据时，Cola会自动调用该Provider尝试获得最终的数据。例如:
 ```
-dept.describe("employees", {
+model.describe("employees", {
     provider: "data/employees.json"
+});
+``` 
+或
+```
+model.set("employees", new cola.Provider({
+    url: "data/employees.json"
 }));
-dept.get("employees", function(employees) {
+``` 
+
+以上的第一段代码演示的是一种极简的Provider的定义方法，如果只需要定义一个Provider的url，那么就可以直接通过一个代表url的字符串来定义。但事实上Provider还支持更多的属性和设置，如果有需要我们还可以通过JSON配置对象的醒来来定义的Provider。
+
+下面的代码将触发Model从Server端装载数据
+```
+model.get("employees", function(employees) {
     // 异步方式读取employees属性，可以在回调方法中得到装载到的employees集合。
 });
-```    
-> 以上演示的是一种极简的Provider的定义方法，如果只需要定义一个Provider的url，那么就可以直接通过一个代表url的字符串来定义。但事实上Provider还支持更多的属性和设置，如果有需要我们还可以通过JSON配置对象的醒来来定义的Provider。
+```
 
 当我们利用Provider来为某种Entity的某个属性定义数据懒装载时，你会需要向Ajax服务传递当前Entity的id或类似的唯一标示，以便于服务器区分究竟应该装载那些数据。这种参数的值只有在实际运行时才能最终确定，因此需要利用特殊的定义方法。见下面的DataType声明：
 ```
-model.dataType("Category", {
-	properties:[
-		{
-			name: "id"
-		},
-		{
-			name: "name",
+model.dataType({
+	name: "Category",
+	properties: {
+		name: {
 			label: "分类名称",
 			required: true
 		},
-		{
-			name: "products",
+		products: {
 			provider: {
 				url: "/data/products.action",
 				parameter: ":id"
 			}
 		}
-	]
+	}
 });
 ```
 在products对应的属性的provider中，我们通过:id来定义了参数。这表示Provider会在最终被执行之前从当前所属的Entity的id属性中读取该参数的值，即获得当前对应的Category的id作为参数值。
@@ -287,19 +279,3 @@ model.dataType("Category", {
     	]
 }
 ```
-## cola.data()
-cola.data()用于对将要设置给Model的数据进行封装，这种封装通常用声明Ajax数据装载。
-只要在wrapper中声明了url属性那么Cola就会自动在内部创建一个[Cola.Provider](#provider数据装载器)对象来完成数据装载。例如下面的代码表示products的内容将从/data/products.json装载。
-```
-model.set("products", cola.data({
-	url: "/data/products.json"
-}));
-```    
-此处还支持更多的装载选项，例如声明按照每页20条记录的形式对所有产品进行分页装载的定义方式如下：
-```
-model.set("products", cola.data({
-    pageSize: 20,
-	url: "/data/get-products.do"
-}));
-```    
-这种cola.data()的使用方法还支持更多的选项，具体请参考Cola.Provider的API文档。
