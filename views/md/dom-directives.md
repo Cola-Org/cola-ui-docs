@@ -63,12 +63,12 @@ DOM指令用于建立DOM元素与数据模型间的双向数据绑定。DOM指�
 基本的形式是： `<要触发的Action的名称> on <监听的数据路径>`
 
 例如：`<div c-watch="onItemRender on item.price" c-bind="item.price"></div>`，在本例中每当item.price的值发生变化时，Cola都会自动触发名为onItemRender的Action。
-onItemRender的定义方法大致如下：
+onItemRender的定义方法大致如下
 ```
 model.action({
- onItemRender: function(dom, model) {
-  ... ...
- }
+	onItemRender: function(dom, model) {
+		... ...
+	}
 });
 ```
 这种Watch Action支持两个传入参数。第一参数是当前被渲染的DOM对象，第二个参数是当前对应的Model实例。
