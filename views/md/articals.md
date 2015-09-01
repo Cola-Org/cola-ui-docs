@@ -2,6 +2,7 @@
 
 * 文章
  * [快速入门](quick-start)
+ * [实例教程——代办事项](tutorial-todo)
  
 * 相关概念
  * [Model(视图模型)](model)
@@ -14,6 +15,7 @@
  * [国际化](i18n)
  * [Ajax](ajax)
 * 控件
+ * [控件的基本使用方法](widget)
  * [Button(按钮)](base/button)
  * [Divider(分割线)](base/divider)
  * [IFrame](base/iframe)
