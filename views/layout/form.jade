@@ -1,0 +1,125 @@
+extends ../doc-layout
+block content
+	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
+	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+	- defaultGroupName="栅格系统"
+	.markdown-content
+		+addCatalog("grid","简介")
+		#grid
+		:markdown
+			## form 布局
+			Cola 提供了一套响应式、移动设备优先的流式栅格系统，随着屏幕尺寸的变化将会自适应显示模式，默认分为最多12列。它包含了易于使用的预定义类，还有强大的mixin 用于生成更具语义的布局。使用方法类似于Bootstrap,但Cola比传统栅格系统更适合mis类应用界面的设计。
+			### 简介
+			栅格系统用于通过一系列的行`row`与列`columns`的组合来创建页面布局，你的内容就可以放入columns中。下面就介绍 Cola 栅格系统的工作原理：
+
+			* `行row`可放置任何区域,row将区域等比例划分12格。
+			* 通过“行` row`在水平方向创建一组“列`columns`”。
+			* 你的内容应当放置于“列`columns`”内，并且，只有“列`columns`”可以作为行`row`”的直接子元素。
+			*  类似 .row 和 .small-4 这种预定义的类，可以用来快速创建栅格布局。
+			*  栅格系统中的列是通过指定1到12的值来表示其跨越的范围。例如，三个等宽的列可以使用三个 .small-4 来创建。
+			*  如果一“行`row`”中包含了的“列`columns`”大于 12，多余的“列`columns`”所在的元素将被作为一个整体另起一行排列。
+			*  栅格类适用于与屏幕宽度大于或等于分界点大小的设备 ， 并且针对小屏幕设备覆盖栅格类。 因此，在元素上应用任何 .small-* 栅格类适用于与屏幕宽度大于或等于分界点大小的设备 ， 并且针对小屏幕设备覆盖栅格类。 因此，在元素上应用任何 .large-* 不存在， 也影响大屏幕设备。
+
+			### 设备宽度定义
+
+			*  1:one
+			*  2:two
+			*  3:three
+			*  4:four
+			*  5:five
+			*  6:six
+			*  7:seven
+			*  8:eight
+			*  9:nine
+			*  10:ten
+			*  11:eleven
+			*  12:twelve
+			*  13:thirteen
+			*  14:fourteen
+			*  15:fifteen
+			*  16:sixteen
+
+
+		.gs-example
+			.ui.form
+				.fields
+					.field.eight.wide
+						label 开始日期
+						div(c-widget="Input")
+
+					.field.eight.wide
+						label 结束日期
+						div(c-widget="Input")
+				.fields
+					.field.four.wide
+						label 联系电话
+						div(c-widget="Input")
+
+					.field.twelve.wide
+						label Email
+						div(c-widget="Input")
+		.gs-example
+			.ui.form
+				.fields
+					.field.one.wide
+						label one wide
+						div(c-widget="Input; placeholder:1(one wide)")
+
+					.field.fifteen.wide
+						label 15,wide
+						div(c-widget="Input")
+
+				.fields
+					.field.two.wide
+						label 2,wide
+						div(c-widget="Input")
+
+					.field.fourteen.wide
+						label 14,wide
+						div(c-widget="Input")
+				.fields
+					.field.three.wide
+						label 3,wide
+						div(c-widget="Input")
+
+					.field.thirteen.wide
+						label 13,wide
+						div(c-widget="Input")
+				.fields
+					.field.four.wide
+						label 4,wide
+						div(c-widget="Input")
+
+					.field.twelve.wide
+						label 12,wide
+						div(c-widget="Input")
+				.fields
+					.field.five.wide
+						label 5,wide
+						div(c-widget="Input")
+
+					.field.eleven.wide
+						label 11,wide
+						div(c-widget="Input")
+				.fields
+					.field.six.wide
+						label 6,wide
+						div(c-widget="Input")
+
+					.field.ten.wide
+						label 10,wide
+						div(c-widget="Input")
+				.fields
+					.field.seven.wide
+						label 7,wide
+						div(c-widget="Input")
+
+					.field.nine.wide
+						label 9,wide
+						div(c-widget="Input")
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

@@ -2675,10 +2675,6 @@
   cola.AjaxService = (function(superClass) {
     extend(AjaxService, superClass);
 
-    function AjaxService() {
-      return AjaxService.__super__.constructor.apply(this, arguments);
-    }
-
     AjaxService.ATTRIBUTES = {
       url: null,
       sendJson: null,
@@ -2686,6 +2682,15 @@
       parameter: null,
       ajaxOptions: null
     };
+
+    function AjaxService(config) {
+      if (typeof config === "string") {
+        config = {
+          url: config
+        };
+      }
+      AjaxService.__super__.constructor.call(this, config);
+    }
 
     AjaxService.prototype.getUrl = function() {
       return this._url;
@@ -6953,9 +6958,7 @@
 
     DataModel.prototype.describe = function(name, config) {
       var dataType, property, propertyConfig, propertyName, ref;
-      if (this._rootDataType == null) {
-        this._rootDataType = new cola.EntityDataType();
-      }
+      this._getRootData();
       if (typeof name === "string") {
         property = (ref = this._rootDataType) != null ? ref.getProperty(name) : void 0;
         if (config) {

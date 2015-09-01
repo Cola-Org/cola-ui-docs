@@ -2,7 +2,10 @@ extends ../doc-layout
 block content
 	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
 	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+	- defaultGroupName="栅格系统"
 	.markdown-content
+		+addCatalog("grid","简介")
+		#grid
 		:markdown
 			## 栅格系统
 			Cola 提供了一套响应式、移动设备优先的流式栅格系统，随着屏幕尺寸的变化将会自适应显示模式，默认分为最多12列。它包含了易于使用的预定义类，还有强大的mixin 用于生成更具语义的布局。使用方法类似于Bootstrap,但Cola比传统栅格系统更适合mis类应用界面的设计。
@@ -44,7 +47,8 @@ block content
 				.small-12.medium-4.large-4.columns ...
 				.small-12.medium-4.large-6.columns ...
 
-		h3 列定义继承
+		+addCatalog("columns","列定义继承")
+		h3#columns 列定义继承
 		p 列的定义可从小屏幕继承到大屏，如small-2将未定义medium-*和large-*的条件下直接影响到比small大的所有尺寸
 		.gs-example
 			.row
@@ -66,7 +70,8 @@ block content
 				.small-2.columns ...
 				.small-4.columns ...
 				.small-6.columns ...
-		h3 小屏幕占满12列
+		+addCatalog("small-12","小屏幕占满12列")
+		h3#small-12 小屏幕占满12列
 		p 当只定义大屏幕列数时，小屏幕将自动占满12格。如定义medium-2但未定义small-*时 small尺寸下会占满12列
 		.gs-example
 			.row
@@ -79,8 +84,8 @@ block content
 				.medium-4.columns ...
 				.medium-4.columns ...
 				.medium-4.columns ...
-
-		h3 末尾元素自动靠右
+		+addCatalog("end-element","尾部元素自动靠右")
+		h3#end-element 尾部元素自动靠右
 		.gs-example
 
 			.row
@@ -98,7 +103,8 @@ block content
 				.small-4.columns .small-4
 				.small-2.columns.end .small-2.end
 		p 当列数不完整时当前行的最后一个元素将靠右显示，可通过也可添加end className进行消除此效果
-		h3 多余的列将另起一行排列
+		+addCatalog("new-row","多余的列将另起一行排列")
+		h3#new-row 多余的列将另起一行排列
 		.gs-example
 			.row
 				.small-9.columns .small-9
@@ -106,9 +112,55 @@ block content
 				.small-6.columns.end .small-6.end
 		pre.code
 			.row
-				.small-9.columns .small-9
-				.small-4.columns .small-4
-				.small-6.columns.end .small-6
+				.small-9.columns ...
+				.small-4.columns ...
+				.small-6.columns.end ...
+		+addCatalog("offset","列偏移")
+		h3#offset 列偏移
+		p 使用 .small-offset-* 类可以将列向右侧偏移。这些类实际是通过使用 * 选择器为当前元素增加了左侧的边距（margin）。例如，.small-offset-4 类将 .small-4 元素向右侧偏移了4个列的宽度。
+		.gs-example
+			.row
+				.medium-1.columns .medium-1
+				.medium-10.medium-offset-1.columns .medium-10.medium-offset-1
+			.row
+				.medium-1.columns .medium-1
+				.medium-9.medium-offset-2.columns .medium-9.medium-offset-2
+			.row
+				.medium-1.columns .medium-1
+				.medium-8.medium-offset-2.columns .medium-8.medium-offset-3
+			.row
+				.medium-1.columns .medium-1
+				.medium-7.medium-offset-3.end.columns .medium-7.medium-offset-3.end
+		pre.code
+			.row
+				.medium-1.columns ...
+				.medium-10.medium-offset-1.columns ...
+			.row
+				.medium-1.columns ...
+				.medium-9.medium-offset-2.columns ...
+			.row
+				.medium-1.columns ...
+				.medium-8.medium-offset-3.columns ...
+			.row
+				.medium-1.columns ...
+				.medium-7.medium-offset-4.columns ...
+		+addCatalog("push-pull","列排序")
+		h3#push-pull 列排序
+		p 通过使用 .small-push-* 和 .small-pull-* 类就可以很容易的改变列的顺序。
+		.gs-example
+			.row
+				.medium-10.medium-push-2.columns 10,.medium-10.medium-push-2.columns
+				.medium-2.medium-pull-10.columns 2,last,.medium-2.medium-pull-10.columns
+			.row
+				.medium-9.medium-push-1.columns 9,.medium-9.medium-push-1.columns
+				.medium-2.medium-pull-1.columns 2,last,.medium-1.medium-pull-1.columns
+		pre.code
+			.row
+				.medium-10.medium-push-2.columns ...
+				.medium-2.medium-pull-10.columns ...
+			.row
+				.medium-9.medium-push-1.columns ...
+				.medium-2.medium-pull-1.columns ...
 
 	script(type="text/javascript").
 		cola(function (model) {

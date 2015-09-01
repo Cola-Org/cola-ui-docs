@@ -121,7 +121,7 @@
         this.setCurrentIndex(this._items.indexOf(item));
       }
       this._doOnItemsChange();
-      return this;
+      return item;
     };
 
     AbstractItemGroup.prototype.clearItems = function() {
@@ -159,7 +159,7 @@
         $(itemObj).remove();
       }
       this._doOnItemsChange();
-      return this;
+      return itemObj;
     };
 
     AbstractItemGroup.prototype.destroy = function() {
@@ -784,6 +784,7 @@
         this._itemsRender();
         this.refreshIndicators();
       }
+      this.setCurrentIndex(0);
       carousel = this;
       setTimeout(function() {
         return carousel._scroller = new Swipe(carousel._dom, {
@@ -879,6 +880,7 @@
         ref.refresh();
       }
       this.refreshIndicators();
+      this.setCurrentIndex(0);
       return this;
     };
 
