@@ -136,6 +136,10 @@ model.set({
 当两个Input中的任何一个的内容被用户改变时，Input会自动将数值写回Model。Model一旦感知到数据发生改变就会向所有与该数据项相关的DOM发送消息。
 而根据对表达式的分析，Cola可以知道span的内容时同时与num1和num2的值相关的。所以无论是num1或num2中哪一个的内容发生改变Cola都会重新尝试计算并刷新这个span的显示内容。
 
+
+## 数据转换器
+
+
 ## 迭代式绑定
 ```
 <!DOCTYPE html>
@@ -171,9 +175,42 @@ model.set({
 </body>
 </html>
 ```
-在本例中
+在本例中我们向Model中写入了更加复杂的数据——JSON对象的集合。在与这一类型的数据建立绑定时，我们常常需要自动的复制某一段HTML来对应集合中的每一项。
+此时，我们就会用到c-repeat指令。
+`c-repeat="address in addresses"`这里表达式中in后面的部分表示要绑定的集合，in前面的部分是迭代变量名。迭代变量名的作用有点像程序代码中的循环变量名。
+代表迭代过程中的每一个集合元素，在迭代过程我们需要通过这个变量来渲染每一个集合元素。
 
-## 嵌套的迭代式绑定
+可以看到li中的两个span都是通过c-repeat中声明的address变量来渲染每一个Address的子属性的。
+
+## Ajax数据装载
+在上一个例子中，Model中的数据结构已经开始趋于复杂了。在实际的应用过程中，对于这种复杂的集合类数据通常都不是直接定义在Javascript中，而是通过Ajax从服务器端装载的。
+下面的例子演示了如何使用Ajax装载数据。
+```
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../include-all.js"></script>
+	<script type="text/javascript">
+		cola(function (model) {
+			model.describe("addresses", {
+				provider: "city.json"
+			});
+		});
+	</script>
+</head>
+<body>
+	<ul>
+		<li c-repeat="address in addresses">
+			<span c-bind="address.city"></span>
+			<span c-bind="address.postCode"></span>
+		</li>
+	</ul>
+</body>
+</html>
+```
+
+这里，我们使用了model.describe()方法声明了addresses的数据是来自于city.json这个URL的。这样当页面被渲染时Cola会自动利用Ajax从这个URL中装载实际的数据。
+关于model.describe()方法和Provider的更多描述请参考[数据相关概念](data-model)。
 
 ## 路径
 
