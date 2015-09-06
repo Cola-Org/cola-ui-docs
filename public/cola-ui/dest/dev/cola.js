@@ -1986,7 +1986,7 @@
   cola.convertor["filter"] = function() {
     var caseSensitive, collection, criteria, filtered, params, prop, propFilter;
     collection = arguments[0], criteria = arguments[1], params = 3 <= arguments.length ? slice.call(arguments, 2) : [];
-    if (!collection || !criteria) {
+    if (!(collection && criteria)) {
       return collection;
     }
     if (cola.util.isSimpleValue(criteria)) {
@@ -2084,7 +2084,7 @@
   _sortConvertor = function(collection, comparator, caseSensitive) {
     var c, comparatorFunc, comparatorProps, l, len1, part, prop, propDesc, ref;
     if (!collection) {
-      return collection;
+      return null;
     }
     if (collection instanceof cola.EntityList) {
       collection = collection.toArray();
@@ -2217,6 +2217,24 @@
   cola.convertor["orderBy"] = _sortConvertor;
 
   cola.convertor["sort"] = _sortConvertor;
+
+  cola.convertor["top"] = function(collection, top) {
+    var i, items;
+    if (top == null) {
+      top = 1;
+    }
+    if (!collection) {
+      return null;
+    }
+    items = [];
+    i = 0;
+    cola.each(collection, function(item) {
+      i++;
+      items.push(item);
+      return i < top;
+    });
+    return items;
+  };
 
   cola.convertor["date"] = function(date, format) {
     if (date == null) {
@@ -7031,8 +7049,8 @@
       i = path.indexOf(".");
       if (i > 0) {
         if (path.substring(0, i) === this.alias) {
-          if (this.dataType) {
-            property = (ref = this.dataType) != null ? ref.getProperty(path.substring(i + 1)) : void 0;
+          if (this._rootDataType) {
+            property = (ref = this._rootDataType) != null ? ref.getProperty(path.substring(i + 1)) : void 0;
             dataType = property != null ? property.get("dataType") : void 0;
           }
           return dataType;

@@ -1,4 +1,26 @@
 extends ../doc-layout
 block content
 
-	+addCatalog("standard","progress")
+	+addCatalog("standard","进度条")
+
+	.example
+		.code
+			#p1(c-widget="progress; total:100; value:40")
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" progress="p1")
+		div(c-widget="button; icon:plus; class:basic green" progress="p1")
+	script(type="text/javascript").
+		cola(function (model) {
+		})
+		$("[progress]").click(function () {
+			var $dom = $(this),
+					minusBtn = $dom.hasClass("minus"),
+					progress = cola.widget($dom.attr("progress"));
+			var total = progress.get("total"), value = progress.get("value");
+			var p = value / total;
+			if (minusBtn) {
+				progress.set("value", Math.round(p < 0.2 ? 0 : value - (value * 0.5)))
+			} else {
+				progress.set("value", (p > 0.9 ? total : (total - value) * 0.5 + value))
+			}
+		})

@@ -2,32 +2,29 @@ extends ../doc-layout
 block content
 	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
 	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
-	- defaultGroupName="栅格系统"
+	- defaultGroupName="Form 布局"
 	.markdown-content
-		+addCatalog("grid","简介")
-		#grid
+		+addCatalog("form","简介")
+		#form
 		:markdown
-			## form 布局
+			## Form 布局
+			Cola 表单布局继承了Semantic UI 表单布局。将响应式结构化的排列用户输入字段。
+			### 简介
+			表单布局将默认16列模式横向切分布局空间，等比例的切分也提供了简短定义模式，简化了用户重复定义class的烦恼。
+			用于通过一系列的组`fields`与字段`field`的组合来创建Form布局，你的内容就可以放入field中。
 
-			*  1:one
-			*  2:two
-			*  3:three
-			*  4:four
-			*  5:five
-			*  6:six
-			*  7:seven
-			*  8:eight
-			*  9:nine
-			*  10:ten
-			*  11:eleven
-			*  12:twelve
-			*  13:thirteen
-			*  14:fourteen
-			*  15:fifteen
-			*  16:sixteen
+			* `fields` 定义字段组
+			* `field` 定义字段
+			* `* wide` 定义字段宽度所字段列数(fields默认横向切分16 wide)
 
+			### 响应式
+			Cola Form 无需任何配置，将在小屏幕模式下自动每个单元格独占一行。
 
-		.gs-example
+	+addCatalog("wide","指定网格列")
+	.example#wide
+		h3 指定网格列
+		p 一个字段可以指定网格列的宽度
+		.code
 			.ui.form
 				.fields
 					.field.eight.wide
@@ -37,6 +34,7 @@ block content
 					.field.eight.wide
 						label 结束日期
 						div(c-widget="Input")
+
 				.fields
 					.field.four.wide
 						label 联系电话
@@ -45,65 +43,38 @@ block content
 					.field.twelve.wide
 						label Email
 						div(c-widget="Input")
-		.gs-example
+				div(c-widget="button; caption:提交")
+	+addCatalog("fields","等比例分配")
+	.example#fields
+		h3 等比例分配
+		p class="* fields" 定义字段等比例分配横向空间
+		.code
 			.ui.form
-				.fields
-					.field.one.wide
-						label one wide
-						div(c-widget="Input; placeholder:1(one wide)")
-
-					.field.fifteen.wide
-						label 15,wide
+				.two.fields
+					.field
+						label 生产日期
 						div(c-widget="Input")
 
-				.fields
-					.field.two.wide
-						label 2,wide
+					.field
+						label 截止日期
+						div(c-widget="Input")
+				.three.fields
+					.field
+						label 产品名称
 						div(c-widget="Input")
 
-					.field.fourteen.wide
-						label 14,wide
-						div(c-widget="Input")
-				.fields
-					.field.three.wide
-						label 3,wide
+					.field
+						label 产品编码
 						div(c-widget="Input")
 
-					.field.thirteen.wide
-						label 13,wide
+					.field
+						label 生产地址
 						div(c-widget="Input")
-				.fields
-					.field.four.wide
-						label 4,wide
-						div(c-widget="Input")
+				.field
+					label 产品说明
+					textarea
 
-					.field.twelve.wide
-						label 12,wide
-						div(c-widget="Input")
-				.fields
-					.field.five.wide
-						label 5,wide
-						div(c-widget="Input")
 
-					.field.eleven.wide
-						label 11,wide
-						div(c-widget="Input")
-				.fields
-					.field.six.wide
-						label 6,wide
-						div(c-widget="Input")
-
-					.field.ten.wide
-						label 10,wide
-						div(c-widget="Input")
-				.fields
-					.field.seven.wide
-						label 7,wide
-						div(c-widget="Input")
-
-					.field.nine.wide
-						label 9,wide
-						div(c-widget="Input")
 
 
 	script(type="text/javascript").
