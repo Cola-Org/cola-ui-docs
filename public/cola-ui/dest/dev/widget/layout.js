@@ -733,9 +733,11 @@
         return;
       }
       if (!this._pusher) {
+        cola._ignoreNodeRemoved = true;
         $(this._dom).find("> .ui.sidebar").sidebar({
           context: this._dom
         });
+        cola._ignoreNodeRemoved = false;
         this._initPusher();
       }
       return sidebar.show(callback);

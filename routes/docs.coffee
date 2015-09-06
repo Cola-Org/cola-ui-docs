@@ -1,11 +1,11 @@
 express = require 'express'
 router = express.Router()
 mdConfig = require './md-config'
-markdownJs = require 'markdown-js'
 jstransformer = require 'jstransformer'
 path = require 'path'
 fs = require 'fs'
 mit = require('jstransformer-markdown-it')
+less = jstransformer(require('jstransformer-less'))
 markdown = jstransformer(mit)
 marked = require('marked')
 router.get '/*', (req, res, next) ->
@@ -31,5 +31,6 @@ router.get '/*', (req, res, next) ->
 	res.render pathName,
 		title: title
 		markdown: markdown
+		less: less
 
 module.exports = router

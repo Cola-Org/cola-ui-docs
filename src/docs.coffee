@@ -34,12 +34,12 @@ $(".example:not(.ignore)").each((index, el)->
 		el.appendChild(codeEl)
 )
 
-$(".markdown-content>pre>code").each((index, el)->
+$(".markdown-content pre>code").each((index, el)->
 	code = $(el).text();
 	$(el).parent().addClass("prettyprint lang-html").text(code)
 )
 $(".markdown-content>pre.code").each((index, el)->
-	code = html_beautify($(el).html(),jsBeautifyOptions);
+	code = html_beautify($(el).html(), jsBeautifyOptions);
 	$(el).addClass("prettyprint").text(code)
 )
 prettyPrint()
