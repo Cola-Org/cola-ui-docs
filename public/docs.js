@@ -40,7 +40,7 @@
     }
   });
 
-  $(".markdown-content>pre>code").each(function(index, el) {
+  $(".markdown-content pre>code").each(function(index, el) {
     var code;
     code = $(el).text();
     return $(el).parent().addClass("prettyprint lang-html").text(code);

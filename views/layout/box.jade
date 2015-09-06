@@ -1,0 +1,83 @@
+extends ../doc-layout
+block content
+	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
+	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+	- defaultGroupName="箱式布局"
+	style
+		:less
+			.gs-example .box-example {
+				height: 300px;
+				border: 1px solid #c6c6c6;
+			}
+
+			.gs-example .box-example > * {
+				padding: 1px;
+			}
+
+			.gs-example .box-example > .flex-box .box-content {
+				left: 1px;
+				top: 1px;
+				bottom: 1px;
+				right: 1px;
+				border: 1px solid #c6c6c6;
+			}
+
+			.gs-example .box-example > .box .box-content {
+				height: 100%;
+				width: 100%;
+				border: 1px solid #c6c6c6;
+			}
+			.gs-example .box-example.h-box {
+				margin-top: 10px;
+				width: 100%;
+				/*border: 1px solid #c6c6c6;*/
+			}
+	.markdown-content
+		+addCatalog("box","简介")
+		#box
+		:markdown
+			## Box 布局
+			Cola 提供了一套箱式布局系统，包括纵向箱式和横向箱式布局,是基于CSS3 Flex 布局和display:webkit实现，完美支持了所有支持CSS3的浏览器，其中包括UC浏览器和X5内核的QQ浏览器和微信浏览器。
+			### 简介
+			箱式布局系统用于通过一系列的`box`与`flex-box`的组合来创建页面布局。下面就介绍 Cola 箱式布局的工作原理：
+
+			* 箱式布局使用与有固定宽高的区域内部的布局。
+			* `box`可放置任何区域,box将根据内容宽度(横向时)或高度(纵向时)占据制定区域，容器内部可放置多个box。
+			* `flex-box`弹性区域,将占据box占据的剩余宽度或高度，当放置多个flex-box时等比例划分生于区域。
+			* `flex-box`区域的position将自动强制设置为`position: absolute !important;`
+			* `v-box` 纵向箱式布局容器
+			* `h-box` 横向箱式布局容器
+		+addCatalog("v-box","纵向箱式布局")
+		h3#v-box 纵向箱式布局
+		.gs-example
+			.v-box.box-example
+				.box(style={height: "40px"})
+					.box-content 高度可根据内容定义或固定高度
+				.flex-box
+					.box-content 弹性内容区域(将占用剩余布局空间)
+				.box(style={height: "40px"})
+					.box-content 高度可根据内容定义或固定高度
+		pre.code
+			.v-box
+				.box(style={height: "40px"}) ...
+				.flex-box ...
+				.box(style={height: "40px"}) ...
+
+		+addCatalog("h-box","横向箱式布局")
+		h3#h-box 横向箱式布局
+		.gs-example
+			.h-box.box-example
+				.box.orange-background(style={width: "15%"}) 宽度可根据内容定义或固定高度
+				.flex-box.teal-background 弹性内容区域(将占用剩余布局空间)
+				.box.blue-background(style={width: "60px"}) 宽度可根据内容定义或固定高度
+		pre.code
+			.h-box
+				.box(style={width: "15%"}) ...
+				.flex-box ...
+				.box(style={width: "60px"}) ...
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

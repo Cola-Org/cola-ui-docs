@@ -16,10 +16,11 @@
     "grunt-contrib-copy": "~0.8.0",
     "grunt-contrib-less": "~1.0.0",
     "grunt-contrib-watch": "~0.6.1",
-    "jade": "~1.9.1",
+    "jade": "~1.11.0",
     "jstransformer": "0.0.3",
+    "jstransformer-less": "~2.1.0",
     "jstransformer-markdown-it": "^0.1.0",
-    "markdown-js": "0.0.3",
+    "less": "^2.5.1",
     "marked": "^0.3.5",
     "morgan": "~1.5.1",
     "serve-favicon": "~2.2.0"

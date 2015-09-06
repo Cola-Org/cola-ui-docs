@@ -686,6 +686,12 @@
       orientation: {
         defaultValue: "horizontal",
         "enum": ["horizontal", "vertical"]
+      },
+      controls: {
+        defaultValue: true
+      },
+      pause: {
+        defaultValue: 2000
       }
     };
 
@@ -739,6 +745,7 @@
     };
 
     Carousel.prototype._createIndicatorContainer = function(dom) {
+      var carousel;
       if (this._doms == null) {
         this._doms = {};
       }
@@ -747,7 +754,11 @@
         "class": "indicators indicators-" + this._orientation,
         contextKey: "indicators"
       });
+      carousel = this;
       dom.appendChild(this._doms.indicators);
+      $(this._doms.indicators).delegate(">span", "click", function() {
+        return carousel.goTo($fly(this).index());
+      });
       return null;
     };
 
@@ -790,11 +801,33 @@
         return carousel._scroller = new Swipe(carousel._dom, {
           vertical: carousel._orientation === "vertical",
           disableScroll: true,
+          continuous: true,
           callback: function(pos) {
             carousel.setCurrentIndex(pos);
           }
         });
       }, 0);
+      if (this._controls) {
+        dom.appendChild($.xCreate({
+          tagName: "div",
+          "class": "controls",
+          content: [
+            {
+              tagName: "A",
+              "class": "prev",
+              click: function() {
+                return carousel.previous();
+              }
+            }, {
+              tagName: "A",
+              "class": "next",
+              click: function() {
+                return carousel.next();
+              }
+            }
+          ]
+        }));
+      }
     };
 
     Carousel.prototype.setCurrentIndex = function(index) {
@@ -826,8 +859,8 @@
     };
 
     Carousel.prototype.refreshIndicators = function() {
-      var currentIndex, i, indicatorCount, itemsCount, span;
-      itemsCount = this._items.length;
+      var currentIndex, i, indicatorCount, itemsCount, ref, span;
+      itemsCount = (ref = this._items) != null ? ref.length : void 0;
       if (!this._doms.indicators) {
         return;
       }
@@ -913,6 +946,33 @@
       })(this), 0);
     };
 
+    Carousel.prototype.play = function(pause) {
+      var carousel;
+      if (this._interval) {
+        clearInterval(this._interval);
+      }
+      this.next();
+      carousel = this;
+      this._interval = setInterval(function() {
+        return carousel.next();
+      }, pause || this._pause);
+      return this;
+    };
+
+    Carousel.prototype.pause = function() {
+      if (this._interval) {
+        clearInterval(this._interval);
+      }
+      return this;
+    };
+
+    Carousel.prototype.goTo = function(index) {
+      if (index == null) {
+        index = 0;
+      }
+      return this.setCurrentIndex(index);
+    };
+
     return Carousel;
 
   })(cola.AbstractItemGroup);
@@ -988,7 +1048,7 @@
 
     return AbstractMenuItem;
 
-  })(cola.Widget);
+  })(cola.AbstractContainer);
 
   cola.menu.MenuItem = (function(superClass) {
     extend(MenuItem, superClass);
@@ -1497,26 +1557,36 @@
       $(dom).prepend($.xCreate({
         tagName: "div",
         "class": "left-items"
-      })).hover((function(_this) {
-        return function() {
-          var $dom;
-          $dom = _this.get$Dom();
-          $dom.find(">.dropdown.item,.right.menu>.dropdown.item").each(function(index, item) {
-            var $item;
-            $item = $(item);
-            if ($item.hasClass("c-dropdown")) {
-              return;
-            }
-            $item.addClass("c-dropdown");
-            $item.find(".dropdown.item").addClass("c-dropdown");
-            return $item.dropdown({
-              on: "hover"
-            });
-          });
-        };
-      })(this)).delegate(">.item,.right.menu>.item", "click", function() {
+      })).hover(function() {
+        return menu._bindToSemantic();
+      }).delegate(">.item,.right.menu>.item", "click", function() {
         return menu._setActive(this);
       });
+      setTimeout(function() {
+        menu._bindToSemantic();
+      }, 300);
+    };
+
+    Menu.prototype._bindToSemantic = function() {
+      var $dom;
+      if (this._parent instanceof cola.menu.MenuItem) {
+        return;
+      }
+      $dom = this.get$Dom();
+      $dom.find(">.dropdown.item,.right.menu>.dropdown.item").each((function(_this) {
+        return function(index, item) {
+          var $item;
+          $item = $(item);
+          if ($item.hasClass("c-dropdown")) {
+            return;
+          }
+          $item.addClass("c-dropdown");
+          $item.find(".dropdown.item").addClass("c-dropdown");
+          return $item.dropdown({
+            on: "hover"
+          });
+        };
+      })(this));
     };
 
     Menu.prototype._setDom = function(dom, parseChild) {
@@ -1532,8 +1602,12 @@
       }
       this._activeItem = item;
       if (this._rendered) {
-        return this._setActive(item.getDom());
+        this._setActive(item.getDom());
       }
+    };
+
+    Menu.prototype.getActiveItem = function() {
+      return this._activeItem;
     };
 
     Menu.prototype._setActive = function(itemDom) {
@@ -1634,13 +1708,13 @@
         itemDom = menuItem.getDom();
         if (itemDom.parentNode !== container) {
           if (this._rightMenuDom) {
-            $(this._rightMenuDom).before(menuItem.getDom());
+            $(this._rightMenuDom).before(itemDom);
           } else {
-            container.appendChild(menuItem.getDom());
+            container.appendChild(itemDom);
           }
         }
       }
-      return this;
+      return itemDom;
     };
 
     Menu.prototype.addRightItem = function(config) {
@@ -1669,7 +1743,7 @@
           this._rightMenuDom.appendChild(itemDom);
         }
       }
-      return this;
+      return itemDom;
     };
 
     Menu.prototype.clearItems = function() {

@@ -630,7 +630,7 @@
         this._bindInfo = bindInfo = {};
         bindInfo.expression = expression = cola._compileExpression(bindStr);
         if (expression.repeat || expression.setAlias) {
-          throw new cola.I18nException("cola.error.needSimpleBinding", bindStr);
+          throw new cola.Exception("Expression \"" + bindStr + "\" must be a simple expression.");
         }
         if ((expression.type === "MemberExpression" || expression.type === "Identifier") && !expression.hasCallStatement && !expression.convertors) {
           bindInfo.isWriteable = true;
@@ -741,16 +741,16 @@
         return;
       }
       if (!this._bindInfo.isWriteable) {
-        throw new cola.I18nException("cola.error.bindingNotWritable", this._bindStr);
+        throw new cola.Exception("Expression \"" + this._bindStr + "\" is not writable.");
       }
       this._scope.set(this._bindStr, value);
     },
-    _getBindingPropertyDef: function() {
+    _getBindingProperty: function() {
       var ref;
       if (!(((ref = this._bindInfo) != null ? ref.expression : void 0) && this._bindInfo.isWriteable)) {
         return;
       }
-      return this._scope.data.getPropertyDef(this._bindStr);
+      return this._scope.data.getProperty(this._bindStr);
     },
     _getBindingDataType: function() {
       var ref;
@@ -801,10 +801,11 @@
         return;
       }
       this._bindStr = bindStr;
+      this._itemsRetrieved = false;
       if (bindStr && this._scope) {
         expression = cola._compileExpression(bindStr, "repeat");
         if (!expression.repeat) {
-          throw new cola.I18nException("cola.error.needRepeatBinding", bindStr);
+          throw new cola.Exception("Expression \"" + bindStr + "\" must be a repeat expression.");
         }
         this._alias = expression.alias;
       }
@@ -849,6 +850,30 @@
       return {
         items: this._itemsScope.items,
         originItems: this._itemsScope.originItems
+      };
+    }
+  };
+
+  cola.semantic = {
+
+    /*
+    	fixVisibilityOnUpdate和fixVisibilityOnRefresh方法用于修正SemanticUI中visibility的一处计算错误。
+       当我们尝试利用visibility处理非body的滚动时，SemanticUI中的一处对jQuery.offset()的误用导致获得对象偏移量总是相对于document的，而非实际滚动的容器。
+       使用时，将fixVisibilityOnUpdate和fixVisibilityOnRefresh方法分别定义为visibility的onUpdate和onRefresh监听器。
+     */
+    fixVisibilityOnUpdate: function(calculations) {
+      if (this._offset == null) {
+        this._offset = {
+          left: this.offsetLeft,
+          top: this.offsetTop
+        };
+      }
+      calculations.offset = this._offset;
+    },
+    fixVisibilityOnRefresh: function() {
+      this._offset = {
+        left: this.offsetLeft,
+        top: this.offsetTop
       };
     }
   };

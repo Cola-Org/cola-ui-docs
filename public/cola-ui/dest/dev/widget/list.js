@@ -149,7 +149,7 @@
       var itemsWrapper, realItems;
       realItems = this._realItems;
       if (this._autoLoadPage && !this._loadingNextPage && (realItems === this._realOriginItems || !this._realOriginItems)) {
-        if (realItems instanceof cola.EntityList && realItems.pageNo < realItems.pageCount) {
+        if (realItems instanceof cola.EntityList && (realItems.pageNo < realItems.pageCount || !realItems.pageCountDetermined)) {
           itemsWrapper = this._doms.itemsWrapper;
           if (itemsWrapper.scrollTop + itemsWrapper.clientHeight === itemsWrapper.scrollHeight) {
             this._loadingNextPage = true;
@@ -161,6 +161,10 @@
           }
         }
       }
+    };
+
+    ItemsView.prototype.getItems = function() {
+      return this._realItems;
     };
 
     ItemsView.prototype._doRefreshDom = function() {
@@ -268,6 +272,10 @@
         itemId = _getEntityId(arg.current);
         if (itemId) {
           currentItemDom = this._itemDomMap[itemId];
+          if (!currentItemDom) {
+            this._refreshItems();
+            return;
+          }
         }
       }
       this._setCurrentItemDom(currentItemDom);
@@ -302,7 +310,7 @@
     };
 
     ItemsView.prototype._doRefreshItems = function(itemsWrapper) {
-      var currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, nextItemDom, pullDownPane, pullUpPane, ref, ret;
+      var counter, currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, limit, nextItemDom, pullDownPane, pullUpPane, ref, ret;
       if (this._itemDomMap == null) {
         this._itemDomMap = {};
       }
@@ -326,10 +334,27 @@
         }
         this._currentItem = currentItem;
         this._itemsScope.resetItemScopeMap();
+        counter = 0;
+        limit = 0;
+        if (this._autoLoadPage && !this._realOriginItems && items instanceof cola.EntityList) {
+          limit = items.pageNo;
+        }
         lastItem = null;
         cola.each(items, (function(_this) {
           return function(item) {
-            var _nextItemDom, itemDom, itemType;
+            var _nextItemDom, itemDom, itemType, ref;
+            if (limit) {
+              if (items instanceof cola.EntityList) {
+                if (((ref = item._page) != null ? ref.pageNo : void 0) > limit) {
+                  return false;
+                }
+              } else {
+                counter++;
+                if (counter > limit) {
+                  return false;
+                }
+              }
+            }
             lastItem = item;
             itemType = _this._getItemType(item);
             if (nextItemDom) {
@@ -383,8 +408,8 @@
         }
         if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList) {
           currentPageNo = lastItem != null ? (ref = lastItem._page) != null ? ref.pageNo : void 0 : void 0;
-          if (currentPageNo && currentPageNo < items.pageCount) {
-            if (itemsWrapper.scrollHeight && (itemsWrapper.scrollTop + itemsWrapper.clientHeight) === itemsWrapper.scrollHeight) {
+          if (currentPageNo && (currentPageNo < items.pageCount || !items.pageCountDetermined)) {
+            if (itemsWrapper.scrollHeight && (itemsWrapper.scrollTop + itemsWrapper.clientHeight) < itemsWrapper.scrollHeight) {
               setTimeout(function() {
                 items.loadPage(currentPageNo + 1, cola._EMPTY_FUNC);
               }, 0);
@@ -548,7 +573,6 @@
         item: item,
         dom: itemDom
       });
-      return false;
     };
 
     ItemsView.prototype._onItemDoubleClick = function(evt) {
@@ -1981,7 +2005,7 @@
           expression = cola._compileExpression(expression, "repeat");
           if (expression) {
             if (!expression.repeat) {
-              throw new cola.I18nException("cola.error.needRepeatBinding", bindStr);
+              throw new cola.Exception("\"" + bindStr + "\" is not a repeat expression.");
             }
           } else {
             delete this._alias;
@@ -1993,7 +2017,7 @@
       child: {
         setter: function(child) {
           if (child && !(child instanceof cola.CascadeBind)) {
-            child = new cola.CascadeBind(this._widget, child);
+            child = new this.constructor(this._widget, child);
           }
           this._child = child;
         }
@@ -2080,13 +2104,15 @@
       }
     };
 
-    CascadeBind.prototype.retrieveChildNodes = function(parentNode, callback) {
-      var base, childItems, childLoader, dataCtx, funcs, hasChild, isRoot, items, originChildItems, originRecursiveItems, recursiveItems, recursiveLoader, ref, ref1;
+    CascadeBind.prototype.retrieveChildNodes = function(parentNode, callback, dataCtx) {
+      var base, childItems, childLoader, funcs, hasChild, isRoot, items, originChildItems, originRecursiveItems, recursiveItems, recursiveLoader, ref, ref1;
       isRoot = !parentNode._parent;
       hasChild = false;
       funcs = [];
       if (this._recursive || isRoot) {
-        dataCtx = {};
+        if (dataCtx == null) {
+          dataCtx = {};
+        }
         items = this._expression.evaluate(parentNode._scope, "auto", dataCtx);
         if (items === void 0 && dataCtx.unloaded) {
           recursiveLoader = (ref = dataCtx.providerInvokers) != null ? ref[0] : void 0;
@@ -2108,7 +2134,9 @@
         }
       }
       if (this._child && !isRoot) {
-        dataCtx = {};
+        if (dataCtx == null) {
+          dataCtx = {};
+        }
         items = this._child._expression.evaluate(parentNode._scope, "auto", dataCtx);
         if (items === void 0 && dataCtx.unloaded) {
           childLoader = (ref1 = dataCtx.providerInvokers) != null ? ref1[0] : void 0;
@@ -2125,43 +2153,42 @@
       }
       if (funcs.length && callback) {
         cola.util.waitForAll(funcs, {
-          callback: (function(_this) {
-            return function(success, result) {
-              var base;
-              if (success) {
-                hasChild = false;
-                if (_this._recursive || isRoot) {
-                  dataCtx = {};
-                  recursiveItems = _this._expression.evaluate(parentNode._scope, "never", dataCtx);
-                  originRecursiveItems = dataCtx.originData;
-                  if (recursiveItems) {
-                    if (recursiveItems instanceof cola.EntityList) {
-                      hasChild = recursiveItems.entityCount > 0;
-                    } else {
-                      hasChild = recursiveItems.length > 0;
-                    }
+          scope: this,
+          complete: function(success, result) {
+            var base;
+            if (success) {
+              hasChild = false;
+              if (this._recursive || isRoot) {
+                dataCtx = {};
+                recursiveItems = this._expression.evaluate(parentNode._scope, "never", dataCtx);
+                originRecursiveItems = dataCtx.originData;
+                if (recursiveItems) {
+                  if (recursiveItems instanceof cola.EntityList) {
+                    hasChild = recursiveItems.entityCount > 0;
+                  } else {
+                    hasChild = recursiveItems.length > 0;
                   }
                 }
-                if (_this._child && !isRoot) {
-                  hasChild = true;
-                  dataCtx = {};
-                  childItems = _this.child._expression.evaluate(parentNode._scope, "never", dataCtx);
-                  originChildItems = dataCtx.originData;
-                }
-                if (hasChild) {
-                  _this._wrapChildItems(parentNode, recursiveItems, originRecursiveItems, childItems, originChildItems);
-                } else {
-                  parentNode._hasChild = false;
-                }
-                if (typeof (base = parentNode._itemsScope).onItemsRefresh === "function") {
-                  base.onItemsRefresh();
-                }
-                cola.callback(callback, true);
-              } else {
-                cola.callback(callback, false, result);
               }
-            };
-          })(this)
+              if (this._child && !isRoot) {
+                hasChild = true;
+                dataCtx = {};
+                childItems = this._child._expression.evaluate(parentNode._scope, "never", dataCtx);
+                originChildItems = dataCtx.originData;
+              }
+              if (hasChild) {
+                this._wrapChildItems(parentNode, recursiveItems, originRecursiveItems, childItems, originChildItems);
+              } else {
+                parentNode._hasChild = false;
+              }
+              if (typeof (base = parentNode._itemsScope).onItemsRefresh === "function") {
+                base.onItemsRefresh();
+              }
+              cola.callback(callback, true);
+            } else {
+              cola.callback(callback, false, result);
+            }
+          }
         });
       } else {
         if (hasChild) {
@@ -2195,7 +2222,7 @@
             }
           }
         } else {
-          return;
+          return true;
         }
       }
       if (this._child) {
@@ -2213,7 +2240,7 @@
             }
           }
         } else {
-          return;
+          return true;
         }
       }
       return false;
@@ -2265,7 +2292,7 @@
             }
             if (bind._child) {
               dataCtx = {};
-              items = bind.child._expression.evaluate(this._scope, "never", dataCtx);
+              items = bind._child._expression.evaluate(this._scope, "never", dataCtx);
               if (dataCtx.unloaded) {
                 return;
               }
@@ -2426,13 +2453,26 @@
         type: "boolean",
         defaultValue: true
       },
-      title: null
+      title: null,
+      layerIndex: {
+        readOnly: true,
+        getter: function() {
+          return this._layerIndex;
+        }
+      },
+      splited: {
+        readOnly: true,
+        getter: function() {
+          return this._autoSplit && this._largeScreen;
+        }
+      }
     };
 
     NestedList.EVENTS = {
       itemClick: null,
       renderItem: null,
-      initLayer: null
+      initLayer: null,
+      topLayerChange: null
     };
 
     NestedList.prototype._initDom = function(dom) {
@@ -2486,10 +2526,14 @@
             }
           }
         });
-        itemsScope._retrieveItems = function() {
-          return nestedList._bind.retrieveChildNodes(nestedList._rootNode);
+        itemsScope._retrieveItems = function(dataCtx) {
+          return nestedList._bind.retrieveChildNodes(nestedList._rootNode, null, dataCtx);
         };
       }
+      this.fire("topLayerChange", this, {
+        index: 0,
+        list: layer
+      });
     };
 
     NestedList.prototype._parseDom = function(dom) {
@@ -2509,6 +2553,22 @@
     NestedList.prototype._createLayer = function(index) {
       var container, ctx, highlightCurrentItem, hjson, layer, list, listConfig, menuItemsConfig, name, oldRefreshItemDom, ref, template, useLayer;
       highlightCurrentItem = this._autoSplit && this._largeScreen && index === 0;
+      useLayer = index > (this._autoSplit && this._largeScreen ? 1 : 0);
+      hjson = {
+        tagName: "div",
+        style: {
+          height: "100%"
+        },
+        contextKey: "container",
+        "c-widget": useLayer ? "layer" : "widget",
+        content: {
+          tagName: "div",
+          "class": "v-box",
+          style: {
+            height: "100%"
+          }
+        }
+      };
       listConfig = {
         $type: "listView",
         "class": this._ui,
@@ -2529,7 +2589,6 @@
           };
         })(this)
       };
-      useLayer = index > (this._autoSplit && this._largeScreen ? 1 : 0);
       if (this._showTitleBar) {
         if (useLayer) {
           menuItemsConfig = [
@@ -2537,7 +2596,7 @@
               icon: "chevron left",
               click: (function(_this) {
                 return function() {
-                  return _this._hideLayer(true);
+                  return _this.back();
                 };
               })(this)
             }
@@ -2545,46 +2604,31 @@
         } else {
           menuItemsConfig = void 0;
         }
-        hjson = {
-          tagName: "div",
-          style: {
-            height: "100%"
-          },
-          contextKey: "container",
-          "c-widget": useLayer ? "layer" : "widget",
-          content: {
+        hjson.content.content = [
+          {
             tagName: "div",
-            "class": "v-box",
-            style: {
-              height: "100%"
-            },
-            content: [
-              {
-                tagName: "div",
-                "class": "box",
-                content: {
-                  tagName: "div",
-                  contextKey: "titleBar",
-                  "c-widget": {
-                    $type: "titleBar",
-                    "class": this._ui,
-                    items: menuItemsConfig
-                  }
-                }
-              }, {
-                tagName: "div",
-                "class": "flex-box",
-                content: {
-                  tagName: "div",
-                  contextKey: "list",
-                  "c-widget": listConfig
-                }
+            "class": "box",
+            content: {
+              tagName: "div",
+              contextKey: "titleBar",
+              "c-widget": {
+                $type: "titleBar",
+                "class": this._ui,
+                items: menuItemsConfig
               }
-            ]
+            }
+          }, {
+            tagName: "div",
+            "class": "flex-box",
+            content: {
+              tagName: "div",
+              contextKey: "list",
+              "c-widget": listConfig
+            }
           }
-        };
+        ];
       } else {
-        hjson = {
+        hjson.content.content = {
           tagName: "div",
           contextKey: "list",
           "c-widget": listConfig
@@ -2622,7 +2666,10 @@
     };
 
     NestedList.prototype._initLayer = function(layer, parentNode, index) {
-      layer.titleBar.set("title", parentNode ? parentNode.get("title") : this._title);
+      var ref;
+      if ((ref = layer.titleBar) != null) {
+        ref.set("title", parentNode ? parentNode.get("title") : this._title);
+      }
       this.fire("initLayer", this, {
         parentNode: parentNode,
         parentItem: parentNode != null ? parentNode._data : void 0,
@@ -2633,7 +2680,7 @@
     };
 
     NestedList.prototype._showLayer = function(index, parentNode, callback) {
-      var i, itemsScope, layer, list, nestedList;
+      var i, itemsScope, layer, list;
       if (index <= this._layerIndex) {
         i = index;
         while (i <= this._layerIndex) {
@@ -2641,11 +2688,10 @@
         }
         this._layerIndex = index - 1;
       }
-      nestedList = this;
       if (index >= this._layers.length) {
-        layer = nestedList._createLayer(index);
-        nestedList._layers.push(layer);
-        layer.container.appendTo(nestedList._doms.detailContainer);
+        layer = this._createLayer(index);
+        this._layers.push(layer);
+        layer.container.appendTo(this._doms.detailContainer);
       } else {
         layer = this._layers[index];
       }
@@ -2653,25 +2699,34 @@
       itemsScope = list._itemsScope;
       itemsScope.setParent(parentNode._scope);
       parentNode._itemsScope = itemsScope;
-      parentNode._bind.retrieveChildNodes(parentNode, function() {
-        if (parentNode._children) {
-          nestedList._initLayer(layer, parentNode, index);
-          if (layer.container instanceof cola.Layer) {
-            layer.container.show();
+      parentNode._bind.retrieveChildNodes(parentNode, (function(_this) {
+        return function() {
+          if (parentNode._children) {
+            _this._initLayer(layer, parentNode, index);
+            if (layer.container instanceof cola.Layer) {
+              layer.container.show();
+            }
+            _this._layerIndex = index;
+            layer.parentNode = parentNode;
+            _this.fire("topLayerChange", _this, {
+              parentNode: parentNode,
+              parentItem: parentNode != null ? parentNode._data : void 0,
+              index: index,
+              list: layer.list
+            });
           }
-          nestedList._layerIndex = index;
-        }
-        if (callback != null) {
-          callback.call(nestedList, typeof wrapper !== "undefined" && wrapper !== null);
-        }
-      });
-      itemsScope._retrieveItems = function() {
-        return parentNode._bind.retrieveChildNodes(parentNode);
+          if (typeof callback === "function") {
+            callback(typeof wrapper !== "undefined" && wrapper !== null);
+          }
+        };
+      })(this));
+      itemsScope._retrieveItems = function(dataCtx) {
+        return parentNode._bind.retrieveChildNodes(parentNode, null, dataCtx);
       };
     };
 
     NestedList.prototype._hideLayer = function(animation) {
-      var layer, options;
+      var layer, options, parentNode, previousLayer, ref;
       layer = this._layers[this._layerIndex];
       delete layer.list._itemsScope._retrieveItems;
       options = {};
@@ -2680,34 +2735,57 @@
       }
       if (layer.container instanceof cola.Layer) {
         layer.container.hide(options, function() {
-          layer.titleBar.set("rightItems", null);
+          var ref;
+          if ((ref = layer.titleBar) != null) {
+            ref.set("rightItems", null);
+          }
         });
       } else {
-        layer.titleBar.set("rightItems", null);
+        if ((ref = layer.titleBar) != null) {
+          ref.set("rightItems", null);
+        }
       }
+      delete layer.parentNode;
       this._layerIndex--;
+      previousLayer = this._layers[this._layerIndex];
+      parentNode = previousLayer.parentNode;
+      this.fire("topLayerChange", this, {
+        parentNode: parentNode,
+        parentItem: parentNode != null ? parentNode._data : void 0,
+        index: previousLayer,
+        list: previousLayer.list
+      });
     };
 
     NestedList.prototype.back = function() {
-      this._hideLayer(true);
+      if (this._layerIndex > (this._autoSplit && this._largeScreen ? 1 : 0)) {
+        this._hideLayer(true);
+        return true;
+      } else {
+        return false;
+      }
     };
 
     NestedList.prototype._onItemClick = function(self, arg) {
-      var node;
+      var node, retValue;
       node = arg.item;
-      this.fire("itemClick", this, {
+      retValue = this.fire("itemClick", this, {
         node: node,
         item: node._data,
         bind: node._bind
       });
-      this._showLayer(self.get("userData") + 1, arg.item, function(hasChild) {
-        if (!hasChild) {
-          this.fire("leafItemClick", this, {
-            node: node,
-            item: node._data
-          });
-        }
-      });
+      if (retValue !== false) {
+        this._showLayer(self.get("userData") + 1, arg.item, (function(_this) {
+          return function(hasChild) {
+            if (!hasChild) {
+              _this.fire("leafItemClick", _this, {
+                node: node,
+                item: node._data
+              });
+            }
+          };
+        })(this));
+      }
     };
 
     NestedList.prototype._onRenderItem = function(self, arg) {
@@ -2918,8 +2996,8 @@
         this._itemsRetrieved = true;
         this._bind.retrieveChildNodes(this._rootNode);
         itemsScope._retrieveItems = (function(_this) {
-          return function() {
-            return _this._bind.retrieveChildNodes(_this._rootNode);
+          return function(dataCtx) {
+            return _this._bind.retrieveChildNodes(_this._rootNode, null, dataCtx);
           };
         })(this);
       }
@@ -3147,8 +3225,8 @@
       if (!itemsScope) {
         node._itemsScope = itemsScope = new cola.ItemsScope(node._scope);
         itemsScope.alias = node._alias;
-        itemsScope._retrieveItems = function() {
-          return node._bind.retrieveChildNodes(node);
+        itemsScope._retrieveItems = function(dataCtx) {
+          return node._bind.retrieveChildNodes(node, null, dataCtx);
         };
         itemsScope.onItemsRefresh = function() {
           itemDom = tree._itemDomMap[node._id];

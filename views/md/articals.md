@@ -14,6 +14,12 @@
  * [router(路由)](router)
  * [国际化](i18n)
  * [Ajax](ajax)
+* 布局
+ * [Grid(栅格系统)](layout/grid)
+ * [Box(箱式布局)](layout/box)
+ * [Form(表单布局)](layout/form)
+ * [Layer(层控件)](layout/layer)
+ * [Segment(段落控件)](layout/segment)
 * 控件
  * [控件的基本使用方法](widget)
  * [Button(按钮)](base/button)
@@ -35,5 +41,5 @@
  * [Slider(滑动开关)](edit/slider)
  * [Toggle(拴牢开关)](edit/toggle)
  * [Layer(浮动层)](layout/layer)
- 
+
 

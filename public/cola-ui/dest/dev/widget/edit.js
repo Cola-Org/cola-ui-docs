@@ -554,7 +554,7 @@
     };
 
     AbstractInput.prototype._parseDom = function(dom) {
-      var $actionButtonDom, $labelDom, buttonIndex, child, childConfig, i, index, inputDom, inputIndex, labelIndex, len, ref, widget;
+      var $actionButtonDom, $labelDom, buttonIndex, child, childConfig, index, inputDom, inputIndex, j, labelIndex, len, ref, widget;
       if (!dom) {
         return;
       }
@@ -566,7 +566,7 @@
       labelIndex = 0;
       childConfig = {};
       ref = dom.childNodes;
-      for (index = i = 0, len = ref.length; i < len; index = ++i) {
+      for (index = j = 0, len = ref.length; j < len; index = ++j) {
         child = ref[index];
         if (child.nodeType !== 1) {
           continue;
@@ -736,7 +736,7 @@
     };
 
     AbstractInput.prototype._refreshInput = function() {
-      var $inputDom, ref;
+      var $inputDom, align, dataType, inputType, ref;
       $inputDom = $fly(this._doms.input);
       if (this._name) {
         $inputDom.attr("name", this._name);
@@ -745,6 +745,16 @@
       $inputDom.prop("readOnly", this._finalReadOnly);
       if ((ref = this.get("actionButton")) != null) {
         ref.set("disabled", this._finalReadOnly);
+      }
+      dataType = this._dataType;
+      if (dataType && !this._inputType) {
+        inputType = "text";
+        align = "left";
+        if (dataType instanceof cola.NumberDataType) {
+          inputType = "number";
+          align = "right";
+        }
+        $inputDom.prop("type", inputType).css("text-align", align);
       }
       this._refreshInputValue(this._value);
     };
@@ -800,10 +810,17 @@
     };
 
     Input.prototype._createEditorDom = function() {
-      return $.xCreate({
+      var config;
+      config = {
         tagName: "input",
         type: this._inputType || "text"
-      });
+      };
+      if (this._inputType === "number") {
+        config.style = {
+          "text-align": "right"
+        };
+      }
+      return $.xCreate(config);
     };
 
     Input.prototype._isEditorDom = function(node) {
@@ -847,7 +864,7 @@
           _this._refreshInputValue(_this._value);
           _this.fire("blur", _this);
           if ((_this._value == null) || _this._value === "" && _this._bindInfo.isWriteable) {
-            propertyDef = _this._getBindingPropertyDef();
+            propertyDef = _this._getBindingProperty();
             if ((propertyDef != null ? propertyDef._required : void 0) && propertyDef._validators) {
               entity = _this._scope.get(_this._bindInfo.entityPath);
               if (entity) {
@@ -1065,7 +1082,7 @@
     };
 
     Progress.prototype._doRefreshDom = function() {
-      var $dom, attached, color, size;
+      var $dom, color, size;
       if (!this._dom) {
         return;
       }
@@ -1090,10 +1107,6 @@
       color = this.get("color");
       if (color) {
         this._classNamePool.add(color);
-      }
-      attached = this.get("attached");
-      if (attached) {
-        this._classNamePool.add(attached + " attached");
       }
     };
 
@@ -1451,10 +1464,10 @@
       name: null,
       items: {
         setter: function(items) {
-          var i, item, len;
+          var item, j, len;
           this.clear();
-          for (i = 0, len = items.length; i < len; i++) {
-            item = items[i];
+          for (j = 0, len = items.length; j < len; j++) {
+            item = items[j];
             this._addItem(item);
           }
           return this;
@@ -1465,12 +1478,12 @@
         defaultValue: "radio",
         refreshDom: true,
         setter: function(value) {
-          var i, item, len, ref;
+          var item, j, len, ref;
           this._type = value;
           if (this._items) {
             ref = this._items;
-            for (i = 0, len = ref.length; i < len; i++) {
-              item = ref[i];
+            for (j = 0, len = ref.length; j < len; j++) {
+              item = ref[j];
               item.set("type", value);
             }
           }
@@ -1480,7 +1493,7 @@
     };
 
     RadioGroup.prototype._doRefreshDom = function() {
-      var i, item, len, ref, value;
+      var item, j, len, ref, value;
       if (!this._dom) {
         return;
       }
@@ -1490,8 +1503,8 @@
         return;
       }
       ref = this._items;
-      for (i = 0, len = ref.length; i < len; i++) {
-        item = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
         if (item.get("value") === value) {
           item.set("checked", true);
           break;
@@ -1500,14 +1513,14 @@
     };
 
     RadioGroup.prototype._initDom = function(dom) {
-      var i, item, itemDom, len, ref;
+      var item, itemDom, j, len, ref;
       RadioGroup.__super__._initDom.call(this, dom);
       if (!this._items) {
         return;
       }
       ref = this._items;
-      for (i = 0, len = ref.length; i < len; i++) {
-        item = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
         itemDom = item.getDom();
         if (itemDom.parentNode === this._dom) {
           continue;
@@ -1573,14 +1586,14 @@
     };
 
     RadioGroup.prototype.getRadioButton = function(index) {
-      var i, item, len, ref;
+      var item, j, len, ref;
       if (!this._items) {
         return;
       }
       if (typeof index === "string") {
         ref = this._items;
-        for (i = 0, len = ref.length; i < len; i++) {
-          item = ref[i];
+        for (j = 0, len = ref.length; j < len; j++) {
+          item = ref[j];
           if (item.get("value") === index) {
             return;
           }
@@ -1608,27 +1621,27 @@
     };
 
     RadioGroup.prototype.clear = function() {
-      var i, item, len, ref;
+      var item, j, len, ref;
       if (!this._items) {
         return;
       }
       ref = this._items;
-      for (i = 0, len = ref.length; i < len; i++) {
-        item = ref[i];
+      for (j = 0, len = ref.length; j < len; j++) {
+        item = ref[j];
         item.destroy();
       }
       return this._items = [];
     };
 
     RadioGroup.prototype.destroy = function() {
-      var i, item, len, ref;
+      var item, j, len, ref;
       if (this._destroyed) {
         return this;
       }
       if (this._items) {
         ref = this._items;
-        for (i = 0, len = ref.length; i < len; i++) {
-          item = ref[i];
+        for (j = 0, len = ref.length; j < len; j++) {
+          item = ref[j];
           item.destroy();
         }
         delete this._items;
@@ -1748,6 +1761,91 @@
   })(cola.Widget);
 
   cola.Element.mixin(cola.Rating, cola.DataWidgetMixin);
+
+  cola.Select = (function(superClass) {
+    extend(Select, superClass);
+
+    function Select() {
+      return Select.__super__.constructor.apply(this, arguments);
+    }
+
+    Select.CLASS_NAME = "input";
+
+    Select.ATTRIBUTES = {
+      options: {
+        setter: function(options) {
+          var ref, select;
+          if (!(options instanceof Array || options instanceof cola.EntityList)) {
+            return;
+          }
+          this._options = options;
+          select = (ref = this._doms) != null ? ref.input : void 0;
+          if (select) {
+            this._refreshSelectOptions(select);
+          }
+        }
+      }
+    };
+
+    Select.prototype._createEditorDom = function() {
+      return $.xCreate({
+        tagName: "select",
+        "class": "editor"
+      });
+    };
+
+    Select.prototype._isEditorDom = function(node) {
+      return node.nodeName === "SELECT";
+    };
+
+    Select.prototype._parseDom = function(dom) {
+      var child, skipSetIcon;
+      Select.__super__._parseDom.call(this, dom);
+      if (!this._icon) {
+        child = this._doms.input.nextSibling;
+        while (child) {
+          if (child.nodeType === 1 && child.nodeName !== "TEMPLATE") {
+            skipSetIcon = true;
+            break;
+          }
+          child = child.nextSibling;
+        }
+        if (!skipSetIcon) {
+          this.set("icon", "dropdown");
+        }
+      }
+    };
+
+    Select.prototype._initDom = function(dom) {
+      if (this._options) {
+        this._refreshSelectOptions(this._doms.input);
+      }
+    };
+
+    Select.prototype._refreshSelectOptions = function(select) {
+      var options;
+      options = select.options;
+      if (this._options instanceof cola.EntityList) {
+        options.length = this._options.entityCount;
+      } else {
+        options.length = this._options.length;
+      }
+      cola.each(this._options, function(optionValue, i) {
+        var option;
+        option = options[i];
+        if (cola.util.isSimpleValue(optionValue)) {
+          $fly(option).removeAttr("value").text(optionValue);
+        } else if (optionValue instanceof cola.Entity) {
+          $fly(option).attr("value", optionValue.get("value") || optionValue.get("key")).text(optionValue.get("text") || optionValue.get("name"));
+        } else {
+          $fly(option).attr("value", optionValue.value || optionValue.key).text(optionValue.text || optionValue.name);
+        }
+      });
+    };
+
+    return Select;
+
+  })(cola.AbstractInput);
 
   dropdownDialogMargin = 0;
 
@@ -1972,7 +2070,7 @@
     };
 
     AbstractDropdown.prototype._initValueContent = function(valueContent, context) {
-      var i, len, property, t, template;
+      var j, len, property, t, template;
       property = this._textProperty || this._valueProperty;
       if (property) {
         context.defaultPath += "." + property;
@@ -1980,8 +2078,8 @@
       template = this._getTemplate("value-content");
       if (template) {
         if (template instanceof Array) {
-          for (i = 0, len = template.length; i < len; i++) {
-            t = template[i];
+          for (j = 0, len = template.length; j < len; j++) {
+            t = template[j];
             valueContent.appendChild(t);
           }
         } else {
@@ -2541,7 +2639,7 @@
     };
 
     Form.prototype._refreshState = function() {
-      var errors, i, keyMessage, len, m, messages, state, type;
+      var errors, j, keyMessage, len, m, messages, state, type;
       state = null;
       keyMessage = this._messageHolder.getKeyMessage();
       type = keyMessage != null ? keyMessage.type : void 0;
@@ -2549,8 +2647,8 @@
         errors = [];
         messages = this._messageHolder.findMessages(null, type);
         if (messages) {
-          for (i = 0, len = messages.length; i < len; i++) {
-            m = messages[i];
+          for (j = 0, len = messages.length; j < len; j++) {
+            m = messages[j];
             if (m.text) {
               errors.push(m.text);
             }
@@ -2565,15 +2663,15 @@
     };
 
     Form.prototype._resetEntityMessages = function() {
-      var entity, i, len, message, messageHolder, messages;
+      var entity, j, len, message, messageHolder, messages;
       messageHolder = this._messageHolder;
       messageHolder.clear("fields");
       entity = this._getEntity();
       if (entity) {
         messages = entity.findMessages();
         if (messages) {
-          for (i = 0, len = messages.length; i < len; i++) {
-            message = messages[i];
+          for (j = 0, len = messages.length; j < len; j++) {
+            message = messages[j];
             messageHolder.add("fields", message);
           }
         }
@@ -2581,12 +2679,12 @@
     };
 
     Form.prototype.setMessages = function(messages) {
-      var i, len, message, messageHolder;
+      var j, len, message, messageHolder;
       messageHolder = this._messageHolder;
       messageHolder.clear("$");
       if (messages) {
-        for (i = 0, len = messages.length; i < len; i++) {
-          message = messages[i];
+        for (j = 0, len = messages.length; j < len; j++) {
+          message = messages[j];
           messageHolder.add("$", message);
         }
       }

@@ -2721,7 +2721,6 @@
         }, {
           tagName: "iframe",
           contextKey: "iframe",
-          scrolling: cola.os.ios ? "no" : "auto",
           frameBorder: 0
         }
       ], frameDoms));
@@ -2754,11 +2753,21 @@
       return contentWindow;
     };
 
-    IFrame.prototype.open = function(path) {
+    IFrame.prototype.open = function(path, callback) {
+      if (callback) {
+        this.one("load", function() {
+          return cola.callback(callback, true);
+        });
+      }
       this.set("path", path);
     };
 
-    IFrame.prototype.reload = function() {
+    IFrame.prototype.reload = function(callback) {
+      if (callback) {
+        this.one("load", function() {
+          return cola.callback(callback, true);
+        });
+      }
       this._replaceUrl(this._path);
       return this;
     };
@@ -2851,7 +2860,7 @@
         cssUrl: this._cssUrl,
         param: this._param,
         callback: {
-          callback: (function(_this) {
+          complete: (function(_this) {
             return function(success, result) {
               _this._loading = false;
               if (success) {
