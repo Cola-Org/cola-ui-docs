@@ -88,6 +88,91 @@
     return element.style.transform = "";
   };
 
+  cola.AbstractLayer = (function(superClass) {
+    extend(AbstractLayer, superClass);
+
+    function AbstractLayer() {
+      return AbstractLayer.__super__.constructor.apply(this, arguments);
+    }
+
+    AbstractLayer.ATTRIBUTES = {
+      duration: {
+        defaultValue: 300
+      },
+      visible: {
+        type: "boolean",
+        readOnly: true,
+        getter: function() {
+          return this.isVisible();
+        }
+      }
+    };
+
+    AbstractLayer.EVENTS = {
+      show: null,
+      hide: null,
+      beforeShow: null,
+      beforeHide: null
+    };
+
+    AbstractLayer.prototype._onShow = function() {};
+
+    AbstractLayer.prototype._onHide = function() {};
+
+    AbstractLayer.prototype._transition = function(options, callback) {
+      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
+        return false;
+      }
+      this._doTransition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype._doTransition = function(options, callback) {};
+
+    AbstractLayer.prototype.show = function(options, callback) {
+      if (options == null) {
+        options = {};
+      }
+      if (!this._dom || this.isVisible()) {
+        return this;
+      }
+      if (typeof options === "function") {
+        callback = options;
+        options = {};
+      }
+      options.target = "show";
+      this._transition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype.hide = function(options, callback) {
+      if (options == null) {
+        options = {};
+      }
+      if (!this._dom || !this.isVisible()) {
+        return this;
+      }
+      if (typeof options === "function") {
+        callback = options;
+        options = {};
+      }
+      options.target = "hide";
+      this._transition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype.toggle = function() {
+      return this[this.isVisible() ? "hide" : "show"].apply(this, arguments);
+    };
+
+    AbstractLayer.prototype.isVisible = function() {
+      return this.get$Dom().transition("stop all").transition("is visible");
+    };
+
+    return AbstractLayer;
+
+  })(cola.AbstractContainer);
+
   cola.Layer = (function(superClass) {
     extend(Layer, superClass);
 
@@ -101,33 +186,10 @@
       animation: {
         defaultValue: "slide left",
         "enum": ["scale", "drop", "browse right", "browse", "slide left", "slide right", "slide up", "slide down", "fade left", "fade right", "fade up", "fade down", "fly left", "fly right", "fly up", "fly down", "swing left", "swing right", "swing up", "swing down", "horizontal flip", "vertical flip"]
-      },
-      duration: {
-        defaultValue: 300
-      },
-      visible: {
-        type: "boolean",
-        readOnly: true,
-        getter: function() {
-          return this.isVisible();
-        }
       }
     };
 
-    Layer.EVENTS = {
-      show: null,
-      hide: null,
-      beforeShow: null,
-      beforeHide: null
-    };
-
     Layer.SLIDE_ANIMATIONS = ["slide left", "slide right", "slide up", "slide down"];
-
-    Layer.prototype._onShow = function() {};
-
-    Layer.prototype._onHide = function() {};
-
-    Layer.prototype._initDom = function() {};
 
     Layer.prototype._doTransition = function(options, callback) {
       var $dom, animation, configs, duration, height, isHorizontal, isShow, layer, onComplete, width, x, y;
@@ -203,57 +265,9 @@
       }
     };
 
-    Layer.prototype._transition = function(options, callback) {
-      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
-        return false;
-      }
-      this._doTransition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.show = function(options, callback) {
-      if (options == null) {
-        options = {};
-      }
-      if (!this._dom || this.isVisible()) {
-        return this;
-      }
-      if (typeof options === "function") {
-        callback = options;
-        options = {};
-      }
-      options.target = "show";
-      this._transition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.hide = function(options, callback) {
-      if (options == null) {
-        options = {};
-      }
-      if (!this._dom || !this.isVisible()) {
-        return this;
-      }
-      if (typeof options === "function") {
-        callback = options;
-        options = {};
-      }
-      options.target = "hide";
-      this._transition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.toggle = function() {
-      return this[this.isVisible() ? "hide" : "show"].apply(this, arguments);
-    };
-
-    Layer.prototype.isVisible = function() {
-      return this.get$Dom().transition("stop all").transition("is visible");
-    };
-
     return Layer;
 
-  })(cola.AbstractContainer);
+  })(cola.AbstractLayer);
 
   cola.Dialog = (function(superClass) {
     extend(Dialog, superClass);
@@ -532,7 +546,7 @@
       return Sidebar.__super__.constructor.apply(this, arguments);
     }
 
-    Sidebar.CLASS_NAME = "ui sidebar";
+    Sidebar.CLASS_NAME = "ui sidebar layer transition hidden";
 
     Sidebar.ATTRIBUTES = {
       direction: {
@@ -542,43 +556,82 @@
       size: {
         defaultValue: 100
       },
-      duration: {
+      modalOpacity: {
         type: "number",
-        defaultValue: 200
+        defaultValue: 0.6
       },
-      transition: {
-        defaultValue: "overlay",
-        "enum": ["overlay", "push"]
-      },
-      mobileTransition: {
-        defaultValue: "overlay",
-        "enum": ["overlay", "push"]
-      },
-      closable: {
+      dimmerClose: {
         type: "boolean",
         defaultValue: true
       }
     };
 
-    Sidebar.EVENTS = {
-      beforeShow: null,
-      beforeHide: null,
-      show: null,
-      hide: null
-    };
-
-    Sidebar.prototype.isHidden = function() {
-      if (!this._dom) {
-        return false;
+    Sidebar.prototype._doTransition = function(options, callback) {
+      var $dom, configs, direction, duration, height, isHorizontal, isShow, onComplete, sidebar, width, x, y;
+      if (options.target === "show") {
+        this._showModalLayer();
+      } else {
+        this._hideModalLayer();
       }
-      return this.get$Dom().sidebar("is", "hidden");
-    };
-
-    Sidebar.prototype.isVisible = function() {
-      if (!this._dom) {
-        return false;
+      sidebar = this;
+      this.get$Dom().css({
+        zIndex: cola.floatWidget.zIndex()
+      });
+      onComplete = function() {
+        if (typeof callback === "function") {
+          callback.call(sidebar);
+        }
+        if (options.target === "show") {
+          sidebar._onShow();
+        } else {
+          sidebar._onHide();
+        }
+        sidebar.fire(options.target, sidebar, {});
+        return null;
+      };
+      direction = this._direction;
+      duration = options.duration || this._duration || 300;
+      $dom = this.get$Dom();
+      width = $dom.width();
+      height = $dom.height();
+      isHorizontal = direction === "left" || direction === "right";
+      if (direction === "left") {
+        x = -width;
+        y = 0;
+      } else if (direction === "right") {
+        x = width;
+        y = 0;
+      } else if (direction === "top") {
+        x = 0;
+        y = -height;
+      } else {
+        x = 0;
+        y = height;
       }
-      return this.get$Dom().sidebar("is", "visible");
+      isShow = options.target === "show";
+      if (isShow) {
+        cola.Fx.translateElement(this._dom, x, y);
+      }
+      configs = {
+        duration: duration,
+        complete: (function(_this) {
+          return function() {
+            if (!isShow) {
+              $dom.removeClass("visible").addClass("hidden");
+            }
+            _removeTranslateStyle(_this._dom);
+            return onComplete();
+          };
+        })(this)
+      };
+      if (isHorizontal) {
+        configs.x = isShow ? 0 : x;
+        configs.y = 0;
+      } else {
+        configs.y = isShow ? 0 : y;
+        configs.x = 0;
+      }
+      $dom.removeClass("hidden").addClass("visible").transit(configs);
     };
 
     Sidebar.prototype._doRefreshDom = function() {
@@ -586,47 +639,8 @@
         return;
       }
       Sidebar.__super__._doRefreshDom.call(this);
+      this._setSize();
       return this._classNamePool.add(this._direction || "left");
-    };
-
-    Sidebar.prototype.show = function(callback) {
-      var $dom;
-      if (this.fire("beforeShow", this, {
-        dom: this._dom
-      }) === false) {
-        return;
-      }
-      $dom = this.get$Dom();
-      if (!this._initialized) {
-        this._initialized = true;
-        this._setSize();
-        $dom.sidebar('setting', {
-          duration: this._duration || 200,
-          transition: this._transition,
-          closable: false,
-          mobileTransition: this._mobileTransition,
-          onShow: (function(_this) {
-            return function() {
-              return _this.fire("show", _this, {});
-            };
-          })(this),
-          onHide: (function(_this) {
-            return function() {
-              return _this.fire("hide", _this, {});
-            };
-          })(this)
-        });
-      }
-      return $dom.sidebar("show", callback);
-    };
-
-    Sidebar.prototype.hide = function(callback) {
-      if (this.fire("beforeHide", this, {
-        dom: this._dom
-      }) === false) {
-        return;
-      }
-      return this.get$Dom().sidebar("hide", callback);
     };
 
     Sidebar.prototype._setSize = function() {
@@ -641,130 +655,64 @@
       this.get$Dom().css(style, size);
     };
 
+    Sidebar.prototype._showModalLayer = function() {
+      var _dimmerDom, container;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      _dimmerDom = this._doms.modalLayer;
+      if (!_dimmerDom) {
+        _dimmerDom = $.xCreate({
+          tagName: "Div",
+          "class": "ui dimmer",
+          contextKey: "dimmer"
+        });
+        if (this._dimmerClose) {
+          $(_dimmerDom).on("click", (function(_this) {
+            return function() {
+              return _this.hide();
+            };
+          })(this));
+        }
+        container = this._context || this._dom.parentNode;
+        container.appendChild(_dimmerDom);
+        this._doms.modalLayer = _dimmerDom;
+      }
+      $(_dimmerDom).css({
+        opacity: 0,
+        zIndex: cola.floatWidget.zIndex()
+      }).addClass("active").transit({
+        opacity: this._modalOpacity
+      });
+    };
+
+    Sidebar.prototype._hideModalLayer = function() {
+      var _dimmerDom;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      _dimmerDom = this._doms.modalLayer;
+      return $(_dimmerDom).transit({
+        opacity: 0,
+        complete: function() {
+          return $(_dimmerDom).removeClass("active").css({
+            zIndex: 0
+          });
+        }
+      });
+    };
+
+    Sidebar.prototype.isVisible = function() {
+      if (this._dom) {
+        return this.get$Dom().hasClass("active");
+      } else {
+        return false;
+      }
+    };
+
     return Sidebar;
 
-  })(cola.AbstractContainer);
-
-  cola.Drawer = (function(superClass) {
-    extend(Drawer, superClass);
-
-    function Drawer() {
-      return Drawer.__super__.constructor.apply(this, arguments);
-    }
-
-    Drawer.CLASS_NAME = "ui drawer pushable";
-
-    Drawer.prototype.getPusherDom = function() {
-      if (!this._dom) {
-        return;
-      }
-      return $(this._dom).find("> .pusher")[0];
-    };
-
-    Drawer.prototype._initDom = function(dom) {
-      var pusher;
-      Drawer.__super__._initDom.call(this, dom);
-      pusher = this.getPusherDom();
-      if (!pusher) {
-        dom.appendChild($.xCreate({
-          tagName: "div",
-          "class": "pusher"
-        }));
-      }
-    };
-
-    Drawer.prototype._initPusher = function() {
-      this._pusher = this.getPusherDom();
-      $(this._pusher).on("click", (function(_this) {
-        return function() {
-          var event;
-          _this._hideSidebar();
-          event = window.event;
-          if (event) {
-            event.stopImmediatePropagation();
-            return event.preventDefault();
-          }
-        };
-      })(this));
-    };
-
-    Drawer.prototype._hideSidebar = function() {
-      var child, results, widget;
-      child = this._dom.firstChild;
-      results = [];
-      while (child) {
-        if (child.nodeType === 1) {
-          widget = cola.widget(child);
-          if (widget && widget instanceof cola.Sidebar && widget.isVisible()) {
-            widget.hide();
-          }
-        }
-        results.push(child = child.nextSibling);
-      }
-      return results;
-    };
-
-    Drawer.prototype._getFirstSidebar = function() {
-      var sideDom;
-      sideDom = $(this._dom).find("> .ui.sidebar")[0];
-      if (!sideDom) {
-        return;
-      }
-      return cola.widget(sideDom);
-    };
-
-    Drawer.prototype.showSidebar = function(id, callback) {
-      var sidebar, sidebarDom;
-      if (id) {
-        if (typeof id === "function") {
-          callback = id;
-          sidebar = this._getFirstSidebar();
-        } else {
-          sidebar = cola.widget(id);
-        }
-      } else {
-        sidebar = this._getFirstSidebar();
-      }
-      if (!sidebar) {
-        return;
-      }
-      sidebarDom = sidebar.getDom();
-      if (sidebarDom.parentNode !== this._dom) {
-        return;
-      }
-      if (!this._pusher) {
-        cola._ignoreNodeRemoved = true;
-        $(this._dom).find("> .ui.sidebar").sidebar({
-          context: this._dom
-        });
-        cola._ignoreNodeRemoved = false;
-        this._initPusher();
-      }
-      return sidebar.show(callback);
-    };
-
-    Drawer.prototype.hideSidebar = function(id, callback) {
-      var sidebar;
-      if (id) {
-        if (typeof id === "function") {
-          callback = id;
-          sidebar = this._getFirstSidebar();
-        } else {
-          sidebar = cola.widget(id);
-        }
-      } else {
-        sidebar = this._getFirstSidebar();
-      }
-      if (!sidebar) {
-        return;
-      }
-      sidebar.hide(callback);
-      return this;
-    };
-
-    return Drawer;
-
-  })(cola.AbstractContainer);
+  })(cola.AbstractLayer);
 
   if (cola.tab == null) {
     cola.tab = {};

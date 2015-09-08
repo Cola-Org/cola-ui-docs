@@ -36,7 +36,7 @@
         "class": "prettyprint lang-html",
         content: code
       });
-      return el.appendChild(codeEl);
+      return $(el).find(".code").after(codeEl);
     }
   });
 
