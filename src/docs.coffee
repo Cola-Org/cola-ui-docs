@@ -19,8 +19,8 @@ $(".example:not(.ignore)").each((index, el)->
 
 	style = $("style[name='#{name}']").text() or ""
 	if style then style = "<style>#{style}</style>"
-
-	html = $(el).find(".code").html()
+	$code = $(el).find(".code")
+	html = $code.html()
 	if html
 		code = html + script + style
 		code = html_beautify(code, jsBeautifyOptions)
@@ -31,7 +31,7 @@ $(".example:not(.ignore)").each((index, el)->
 			content: code
 		})
 
-		el.appendChild(codeEl)
+		$code.after(codeEl)
 )
 
 $(".markdown-content pre>code").each((index, el)->

@@ -733,7 +733,7 @@
       if (dataCtx == null) {
         dataCtx = {};
       }
-      return this._bindInfo.expression.evaluate(this._scope, "auto", dataCtx);
+      return this._bindInfo.expression.evaluate(this._scope, "async", dataCtx);
     },
     _writeBindingValue: function(value) {
       var ref;

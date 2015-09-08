@@ -1,0 +1,26 @@
+extends ../doc-layout
+block content
+	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
+	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+
+	- defaultGroupName="抽屉"
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 抽屉控件
+		.ui.segment(style={height: "300px"})
+			.code(style={height: "100%"})
+				div#d1(c-widget="Drawer;")
+					div(c-widget="Sidebar" class="segment")
+
+		div(c-widget="button; caption:显示; class:basic red" drawer="d1")
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		});
+
+		$("[drawer]").click(function () {
+			var $dom = $(this), drawer = cola.widget($dom.attr("drawer"));
+			drawer.showSidebar()
+		});
+

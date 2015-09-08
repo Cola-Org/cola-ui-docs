@@ -71,7 +71,7 @@
 }
 @media only screen and (min-width: 780px) {
   .main.container .example {
-    margin: 2em;
+    margin: 2em 0;
   }
   .main.container .example pre.prettyprint {
     padding: 1em;
@@ -100,4 +100,5 @@
 body {
   background-color: #F9F9F5 !important;
   color: #2C3E50 !important;
+  font-size: 15px;
 }

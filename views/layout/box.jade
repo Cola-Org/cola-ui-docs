@@ -5,38 +5,44 @@ block content
 	- defaultGroupName="箱式布局"
 	style
 		:less
-			.gs-example .box-example {
+			@box-border: 1px solid #c6c6c6;
+			.box-example {
 				height: 300px;
-				border: 1px solid #c6c6c6;
-			}
-
-			.gs-example .box-example > * {
-				padding: 1px;
-			}
-
-			.gs-example .box-example > .flex-box .box-content {
-				left: 1px;
-				top: 1px;
-				bottom: 1px;
-				right: 1px;
-				border: 1px solid #c6c6c6;
-			}
-
-			.gs-example .box-example > .box .box-content {
-				height: 100%;
-				width: 100%;
-				border: 1px solid #c6c6c6;
-			}
-			.gs-example .box-example.h-box {
-				margin-top: 10px;
-				width: 100%;
-				/*border: 1px solid #c6c6c6;*/
+				border: @box-border;
+				> * {
+					padding: 1px;
+					.box-content {
+						border: @box-border;
+					}
+				}
+				&.v-box {
+					> .flex-box {
+						.box-content {
+							left: 1px;
+							right: 1px;
+						}
+					}
+				}
+				> .box .box-content {
+					height: 100%;
+					width: 100%;
+				}
+				&.h-box {
+					margin-top: 10px;
+					width: 100%;
+					> .flex-box {
+						.box-content {
+							top: 1px;
+							bottom: 1px;
+						}
+					}
+				}
 			}
 	.markdown-content
 		+addCatalog("box","简介")
 		#box
 		:markdown
-			## Box 布局
+			## Box 布局 (#setext)
 			Cola 提供了一套箱式布局系统，包括纵向箱式和横向箱式布局,是基于CSS3 Flex 布局和display:webkit实现，完美支持了所有支持CSS3的浏览器，其中包括UC浏览器和X5内核的QQ浏览器和微信浏览器。
 			### 简介
 			箱式布局系统用于通过一系列的`box`与`flex-box`的组合来创建页面布局。下面就介绍 Cola 箱式布局的工作原理：
@@ -67,14 +73,18 @@ block content
 		h3#h-box 横向箱式布局
 		.gs-example
 			.h-box.box-example
-				.box.orange-background(style={width: "15%"}) 宽度可根据内容定义或固定高度
-				.flex-box.teal-background 弹性内容区域(将占用剩余布局空间)
-				.box.blue-background(style={width: "60px"}) 宽度可根据内容定义或固定高度
+				.box(style={width: "15%"})
+					.box-content 宽度可根据内容定义或固定高度
+				.flex-box
+					.box-content 弹性内容区域(将占用剩余布局空间)
+				.box(style={width: "15%"})
+					.box-content 宽度可根据内容定义或固定高度
 		pre.code
 			.h-box
 				.box(style={width: "15%"}) ...
 				.flex-box ...
-				.box(style={width: "60px"}) ...
+				.box(style={width: "15%"}) ...
+
 
 
 	script(type="text/javascript").

@@ -926,10 +926,8 @@
         type: "number",
         defaultValue: 0,
         setter: function(value) {
-          this._total = isFinite(value) ? parseFloat(value) : value;
-          if (this._dom) {
-            this._setting("total", this._total);
-          }
+          this._total = value;
+          this._setting("total", value);
         }
       },
       value: {
@@ -937,22 +935,26 @@
         defaultValue: 0,
         setter: function(value) {
           this._value = value;
-          if (this._dom) {
-            this.progress(value);
-          }
+          this.progress(value);
         }
       },
-      labelFormat: {
+      showProgress: {
+        defaultValue: true,
+        type: "boolean",
+        refreshDom: true
+      },
+      progressFormat: {
         "enum": ["percent", "ratio"],
         defaultValue: "percent",
         setter: function(value) {
-          this._labelFormat = value;
+          this._progressFormat = value;
           if (this._dom) {
             this._setting("label", value);
           }
         }
       },
       ratioText: {
+        defaultValue: "{percent}%",
         setter: function(value) {
           this._ratioText = value;
           if (this._dom) {
@@ -980,6 +982,7 @@
       },
       autoSuccess: {
         defaultValue: true,
+        type: "boolean",
         setter: function(value) {
           this._autoSuccess = !!value;
           if (this._dom) {
@@ -1011,30 +1014,6 @@
         type: "number",
         refreshDom: true,
         defaultValue: 1
-      },
-      size: {
-        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
-        refreshDom: true,
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_size"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_size"] = value;
-        }
-      },
-      color: {
-        refreshDom: true,
-        "enum": ["black", "yellow", "green", "blue", "orange", "purple", "red", "pink", "teal"],
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_color"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_color"] = value;
-        }
       }
     };
 
@@ -1056,7 +1035,8 @@
           "class": "bar",
           content: {
             tagName: "div",
-            "class": "progress"
+            "class": "progress",
+            contextKey: "progress"
           },
           contextKey: "bar"
         }, {
@@ -1068,6 +1048,9 @@
     };
 
     Progress.prototype._setting = function(name, value) {
+      if (!this._dom) {
+        return;
+      }
       if (this._dom) {
         this.get$Dom().progress("setting", name, value);
       }
@@ -1082,7 +1065,7 @@
     };
 
     Progress.prototype._doRefreshDom = function() {
-      var $dom, color, size;
+      var $dom;
       if (!this._dom) {
         return;
       }
@@ -1100,13 +1083,14 @@
           $(this._doms.label).remove();
         }
       }
-      size = this.get("size");
-      if (size) {
-        this._classNamePool.add(size);
-      }
-      color = this.get("color");
-      if (color) {
-        this._classNamePool.add(color);
+      if (this._showProgress) {
+        if (this._doms.progress.parentNode !== this._doms.bar) {
+          this._doms.bar.appendChild(this._doms.progress);
+        }
+      } else {
+        if (this._doms.progress.parentNode) {
+          $(this._doms.progress).remove();
+        }
       }
     };
 
@@ -1121,14 +1105,14 @@
       this.get$Dom().progress({
         total: this.get("total"),
         label: this._labelFormat,
-        autoSuccess: !!this._autoSuccess,
-        showActivity: !!this._showActivity,
-        limitValues: !!this._limitValues,
+        autoSuccess: this._autoSuccess,
+        showActivity: this._showActivity,
+        limitValues: this._limitValues,
         precision: this._precision,
         text: {
           active: this._activeMessage || "",
           success: this._successMessage || "",
-          ratio: this._ratioText || "{percent}%"
+          ratio: this._ratioText
         },
         onChange: function(percent, value, total) {
           var arg;

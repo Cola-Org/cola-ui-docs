@@ -20,6 +20,7 @@
  * [Form(表单布局)](layout/form)
  * [Layer(层控件)](layout/layer)
  * [Segment(段落控件)](layout/segment)
+ * [Sidebar(侧边栏)](layout/sidebar)
 * 控件
  * [控件的基本使用方法](widget)
  * [Button(按钮)](base/button)

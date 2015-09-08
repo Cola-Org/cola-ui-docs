@@ -653,7 +653,7 @@
               if (pullState === "down") {
                 collection = _this._realOriginItems || _this._realItems;
                 if (collection instanceof cola.EntityList) {
-                  collection.flushAsync(done);
+                  collection.flush(done);
                 } else {
                   done();
                 }
@@ -2113,7 +2113,7 @@
         if (dataCtx == null) {
           dataCtx = {};
         }
-        items = this._expression.evaluate(parentNode._scope, "auto", dataCtx);
+        items = this._expression.evaluate(parentNode._scope, "async", dataCtx);
         if (items === void 0 && dataCtx.unloaded) {
           recursiveLoader = (ref = dataCtx.providerInvokers) != null ? ref[0] : void 0;
           if (recursiveLoader) {
@@ -2137,7 +2137,7 @@
         if (dataCtx == null) {
           dataCtx = {};
         }
-        items = this._child._expression.evaluate(parentNode._scope, "auto", dataCtx);
+        items = this._child._expression.evaluate(parentNode._scope, "async", dataCtx);
         if (items === void 0 && dataCtx.unloaded) {
           childLoader = (ref1 = dataCtx.providerInvokers) != null ? ref1[0] : void 0;
           if (childLoader) {

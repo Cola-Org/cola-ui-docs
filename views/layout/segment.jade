@@ -1,32 +1,187 @@
 extends ../doc-layout
 block content
-	+addCatalog("slide","Slide")
-	.example#slide(name="slide")
-		h4.ui.header Slide
-		div#slideRadio(c-widget="RadioGroup; name:animation; value:slide left;")
-		div#slideBtn(c-widget="Button; caption:toggle; click:click")
+	+addCatalog("segment","段落")
+	.example#segment
+		h4 Segment
+		p 定义一段内容
+		.code
+			div(c-widget="segment")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("raised","凸起的")
+	.example
+		h4 凸起的
+		p 定义一段凸起效果的片段#[code class:raised]
+		.code
+			div(c-widget="segment; class:raised")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("stacked","整齐堆放")
+	.example#stacked
+		h4 整齐堆放
+		p 叠起的,堆放的#[code class:stacked]可突显内容为多页模式,更多的堆放模式需要加#[code class:tall]
+		.code
+			div(c-widget="segment; class:stacked")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+			.ui.divider.hidden
+			div(c-widget="segment; class:tall stacked")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("piled","随意堆放")
+	.example#piled
+		h4 随意堆放
+		p 随意堆放的#[code class:piled]可突显内容为多页模式
+		.code
+			div(c-widget="segment; class:piled")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("vertical","纵向段落")
+	.example#vertical
+		h4 纵向段落
+		p 通过#[code class:vertical segment] 垂直组模式排列内容
+		.code
+			div(c-widget="segment; class:vertical")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
 
-		div.ui.segment
-			.code
-				div#slideLayer(c-widget="Layer;")
-					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:fluid")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
 
-	script(type="text/javascript" name="slide").
-		cola("slide", function (model) {
-			model.action({
-				click: function () {
-					cola.widget("slideLayer").toggle({animation: cola.widget("slideRadio").get("value")})
-				}
-			});
-			model.widgetConfig({
-				slideRadio: {
-					name: "slide",
-					items: [
-						"slide left", "slide right", "slide up", "slide down"
-					]
-				}
-			})
-		});
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("group","纵向段落")
+	.example#group
+		h4 段落组
+		.code
+			.ui.segments
+				div(c-widget="segment;")
+					p Top
+				div(c-widget="segment;")
+					p Middle
+				div(c-widget="segment;")
+					p Bottom
+	+addCatalog("group","嵌套的段落组")
+	.example#group2
+		h4 嵌套的段落组
+		.code
+			.ui.segments
+				div(c-widget="segment;")
+					p Top
+				div(c-widget="segment;")
+					.ui.segments
+						div(c-widget="segment;")
+							p Top
+						div(c-widget="segment;")
+							p Middle
+						div(c-widget="segment;")
+							p Bottom
+				div(c-widget="segment;")
+					p Bottom
+	+addCatalog("horizontal-group","横向段落组")
+	.example#horizontal-group
+		h4 横向段落组
+		.code
+			.ui.horizontal.segments
+				div(c-widget="segment;")
+					p 内容1
+				div(c-widget="segment;")
+					p 内容2
+				div(c-widget="segment;")
+					p 内容3
+	+addCatalog("disabled","Disabled","状态")
+	.example#disabled
+		h4 Disabled
+		p 显示段落内容是禁用的
+		.code
+			div(c-widget="segment; class:disabled")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+	+addCatalog("loading","Loading","状态")
+	.example#loading
+		h4 Loading
+		p 显示段落内容是正在装载的
+		.code
+			div(c-widget="segment; class:loading")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+
+	+addCatalog("inverted","反白效果")
+	.example#inverted
+		h4 反白效果
+		.code
+			div(c-widget="segment; class:inverted")
+				p 此段内容硬是优先读取的。
+
+	+addCatalog("padded","Padded")
+	.example#padded
+		h4 Padded
+		p 获得增加 padding的效果
+		.code
+			div(c-widget="segment; class:padded")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+			div(c-widget="segment; class:very padded")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
+
+	+addCatalog("compact","Compact")
+	.example#compact
+		h4 Compact
+		p 获得横向通过内容撑开的效果display: table;
+		.code
+			div(c-widget="segment; class:compact") 内容
+			div(c-widget="segment; class:compact") 内容2
+	+addCatalog("color","颜色")
+	.example
+		h4.ui.header 颜色
+		p 默认提供了以下几种颜色主题
+		.code
+			each color in colors
+				- var config = "segment; class:"+color+";"
+				div(c-widget=config) #{color}
+	+addCatalog("color-inverted","反白+颜色")
+	.example
+		h4.ui.header 反白+颜色
+		p 默认提供了以下几种颜色主题
+		.code
+			each color in colors
+				- var config = "segment; class:inverted "+color+";"
+				div(c-widget=config) #{color}
+
+	+addCatalog("emphasise","高亮效果")
+	.example
+		h4.ui.header 高亮效果
+		p Cola 默认提供了#[code secondary,tertiary] 高亮主题
+		.code
+			each emphasise in ["default","secondary","tertiary"]
+				- var config = "segment; class:"+emphasise+";"
+				div(c-widget=config) #{emphasise}
+	.example
+		.code
+			each emphasise in ["default","secondary","tertiary"]
+				- var config = "segment; class:inverted blue "+emphasise+";"
+				div(c-widget=config) #{emphasise}
+
+	+addCatalog("float","浮动的")
+	.example#float
+		h4 浮动的
+		.code
+			.ui.segment(style={height:"100px"})
+				div(c-widget="segment; float:left") Float Left
+			.ui.segment(style={height:"100px"})
+				div(c-widget="segment; float:right") Float right
+
+	+addCatalog("circular","圆角的")
+	.example#circular
+		h4 圆角的
+		.ui.ignored.info.message 为了获得更精美的效果，建议设定相等的宽高。
+		.code
+			div(c-widget="segment; class:circular;" style={width:"175px;",height:"175px;"})
+				h2 中奖金额
+					p ￥10.99
+	+addCatalog("text-align","内容对齐")
+	.example#text-align
+		h4 内容对齐
+		.code
+			div(c-widget="segment; textAlign:left")  Left
+			div(c-widget="segment; textAlign:center")  Center
+			div(c-widget="segment; textAlign:right")  Right
+	+addCatalog("basic","Basic")
+	.example#basic
+		h4 Basic
+		p 无边框的最基本段落效果
+		.code
+			div(c-widget="segment; class:basic")
+				img(c-widget="image; src:/images/wireframe/short-paragraph.png")
 
 	script(type="text/javascript").
 		cola(function (model) {

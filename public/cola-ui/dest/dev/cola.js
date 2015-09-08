@@ -1,5 +1,5 @@
 (function() {
-  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildI18NFeature, buildRepeatFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, jsep, key, oldIE, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildI18NFeature, buildRepeatFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, jsep, key, oldIE, originalAjax, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
     slice = [].slice;
@@ -577,9 +577,6 @@
     ready: {},
     settingChange: {},
     exception: {},
-    beforeAjaxRequest: {},
-    ajaxSuccess: {},
-    ajaxError: {},
     beforeRouterSwitch: {},
     routerSwitch: {}
   };
@@ -886,7 +883,7 @@
   I18N
    */
 
-  defaultLocale = "zh";
+  defaultLocale = "en";
 
   i18nStore = {};
 
@@ -990,66 +987,32 @@
     return data;
   };
 
-  cola.ajax = function(options, callback) {
-    var error, p, realOptions, success, v;
-    realOptions = {};
-    for (p in options) {
-      v = options[p];
-      realOptions[p] = v;
-    }
-    if (cola.fire("beforeAjaxRequest", cola, realOptions) === false) {
-      return;
-    }
-    realOptions.data = _toJSON(realOptions.data);
-    success = realOptions.success;
-    realOptions.success = function(result, status, xhr) {
-      var arg;
-      if (cola.getListeners("ajaxSuccess")) {
-        arg = {
-          result: result,
-          status: status,
-          xhr: xhr
-        };
-        if (cola.fire("ajaxSuccess", cola, arg) === false) {
-          return;
-        }
-      }
-      cola.callback(callback, true, result);
-      if (typeof success === "function") {
-        success(result, status, xhr);
-      }
-    };
-    error = realOptions.error;
-    realOptions.error = function(xhr, status, ex) {
-      var arg;
-      if (cola.getListeners("ajaxError")) {
-        arg = {
-          xhr: xhr,
-          status: status,
-          error: ex
-        };
-        if (cola.fire("ajaxError", cola, arg) === false) {
-          return;
-        }
-        ex = arg.error;
-      }
-      cola.callback(callback, false, ex);
-      if (typeof error === "function") {
-        error(xhr, status, ex);
-      }
-    };
-    $.ajax(realOptions);
-    return this;
-  };
+  originalAjax = jQuery.ajax;
 
-  cola.get = function(options, callback) {
-    options.method = "get";
-    return cola.ajax(options, callback);
-  };
-
-  cola.post = function(options, callback) {
-    options.method = "post";
-    return cola.ajax(options, callback);
+  $.ajax = function(url, settings) {
+    var data, p, rawData, v;
+    if (typeof url === "object" && !settings) {
+      settings = url;
+    }
+    data = settings.data;
+    if (data) {
+      if (typeof data === "object") {
+        if (data instanceof cola.Entity || data instanceof cola.EntityList) {
+          data = data.toJSON();
+        } else {
+          rawData = data;
+          data = {};
+          for (p in rawData) {
+            v = rawData[p];
+            data[p] = _toJSON(v);
+          }
+        }
+      } else if (typeof data === "function") {
+        data = void 0;
+      }
+      settings.data = data;
+    }
+    return originalAjax.apply(this, [url, settings]);
   };
 
   if (typeof exports !== "undefined" && exports !== null) {
@@ -1322,7 +1285,7 @@
       if (typeof value === "string" && this._scope) {
         if (value.charCodeAt(0) === 123) {
           parts = cola._compileText(value);
-          if (parts.length > 0) {
+          if ((parts != null ? parts.length : void 0) > 0) {
             value = parts[0];
           }
         }
@@ -1986,7 +1949,7 @@
   cola.convertor["filter"] = function() {
     var caseSensitive, collection, criteria, filtered, params, prop, propFilter;
     collection = arguments[0], criteria = arguments[1], params = 3 <= arguments.length ? slice.call(arguments, 2) : [];
-    if (!collection || !criteria) {
+    if (!(collection && criteria)) {
       return collection;
     }
     if (cola.util.isSimpleValue(criteria)) {
@@ -2084,7 +2047,7 @@
   _sortConvertor = function(collection, comparator, caseSensitive) {
     var c, comparatorFunc, comparatorProps, l, len1, part, prop, propDesc, ref;
     if (!collection) {
-      return collection;
+      return null;
     }
     if (collection instanceof cola.EntityList) {
       collection = collection.toArray();
@@ -2217,6 +2180,24 @@
   cola.convertor["orderBy"] = _sortConvertor;
 
   cola.convertor["sort"] = _sortConvertor;
+
+  cola.convertor["top"] = function(collection, top) {
+    var i, items;
+    if (top == null) {
+      top = 1;
+    }
+    if (!collection) {
+      return null;
+    }
+    items = [];
+    i = 0;
+    cola.each(collection, function(item) {
+      i++;
+      items.push(item);
+      return i < top;
+    });
+    return items;
+  };
 
   cola.convertor["date"] = function(date, format) {
     if (date == null) {
@@ -2722,7 +2703,17 @@
         options[p] = v;
       }
       options.async = async;
-      options.success = (function(_this) {
+      if (options.sendJson) {
+        options.data = JSON.stringify(options.data);
+      }
+      if (ajaxService.getListeners("beforeSend")) {
+        if (ajaxService.fire("beforeSend", ajaxService, {
+          options: options
+        }) === false) {
+          return;
+        }
+      }
+      jQuery.ajax(options).done((function(_this) {
         return function(result) {
           _this.invokeCallback(true, result);
           if (ajaxService.getListeners("success")) {
@@ -2740,32 +2731,24 @@
           }
           retValue = result;
         };
-      })(this);
-      options.error = (function(_this) {
-        return function(error) {
+      })(this)).fail((function(_this) {
+        return function(xhr) {
+          var error;
+          error = xhr.responseJSON;
+          _this.invokeCallback(false, error);
           ajaxService.fire("error", ajaxService, {
             options: options,
+            xhr: xhr,
             error: error
           });
           ajaxService.fire("complete", ajaxService, {
             success: false,
             options: options,
+            xhr: xhr,
             error: error
           });
-          _this.invokeCallback(false, error);
         };
-      })(this);
-      if (options.sendJson) {
-        options.data = JSON.stringify(options.data);
-      }
-      if (ajaxService.getListeners("beforeSend")) {
-        if (ajaxService.fire("beforeSend", ajaxService, {
-          options: options
-        }) === false) {
-          return;
-        }
-      }
-      cola.ajax(options);
+      })(this));
       return retValue;
     };
 
@@ -3893,8 +3876,6 @@
   };
 
   cola.Entity = (function() {
-    var flushSync;
-
     Entity.STATE_NONE = "none";
 
     Entity.STATE_NEW = "new";
@@ -3929,10 +3910,10 @@
     Entity.prototype.get = function(prop, loadMode, context) {
       var callback;
       if (loadMode == null) {
-        loadMode = "auto";
+        loadMode = "async";
       }
       if (typeof loadMode === "function") {
-        loadMode = "auto";
+        loadMode = "async";
         callback = loadMode;
       }
       if (prop.indexOf(".") > 0) {
@@ -3943,18 +3924,18 @@
     };
 
     Entity.prototype._get = function(prop, loadMode, callback, context) {
-      var loadData, property, provider, providerInvoker, ref;
+      var callbackProcessed, loadData, property, provider, providerInvoker, ref;
       loadData = function(provider) {
         var providerInvoker, retValue;
         retValue = void 0;
         providerInvoker = provider.getInvoker(this);
-        if (loadMode === "always") {
+        if (loadMode === "sync") {
           retValue = providerInvoker.invokeSync();
           retValue = this._set(prop, retValue);
           if (retValue && (retValue instanceof cola.EntityList || retValue instanceof cola.Entity)) {
             retValue._providerInvoker = providerInvoker;
           }
-        } else {
+        } else if (loadMode === "async") {
           if (context) {
             context.unloaded = true;
             if (context.providerInvokers == null) {
@@ -3962,30 +3943,30 @@
             }
             context.providerInvokers.push(providerInvoker);
           }
-          if (loadMode === "auto") {
-            this._data[prop] = providerInvoker;
-            providerInvoker.invokeAsync({
-              complete: (function(_this) {
-                return function(success, result) {
-                  if (_this._data[prop] !== providerInvoker) {
-                    success = false;
+          this._data[prop] = providerInvoker;
+          providerInvoker.invokeAsync({
+            complete: (function(_this) {
+              return function(success, result) {
+                if (_this._data[prop] !== providerInvoker) {
+                  success = false;
+                }
+                if (success) {
+                  result = _this._set(prop, result);
+                  retValue = result;
+                  if (result && (result instanceof cola.EntityList || result instanceof cola.Entity)) {
+                    result._providerInvoker = providerInvoker;
                   }
-                  if (success) {
-                    result = _this._set(prop, result);
-                    retValue = result;
-                    if (result && (result instanceof cola.EntityList || result instanceof cola.Entity)) {
-                      result._providerInvoker = providerInvoker;
-                    }
-                  } else {
-                    _this._set(prop, null);
-                  }
-                  if (callback) {
-                    cola.callback(callback, success, result);
-                  }
-                };
-              })(this)
-            });
-          }
+                } else {
+                  _this._set(prop, null);
+                }
+                if (callback) {
+                  cola.callback(callback, success, result);
+                }
+              };
+            })(this)
+          });
+        } else {
+          cola.callback(callback, true, void 0);
         }
         return retValue;
       };
@@ -3998,8 +3979,9 @@
             if (context != null) {
               context.unloaded = true;
             }
-            if (provider && loadMode !== "never") {
+            if (provider) {
               value = loadData.call(this, provider);
+              callbackProcessed = true;
             }
           } else if (property instanceof cola.ComputeProperty) {
             value = property.compute(this);
@@ -4007,29 +3989,17 @@
         }
       } else if (value instanceof cola.Provider) {
         value = loadData.call(this, value);
+        callbackProcessed = true;
       } else if (value instanceof cola.AjaxServiceInvoker) {
         providerInvoker = value;
-        if (loadMode === "always") {
+        if (loadMode === "sync") {
           value = providerInvoker.invokeSync();
-          if (callback) {
-            providerInvoker = value;
-            providerInvoker.invokeAsync({
-              complete: (function(_this) {
-                return function(success, result) {
-                  if (success) {
-                    cola.callback(callback, true, _this._data[prop]);
-                  } else {
-                    cola.callback(callback, false, result);
-                  }
-                };
-              })(this)
-            });
-          }
-          value = void 0;
-        } else if (loadMode === "auto") {
+          value = this._set(prop, value);
+        } else if (loadMode === "async") {
           if (callback) {
             providerInvoker.callbacks.push(callback);
           }
+          callbackProcessed = true;
         }
         if (context) {
           context.unloaded = true;
@@ -4038,7 +4008,8 @@
           }
           context.providerInvokers.push(providerInvoker);
         }
-      } else if (callback) {
+      }
+      if (callback && !callbackProcessed) {
         cola.callback(callback, true, value);
       }
       return value;
@@ -4230,10 +4201,10 @@
     Entity.prototype.getText = function(prop, loadMode, callback, context) {
       var entity, i, part1, part2, text;
       if (loadMode == null) {
-        loadMode = "auto";
+        loadMode = "async";
       }
       if (typeof loadMode === "function") {
-        loadMode = "auto";
+        loadMode = "async";
         callback = loadMode;
       }
       i = prop.lastIndexOf(".");
@@ -4480,36 +4451,37 @@
 
     Entity.prototype.getPath = getEntityPath;
 
-    Entity.prototype.flushAsync = function(property, callback) {
-      var notifyArg, propertyDef;
+    Entity.prototype.flush = function(property, loadMode) {
+      var callback, notifyArg, propertyDef;
+      if (loadMode == null) {
+        loadMode = "async";
+      }
       propertyDef = this.dataType.getProperty(property);
       if ((propertyDef != null ? propertyDef._provider : void 0) == null) {
         throw new cola.Exception("Provider undefined.");
       }
       this._set(property, void 0);
+      if (typeof loadMode === "function") {
+        callback = loadMode;
+        loadMode = "async";
+      }
       notifyArg = {
         entity: this,
         property: property
       };
-      this._notify(cola.constants.MESSAGE_LOADING_START, notifyArg);
-      return this._get(property, "auto", {
+      if (loadMode === "async") {
+        this._notify(cola.constants.MESSAGE_LOADING_START, notifyArg);
+      }
+      return this._get(property, loadMode, {
         complete: (function(_this) {
           return function(success, result) {
             cola.callback(callback, success, result);
-            return _this._notify(cola.constants.MESSAGE_LOADING_END, notifyArg);
+            if (loadMode === "async") {
+              return _this._notify(cola.constants.MESSAGE_LOADING_END, notifyArg);
+            }
           };
         })(this)
       });
-    };
-
-    flushSync = function(property) {
-      var propertyDef;
-      propertyDef = this.dataType.getProperty(property);
-      if ((propertyDef != null ? propertyDef._provider : void 0) == null) {
-        throw new cola.Exception("Provider undefined.");
-      }
-      this._set(property, void 0);
-      return this._get(property);
     };
 
     Entity.prototype._setListener = function(listener) {
@@ -5162,8 +5134,15 @@
       return !this.pageCountDetermined || pageNo <= this.pageCount;
     };
 
-    EntityList.prototype._loadPage = function(pageNo, setCurrent, callback) {
-      var entity, page;
+    EntityList.prototype._loadPage = function(pageNo, setCurrent, loadMode) {
+      var callback, entity, page;
+      if (loadMode == null) {
+        loadMode = "async";
+      }
+      if (typeof loadMode === "function") {
+        callback = loadMode;
+        loadMode = "async";
+      }
       page = this._findPage(pageNo);
       if (page !== this._currentPage) {
         if (page) {
@@ -5179,12 +5158,12 @@
             }
           }
           cola.callback(callback, true);
-        } else {
+        } else if (loadMode !== "never") {
           if (setCurrent) {
             this.setCurrent(null);
           }
           page = this._createPage(pageNo);
-          if (callback) {
+          if (loadMode === "async") {
             page.loadData({
               complete: (function(_this) {
                 return function(success, result) {
@@ -5208,46 +5187,46 @@
       return this;
     };
 
-    EntityList.prototype.loadPage = function(pageNo, callback) {
-      return this._loadPage(pageNo, false, callback);
+    EntityList.prototype.loadPage = function(pageNo, loadMode) {
+      return this._loadPage(pageNo, false, loadMode);
     };
 
-    EntityList.prototype.gotoPage = function(pageNo, callback) {
+    EntityList.prototype.gotoPage = function(pageNo, loadMode) {
       if (pageNo < 1) {
         pageNo = 1;
       } else if (this.pageCountDetermined && pageNo > this.pageCount) {
         pageNo = this.pageCount;
       }
-      return this._loadPage(pageNo, true, callback);
+      return this._loadPage(pageNo, true, loadMode);
     };
 
-    EntityList.prototype.firstPage = function(callback) {
-      this.gotoPage(1, callback);
+    EntityList.prototype.firstPage = function(loadMode) {
+      this.gotoPage(1, loadMode);
       return this;
     };
 
-    EntityList.prototype.previousPage = function(callback) {
+    EntityList.prototype.previousPage = function(loadMode) {
       var pageNo;
       pageNo = this.pageNo - 1;
       if (pageNo < 1) {
         pageNo = 1;
       }
-      this.gotoPage(pageNo, callback);
+      this.gotoPage(pageNo, loadMode);
       return this;
     };
 
-    EntityList.prototype.nextPage = function(callback) {
+    EntityList.prototype.nextPage = function(loadMode) {
       var pageNo;
       pageNo = this.pageNo + 1;
       if (this.pageCountDetermined && pageNo > this.pageCount) {
         pageNo = this.pageCount;
       }
-      this.gotoPage(pageNo, callback);
+      this.gotoPage(pageNo, loadMode);
       return this;
     };
 
-    EntityList.prototype.lastPage = function(callback) {
-      this.gotoPage(this.pageCount, callback);
+    EntityList.prototype.lastPage = function(loadMode) {
+      this.gotoPage(this.pageCount, loadMode);
       return this;
     };
 
@@ -5456,17 +5435,21 @@
       }
     };
 
-    EntityList.prototype._doFlush = function(callback) {
-      var notifyArg, page;
+    EntityList.prototype.flush = function(loadMode) {
+      var callback, notifyArg, page;
       if (this._providerInvoker == null) {
         throw new cola.Exception("Provider undefined.");
+      }
+      if (typeof loadMode === "function") {
+        callback = loadMode;
+        loadMode = "async";
       }
       this._reset();
       page = this._findPage(this.pageNo);
       if (!page) {
         this._createPage(this.pageNo);
       }
-      if (callback) {
+      if (loadMode === "async") {
         notifyArg = {
           entityList: this
         };
@@ -5482,15 +5465,6 @@
       } else {
         page.loadData();
       }
-    };
-
-    EntityList.prototype.flushAsync = function(callback) {
-      this._doFlush(callback);
-      return this;
-    };
-
-    EntityList.prototype.flushSync = function() {
-      this._doFlush();
       return this;
     };
 
@@ -5924,13 +5898,9 @@
       return this.data.getDefinition(name);
     };
 
-    AbstractModel.prototype.flushAsync = function(name, callback) {
-      this.data.flushAsync(name, callback);
+    AbstractModel.prototype.flush = function(name, loadMode) {
+      this.data.flush(name, loadMode);
       return this;
-    };
-
-    AbstractModel.prototype.flushSync = function(name) {
-      return this.data.flushSync(name);
     };
 
     AbstractModel.prototype.disableObservers = function() {
@@ -6246,7 +6216,7 @@
         return this._retrieveItems(dataCtx);
       }
       if (this.expression) {
-        items = this.expression.evaluate(this.parent, "auto", dataCtx);
+        items = this.expression.evaluate(this.parent, "async", dataCtx);
         this._setItems(items, dataCtx.originData);
       }
     };
@@ -6534,7 +6504,7 @@
           aliasData = aliasHolder.data;
           if (i > 0) {
             if (typeof loadMode === "function") {
-              loadMode = "auto";
+              loadMode = "async";
               callback = loadMode;
             }
             return cola.Entity._evalDataPath(aliasData, path.substring(i + 1), false, loadMode, callback, context);
@@ -6668,17 +6638,12 @@
       }
     };
 
-    AbstractDataModel.prototype.flushAsync = function(name, callback) {
+    AbstractDataModel.prototype.flush = function(name, loadMode) {
       var ref;
       if ((ref = this._rootData) != null) {
-        ref.flushAsync(name, callback);
+        ref.flush(name, loadMode);
       }
       return this;
-    };
-
-    AbstractDataModel.prototype.flushSync = function(name) {
-      var ref;
-      return (ref = this._rootData) != null ? ref.flushSync(name) : void 0;
     };
 
     AbstractDataModel.prototype.bind = function(path, processor) {
@@ -7031,8 +6996,8 @@
       i = path.indexOf(".");
       if (i > 0) {
         if (path.substring(0, i) === this.alias) {
-          if (this.dataType) {
-            property = (ref = this.dataType) != null ? ref.getProperty(path.substring(i + 1)) : void 0;
+          if (this._rootDataType) {
+            property = (ref = this._rootDataType) != null ? ref.getProperty(path.substring(i + 1)) : void 0;
             dataType = property != null ? property.get("dataType") : void 0;
           }
           return dataType;
@@ -7153,39 +7118,25 @@
       return this.parent.unregDefinition(name);
     };
 
-    AliasDataModel.prototype.flushAsync = function(path, callback) {
+    AliasDataModel.prototype.flush = function(path, loadMode) {
       var alias, c, ref, ref1;
       alias = this.alias;
       if (path.substring(0, alias.length) === alias) {
         c = path.charCodeAt(1);
         if (c === 46) {
           if ((ref = this._targetData) != null) {
-            ref.flushAsync(path.substring(alias.length + 1), callback);
+            ref.flush(path.substring(alias.length + 1), loadMode);
           }
           return this;
         } else if (isNaN(c)) {
           if ((ref1 = this._targetData) != null) {
-            ref1.flushAsync(callback);
+            ref1.flush(loadMode);
           }
           return this;
         }
       }
-      this.parent.flushAsync(path, callback);
+      this.parent.flush(path, loadMode);
       return this;
-    };
-
-    AliasDataModel.prototype.flushSync = function(path) {
-      var alias, c, ref, ref1;
-      alias = this.alias;
-      if (path.substring(0, alias.length) === alias) {
-        c = path.charCodeAt(1);
-        if (c === 46) {
-          return (ref = this._targetData) != null ? ref.flushSync(path.substring(alias.length + 1)) : void 0;
-        } else if (isNaN(c)) {
-          return (ref1 = this._targetData) != null ? ref1.flushSync() : void 0;
-        }
-      }
-      return this.parent.flushSync(path);
     };
 
     AliasDataModel.prototype.disableObservers = function() {
@@ -7307,7 +7258,7 @@
       if (dataCtx == null) {
         dataCtx = {};
       }
-      return this.expression.evaluate(this.scope, "auto", dataCtx);
+      return this.expression.evaluate(this.scope, "async", dataCtx);
     };
 
     ElementAttrBinding.prototype._refresh = function() {
@@ -7338,6 +7289,10 @@
     return ElementAttrBinding;
 
   })();
+
+  cola.model.defaultActions.not = function(value) {
+    return !value;
+  };
 
   cola.model.defaultActions.i18n = function() {
     var key, params;
@@ -7372,7 +7327,11 @@
       } else {
         options.data = data;
       }
-      cola.post(options, callback);
+      jQuery.post(options.url, options.data).done(function(result) {
+        cola.callback(callback, true, result);
+      }).fail(function(result) {
+        cola.callback(callback, true, result);
+      });
       return true;
     } else {
       return false;
@@ -7792,41 +7751,38 @@
       Array.prototype.push.apply(context.suspendedInitFuncs, initFuncs);
       cola.callback(callback, true);
     } else {
-      $.ajax({
-        url: url,
+      $.ajax(url, {
         dataType: "text",
-        cache: true,
-        success: function(script) {
-          var e, head, scriptElement;
-          scriptElement = $.xCreate({
-            tagName: "script",
-            language: "javascript",
-            type: "text/javascript",
-            charset: cola.setting("defaultCharset")
-          });
-          scriptElement.text = script;
-          cola._suspendedInitFuncs = context.suspendedInitFuncs;
+        cache: true
+      }).done(function(script) {
+        var e, head, scriptElement;
+        scriptElement = $.xCreate({
+          tagName: "script",
+          language: "javascript",
+          type: "text/javascript",
+          charset: cola.setting("defaultCharset")
+        });
+        scriptElement.text = script;
+        cola._suspendedInitFuncs = context.suspendedInitFuncs;
+        try {
           try {
-            try {
-              head = document.querySelector("head") || document.documentElement;
-              head.appendChild(scriptElement);
-            } finally {
-              delete cola._suspendedInitFuncs;
-              _jsCache[url] = context.suspendedInitFuncs;
-            }
-            cola.callback(callback, true);
-          } catch (_error) {
-            e = _error;
-            cola.callback(callback, false, e);
+            head = document.querySelector("head") || document.documentElement;
+            head.appendChild(scriptElement);
+          } finally {
+            delete cola._suspendedInitFuncs;
+            _jsCache[url] = context.suspendedInitFuncs;
           }
-        },
-        error: function(xhr) {
-          cola.callback(callback, false, {
-            xhr: xhr,
-            status: xhr.status,
-            statusText: xhr.statusText
-          });
+          cola.callback(callback, true);
+        } catch (_error) {
+          e = _error;
+          cola.callback(callback, false, e);
         }
+      }).fail(function(xhr) {
+        cola.callback(callback, false, {
+          xhr: xhr,
+          status: xhr.status,
+          statusText: xhr.statusText
+        });
       });
     }
   };
@@ -8179,7 +8135,7 @@
     }
 
     _ExpressionFeature.prototype.evaluate = function(domBinding, dataCtx) {
-      return this.expression.evaluate(domBinding.scope, "auto", dataCtx);
+      return this.expression.evaluate(domBinding.scope, "async", dataCtx);
     };
 
     _ExpressionFeature.prototype.refresh = function(domBinding, force, dataCtx) {
