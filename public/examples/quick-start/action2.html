@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
+
+	<script type="text/javascript">
+		cola(function (model) {
+			model.set({
+				num1: 3,
+				num2: 5
+			});
+			model.action({
+				multiply: function (num1, num2) {
+					return num1 * num2;
+				}
+			});
+		});
+	</script>
+</head>
+<body style="padding:20px">
+	<input c-bind="num1" type="number" style="width:40px">
+	*
+	<input c-bind="num2" type="number" style="width:40px">
+	=
+	<span c-bind="multiply(num1,num2)"></span>
+</body>
+</html>

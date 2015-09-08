@@ -111,6 +111,10 @@ cola.convertor["multiply"] = function(value, num) {
 	
 上面的例子中定义了一个名为multiply的Convertor，用于对数值进行乘法运算。例如`6|multiply:3`将输出18。
 
+> 看到这里你也许会产生一些迷惑，Convertor能完成的工作似乎通过Action也是一样可以实现的，为什么我们还要定义Convertor呢？
+> 我们认为Convertor通常应该用来封装一些具有广泛通用性的逻辑，Convertor通常应该被定义在一些可悲很多页面引用的.js文件中以便于帮助开发者快速的完成一些具有通用性的数据转换。
+> 而Action则是用来封装那些自由的、未必具有通用性的逻辑的。
+
 ## 性能优化
 
 ### 静态绑定表达式
@@ -132,7 +136,7 @@ Cola内部在实现双向数据绑定时会根据表达式的内容分析该表�
 
 比如`person.name`很明显至于person的name属性相关。稍微复杂一点的比如`items | filter:filterParam`，它的结果同时items和filterParam这两个数据路径相关。
 
-对于包含方法调用的表达式而言，这种分析就不能确保完全准确了。例如`calcAge(person.birthday)`，Cola会认为它的结果只能person.birthday相关，这种分析在大多数情况下是准确的，但去不是绝对的。例如下面这种情况...
+对于包含方法调用的表达式而言，这种分析就不能确保完全准确了。例如`calcAge(person.birthday)`，Cola会认为它的结果只跟person.birthday相关，这种分析在大多数情况下是准确的，但去不是绝对的。例如下面这种情况...
 
 ```
 <script type="text/javascript">

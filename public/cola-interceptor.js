@@ -15,6 +15,9 @@
         });
         return;
       }
+	  else {
+		  throw new cola.Exception("\".example[name='" + name + "']\" not exists.");
+	  }
     }
     return oldColaRootFn.apply(this, arguments);
   };

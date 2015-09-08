@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
+
+	<script type="text/javascript">
+		cola(function (model) {
+			model.set("addresses", [
+				{
+					city: "shanghai",
+					postCode: 201101
+				},
+				{
+					city: "beijing",
+					postCode: 100020
+				},
+				{
+					city: "shenzhen",
+					postCode: 300021
+				}
+			]);
+		});
+	</script>
+</head>
+<body>
+<ul>
+	<li c-repeat="address in addresses">
+		<span c-bind="address.city"></span>
+		<span c-bind="address.postCode"></span>
+	</li>
+</ul>
+</body>
+</html>

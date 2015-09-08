@@ -6,8 +6,14 @@ module.exports =
 			title:"Cola-UI文章"
 			file:"articals.md"
 		"quick-start":
-			title:"快速入门"
+			title:"实例教程——代办事项"
 			file:"quick-start.md"
+		"todo-list":
+			title:"FAQ"
+			file:"todo-list.md"
+		"faq":
+			title:"FAQ"
+			file:"faq.md"
 		"model":
 			title:"Model(视图模型)"
 			file:"model.md"
@@ -26,6 +32,12 @@ module.exports =
 		"action":
 			title:"Action(动作)"
 			file:"action.md"
+		"x-render":
+			title:"xRender(快速渲染)"
+			file:"x-render.md"
 		"router":
 			title:"router(路由)"
 			file:"router.md"
+		"i18n":
+			title:"国际化"
+			file:"i18n.md"

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
+
+	<script type="text/javascript">
+		cola(function (model) {
+			model.set("name", "World");
+		});
+	</script>
+</head>
+<body style="padding:20px">
+	Hello <span c-bind="name"></span>
+	<br>
+	<input c-bind="name">
+</body>
+</html>

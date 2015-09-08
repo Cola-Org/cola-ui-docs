@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
+
+	<script type="text/javascript">
+		cola.route("/", {
+			redirectTo: "#/list"
+		});
+		cola.route("/list", {
+			title: "List",
+			templateUrl: "router-list.html",
+			jsUrl: "$"
+		});
+		cola.route("/detail/:city", {
+			title: "Detail",
+			templateUrl: "router-detail.html",
+			jsUrl: "$"
+		});
+	</script>
+</head>
+<body style="padding: 20px">
+	<p>Router Sample</p>
+	<div class="c-viewport"></div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+extends doc-layout
+
+block content
+
+	style(type="text/css").
+		.example .ui.button:not(.attached) {
+			margin-top: 0.5em;
+		}
+
+		.example .ui.buttons > .ui.button {
+			margin-top: 0em;
+		}
+
+	+addCatalog("inline","Inline模式")
+	.example#inline
+		h4.ui.header Inline模式
+		p 对于一些简单的控件，我们只要直接在DOM中借助c-widget指令就可以快速的将其声明成控件。
+		p.
+			c-widget内容形式类似于DOM中style属性的写法，是以";"相隔的多段内容，其中的每一段是一个属性/值对，用于声明一个控件属性。
+			其中的第一段是特殊的，可以是一个简单的字符串，用于表示控件的类型。控件类型的首字母可以大小写混用，Cola会自动转换。
+			例如button和Button和等效的。
+		p 控件的类型在部分场景中是可以省略的，例如在声明Menu中的Item时，具体哪些可省略请参考各个控件的API说明。
+		p.
+			部分控件支持解析DOM的内容，并将其转换成控件的属性。例如在本例中的第二个Button，Cola会自动将其中的文字解析出来并渲染成Button的caption。
+			关于哪些控件可支持此类解析，以及可以解析哪些结构的内容请参考各个控件的API说明。
+
+		.code
+			div(c-widget="button; caption:Hello World")
+			div(c-widget="button; class:blue") Hello World
+
+	+addCatalog("widgetConfig","JSON模式")
+	.example(name="widgetConfig")#widgetConfig
+		h4.ui.header JSON模式
+		p.
+			当控件的属性开始趋于复杂之后，如果仍然使用前面的Inline模式定义开始变得不那么方便甚至受到制约了。
+			这情况下，利用JSON来定义控件会是一个更好的选择。
+
+		.code
+			#helloWorldButton
+		script(type="text/javascript" name="widgetConfig").
+			cola("widgetConfig", function (model) {
+				model.widgetConfig({
+					helloWorldButton: {
+						$type: "button",
+						caption: "Hello World",
+						click: function () {
+							alert("您已迈出神奇的一步！");
+						}
+					}
+				});
+			});
+
+		p 上面这个例子中，我们在DOM中只放了一个最基本的带有id的div。所有的控件声明都以移到了model.widgetConfig()中。
+		p.
+			model.widgetConfig()用于声明一套或多套命名的控件属性配置。默认情况下，这个名称会被理解成是DOM的id，
+			Cola会自动尝试查找同id的DOM，并利用相应的控件属性配置将其渲染成一个控件。
+
+	+addCatalog("mixed", "混合模式")
+	.example(name="mixed")#mixed
+		h4.ui.header 混合模式
+		p.
+			有些时候我们会希望让一组控件拥有相同的一套属性配置，同时每一个控件还拥有额外的，与众不同的属性值。
+			这时，我们可以在c-widget中利用一个特殊的以"#"开头的配置项，从widgetConfig中引用一套配置。
+		p 下面的三个按钮引入了同一套属性配置，通知每个按钮又定义的各自的caption。
+
+		.code
+			div(c-widget="#buttonConfig; caption:One")
+			div(c-widget="#buttonConfig; caption:Two")
+			div(c-widget="#buttonConfig; caption:Three")
+		script(type="text/javascript" name="mixed").
+			cola("mixed", function (model) {
+				model.widgetConfig({
+					buttonConfig: {
+						$type: "button",
+						class: "green",
+						click: function (self) {
+							alert("您点击了 " + self.get("caption"));
+						}
+					}
+				});
+			});
+
+		p.
+			Cola并不限定您只能引入一套属性配置，你完全可以根据实际情况的需要为某个控件同时引入多套属性配置。
+
+	+addCatalog("new", "动态创建")
+	.example(name="new")#new
+		h4.ui.header 动态创建
+		p.
+			控件可以完全通过Javascript来创建和渲染。
+
+		.code
+			div(c-widget="#buttonCreate")
+			#container1
+		script(type="text/javascript" name="new").
+			cola("new", function (model) {
+				model.widgetConfig({
+					buttonCreate: {
+						$type: "button",
+						class: "green",
+						caption: "Create",
+						click: function() {
+							var button = new cola.Button({
+								caption: "Dynamic Button",
+								click: function () {
+									alert("动态按钮！");
+								}
+							});
+							button.appendTo("#container1");
+						}
+					}
+				});
+			});
+
+	+addCatalog("new_config", "利用配置创建")
+	.example(name="new_config")#new_config
+		h4.ui.header 利用配置创建
+		p.
+			在上一个例子中利用 new cola.Button() 来创建控件可能已经不是我们最熟悉的方式。
+			既然我们之前都是用 $type 来声明控件类型，我们当然也可以利用类似的方法来创建控件。
+
+		.code
+			div(c-widget="#buttonCreate")
+			#container2
+		script(type="text/javascript" name="new_config").
+			cola("new_config", function (model) {
+				model.widgetConfig({
+					buttonCreate: {
+						$type: "button",
+						class: "green",
+						caption: "Create",
+						click: function() {
+							var button = cola.widget({
+								$type: "button",
+								caption: "Dynamic Button",
+								click: function () {
+									alert("动态按钮！");
+								}
+							});
+							button.appendTo("#container2");
+						}
+					}
+				});
+			});
+
+		p.
+			上面使用的cola.widget()并不是一个专门用于创建控件的方法。该方法具有很多功能，更多时候我们用到它都是用来获取控件的实例。
+			关于cola.widget()的详细说明请参考API文档。
+
+	+addCatalog("x_render", "xRender渲染")
+	.example(name="x_render")#x_render
+		h4.ui.header xRender渲染
+		p.
+			前面的两种创建控件的方法在实际应用的场景中可能都不能最高效的选择，用他们来创建单一的控件是很简单。
+			可是大多数情况下，我们往往需要的是创建一批混合在HTML中的控件。这时再用上面的方法就会变得非常痛苦了。
+			Cola中提供cola.xRender()方法可以很好的为我们解决这个问题。
+
+		.code
+			div(c-widget="#buttonCreate")
+			#container3
+		script(type="text/javascript" name="x_render").
+			cola("x_render", function (model) {
+				model.widgetConfig({
+					buttonCreate: {
+						$type: "button",
+						class: "green",
+						caption: "Create",
+						click: function() {
+							var fragment = cola.xRender(
+								"<div c-repeat='num in [1, 2, 3, 4, 5]' c-bind='num' c-widget='#newButton'></div><br>",
+								model
+							);
+							document.getElementById("container3").appendChild(fragment);
+						}
+					},
+					newButton: {
+						$type: "button",
+						class: "red mini",
+						click: function(self) {
+							alert("您点击了 " + self.get("caption"));
+						}
+					}
+				});
+			});
+
+	+addCatalog("event", "绑定事件")
+	+addCatalog("event_action", "绑定Action")
+	+addCatalog("expression", "属性表达式")
+	+addCatalog("event_expression", "事件表达式")
+
+	script(type="text/javascript").
+		cola( function (model) {});
+
+

@@ -12,7 +12,7 @@ Router的功能是用于管理网页内的跳转，方便用户实现SPA类应�
 目前页面内的Path管理有两种实现方式：
 
 * 利用Hash，即URL中"#"后面的内容。开发者可以在不刷新页面的情况下改变这部分内容。并将其作为Path与页面子内容或行为相关联。这样的做法难以对SEO的伤害较大。
- 为了解决这个问题Google曾提出了"#!"规范（https://developers.google.com/webmasters/ajax-crawling/docs/specification ），目前大多数的收缩引擎都已经支持了此规范。
+ 为了解决这个问题Google曾提出了"#!"规范（https://developers.google.com/webmasters/ajax-crawling/docs/specification ），目前大多数的搜索引擎都已经支持了此规范。
  尽管如此，这入了Hash的URL看起来不符合多数人的视频审美习惯却也是个不争的事实。
 * 利用State。在HTML5中提供了两个新的方法——pushState()和replaceState()使得开发者可以在不刷新页面的情况下改变页面的URL。同时还提供了onStateChange事件来监听state的改变。
  有了这个方法只要再配合一些Server端的处理技巧，我们就可以有机会完美的解决SPA和SEO之间的冲突了。
@@ -55,7 +55,7 @@ target既可以是一个DOM对象也可以一段CSS Selector。如果没有定�
 
 	按照HTML的规范，在进行这种动态的HTML渲染时，浏览器并不会处理HTML中Javascript和CSS。
 	因此，如果需要在此时一同装载Javascript和CSjsUR，我们需要把他们定义在独立的文件中，并通过Router的jsUrl和cssUrl属性来通知Cola装载。
-	jsUrl和cssUrl属性也支持以数组的形式定义多个URL。如果要装载的Javascript或CSS文件HTML（templateUrl）的相对路径和文件名相同，仅仅后缀名不同，那么他们可以简写成"$"。
+	jsUrl和cssUrl属性也支持以数组的形式定义多个URL。如果要装载的Javascript或CSS文件HTML（templateUrl）的相对路径和文件名相同，仅仅后缀名不同，那么他们可以简写成`$`或者`$.js`、`$.min.css`这种形式。
 
 * 默认情况下，Cola会为每一个Router创建一个子Model，该Model的parent指向页面的主Model。
 在该Router装载执行的Javascript中我们得到的都是新创建的子Model，这个子Model也会在Router离开时自动被销毁。
