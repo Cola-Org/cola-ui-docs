@@ -691,7 +691,7 @@
         defaultValue: true
       },
       pause: {
-        defaultValue: 2000
+        defaultValue: 3000
       }
     };
 
@@ -815,15 +815,21 @@
             {
               tagName: "A",
               "class": "prev",
-              click: function() {
-                return carousel.previous();
-              }
+              click: (function(_this) {
+                return function() {
+                  _this.replay();
+                  return carousel.previous();
+                };
+              })(this)
             }, {
               tagName: "A",
               "class": "next",
-              click: function() {
-                return carousel.next();
-              }
+              click: (function(_this) {
+                return function() {
+                  _this.replay();
+                  return carousel.next();
+                };
+              })(this)
             }
           ]
         }));
@@ -891,17 +897,27 @@
     };
 
     Carousel.prototype.next = function() {
-      var ref;
-      if ((ref = this._scroller) != null) {
-        ref.next();
+      var pos;
+      if (this._scroller) {
+        pos = this._scroller.getPos();
+        if (pos === (this._items.length - 1)) {
+          this.goTo(0);
+        } else {
+          this._scroller.next();
+        }
       }
       return this;
     };
 
     Carousel.prototype.previous = function() {
-      var ref;
-      if ((ref = this._scroller) != null) {
-        ref.prev();
+      var pos;
+      if (this._scroller) {
+        pos = this._scroller.getPos();
+        if (pos === 0) {
+          this.goTo(this._items.length - 1);
+        } else {
+          this._scroller.prev();
+        }
       }
       return this;
     };
@@ -951,12 +967,20 @@
       if (this._interval) {
         clearInterval(this._interval);
       }
-      this.next();
       carousel = this;
+      if (pause) {
+        this._pause = pause;
+      }
       this._interval = setInterval(function() {
         return carousel.next();
-      }, pause || this._pause);
+      }, this._pause);
       return this;
+    };
+
+    Carousel.prototype.replay = function() {
+      if (this._interval) {
+        return this.play();
+      }
     };
 
     Carousel.prototype.pause = function() {
@@ -970,6 +994,7 @@
       if (index == null) {
         index = 0;
       }
+      this.replay();
       return this.setCurrentIndex(index);
     };
 

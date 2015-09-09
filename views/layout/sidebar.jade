@@ -3,24 +3,69 @@ block content
 	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
 	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
 
-	- defaultGroupName="抽屉"
+	- defaultGroupName="侧边栏控件"
+	.markdown-content
+		+addCatalog("introduction","简介")
+		#introduction
+		:markdown
+			## 简介
+			在手机或pad应用中经常出现从侧边(页面左侧、右侧、顶部、底部)画出的层。经常用户展示个人信息或者提供侧边菜单。
+			为此Cola提供了`Sidebar`侧边栏控件。
+			此控件为了简化用户使用难度和方便性,未使用Semantic Sidebar。
+			在功能上不支持内容的推出模式、Android环境下页面内容被推出模式在现有的HTML5下会出现性能问题。
+
 	+addCatalog("standard","标准")
-	.example#standard
-		h4.ui.header 抽屉控件
-		.ui.segment(style={height: "300px"})
-			.code(style={height: "100%"})
-				div#d1(c-widget="Drawer;")
-					div(c-widget="Sidebar" class="segment")
+	.example#standard(name="standard")
+		h4.ui.header 标准
+		.code(style={height: "100%"})
+			#s1(c-widget="Sidebar" class="segment")
+			div(c-widget="button; caption:显示; class:blue; click:showSidebar")
 
-		div(c-widget="button; caption:显示; class:basic red" drawer="d1")
-
-	script(type="text/javascript").
-		cola(function (model) {
-
+	script(type="text/javascript" name="standard").
+		cola("standard", function (model) {
+			model.action({
+				showSidebar: function () {
+					cola.widget("s1").show();
+				}
+			})
 		});
+	+addCatalog("direction","显示位置，方向")
+	.example#direction(name="direction")
+		h4 显示位置，方向
+		.code
+			#leftBar(c-widget="Sidebar; direction:left" class="segment")
+			#rightBar(c-widget="Sidebar; direction:right" class="segment")
+			#topBar(c-widget="Sidebar; direction:top" class="segment")
+			#bottomBar(c-widget="Sidebar; direction:bottom" class="segment")
 
-		$("[drawer]").click(function () {
-			var $dom = $(this), drawer = cola.widget($dom.attr("drawer"));
-			drawer.showSidebar()
+		div(c-widget="buttonGroup")
+			div(c-widget="button; caption:左边; class:red; click:show; tag:left")
+			div(c-widget="button; caption:右边; class:blue; click:show; tag:right")
+			div(c-widget="button; caption:顶部; class:green; click:show; tag:top")
+			div(c-widget="button; caption:底部;  click:show; tag:bottom")
+
+	script(type="text/javascript" name="direction").
+		cola("direction", function (model) {
+			model.action({
+				show: function (self, arg) {
+					cola.widget(self.get("tag") + "Bar").show();
+				}
+			})
 		});
-
+	+addCatalog("modalOpacity","模态层透明度")
+	.example#modalOpacity(name="modalOpacity")
+		h4 模态层透明度
+		.code
+			#opacity(c-widget="input; value:0.6; dataType:float;")
+				div(c-widget="button; caption:显示; class:blue; click:setOpacity")
+	script(type="text/javascript" name="modalOpacity").
+		cola("modalOpacity", function (model) {
+			model.action({
+				setOpacity: function () {
+					var input = cola.widget("opacity");
+					var sidebar = cola.widget("s1");
+					var value = input.get("value");
+					sidebar.set("modalOpacity", value).show();
+				}
+			})
+		});

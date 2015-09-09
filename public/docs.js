@@ -15,7 +15,7 @@
   $examples = $(".example");
 
   $(".example:not(.ignore)").each(function(index, el) {
-    var code, codeEl, html, modelName, name, reg, script, style;
+    var $code, code, codeEl, html, modelName, name, parentNode, reg, script, style;
     name = $fly(el).attr("name");
     modelName = $fly(el).attr("model") || name;
     reg = new RegExp("(cola\\(" + ('"' + modelName + '"') + ",|cola\\('" + modelName + "',)", "g");
@@ -27,23 +27,34 @@
     if (style) {
       style = "<style>" + style + "</style>";
     }
-    html = $(el).find(".code").html();
+    $code = $(el).find(".code");
+    html = $code.html();
     if (html) {
       code = html + script + style;
       code = html_beautify(code, jsBeautifyOptions);
       codeEl = $.xCreate({
         tagName: "pre",
-        "class": "prettyprint lang-html",
+        "class": "prettyprint lang-html c-ignore",
         content: code
       });
-      return $(el).find(".code").after(codeEl);
+      if ($code[0]) {
+        parentNode = $code[0].parentNode;
+        if (parentNode !== el) {
+          while (parentNode !== el) {
+            parentNode = parentNode.parentNode;
+          }
+          return $(parentNode).after(codeEl);
+        } else {
+          return $code.after(codeEl);
+        }
+      }
     }
   });
 
   $(".markdown-content pre>code").each(function(index, el) {
     var code;
     code = $(el).text();
-    return $(el).parent().addClass("prettyprint lang-html").text(code);
+    return $(el).parent().addClass("prettyprint lang-html c-ignore").text(code);
   });
 
   $(".markdown-content>pre.code").each(function(index, el) {

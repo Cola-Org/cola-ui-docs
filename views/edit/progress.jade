@@ -4,25 +4,129 @@ block content
 	+addCatalog("standard","进度条")
 
 	.example
+		h4 标准
 		.code
 			#p1(c-widget="progress; total:100; value:20")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p1")
 		div(c-widget="button; icon:plus; class:basic green" progress="p1")
+
 	.example
+		h4 活跃状态消息
 		.code
 			#p2(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total}; ratioText:{value}/{total}; ")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p2")
 		div(c-widget="button; icon:plus; class:basic green" progress="p2")
 
+	.example
+		h4 完成状态消息
+		p 当进度到100%时显示此消息
+		.code
+			#p3(c-widget="progress; total:12; value:3; successMessage:上传完成; activeMessage:已上传{value}/{total}; ratioText:{value}/{total}; ")
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" progress="p3")
+		div(c-widget="button; icon:plus; class:basic green" progress="p3")
+
+	.example
+		h4 隐藏进度数值
+		.code
+			#p4(c-widget="progress; total:12; value:3; showProgress:false")
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" progress="p4")
+		div(c-widget="button; icon:plus; class:basic green" progress="p4")
+	.example
+		h4 隐藏进度数值
+		.code
+			#p4(c-widget="progress; total:12; value:3; showProgress:false")
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" progress="p4")
+		div(c-widget="button; icon:plus; class:basic green" progress="p4")
+
+	.example
+		h4 颜色指示
+		p 通过一个进度条指示直观地显示当前任务的进度。
+		.code
+			#p5(c-widget="progress; total:12; value:3; showProgress:false; class:indicating")
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" progress="p5")
+		div(c-widget="button; icon:plus; class:basic green" progress="p5")
+
+	.example(name="warning")
+		h4 警告状态
+		.code
+			#p6(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total};")
+			div(c-widget="button; caption:触发警告; class:yellow; click:warning")
+
+
+	script(type="text/javascript" name="warning").
+		cola("warning", function (model) {
+			model.action({
+				warning: function () {
+					cola.widget("p6").warning("上传完成,文件[用户信息.zip]超出大小限制。")
+				}
+			})
+		})
+	.example(name="error")
+		h4 错误状态
+		.code
+			#p7(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total};")
+			div(c-widget="button; caption:触发错误; class:red; click:warning")
+
+
+	script(type="text/javascript" name="error").
+		cola("error", function (model) {
+			model.action({
+				warning: function () {
+					cola.widget("p7").error("服务端异常,上传已断开!")
+				}
+			})
+		})
+	.example
+		h4 Disabled 状态
+		.code
+			div(c-widget="progress; total:100; value:20; class:disabled")
+
+	.example
+		h4 反白效果
+		.code
+			.ui.segment.inverted
+				div(c-widget="progress; total:100; value:60; class:inverted")
+				div(c-widget="progress; total:100; value:100; class:inverted")
+				div(c-widget="progress; total:100; value:100; class:inverted warning")
+				div(c-widget="progress; total:100; value:100; class:inverted error")
+	.example
+		h4 Attached
+		.code
+			.ui.segment(style={height: "80px"})
+				div(c-widget="progress; total:100; value:60; class:top attached; showProgress:false")
+				div(c-widget="progress; total:100; value:20; class:bottom attached; showProgress:false")
+	.example
+		h4 尺寸
+		.code
+			.ui.segment
+				div(c-widget="progress; total:20; value:11; class:tiny; showProgress:false; activeMessage:tiny; tag:size")
+				div(c-widget="progress; total:30; value:21; class:small; showProgress:false; activeMessage:small; tag:size")
+				div(c-widget="progress; total:13; value:6;  showProgress:false; activeMessage:standard; tag:size")
+				div(c-widget="progress; total:11; value:2; class:large; showProgress:false; activeMessage:large; tag:size")
+				div(c-widget="progress; total:15; value:3; class:big; showProgress:false; activeMessage:big; tag:size")
+
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" tagProgress="size")
+		div(c-widget="button; icon:plus; class:basic green" tagProgress="size")
+
+	.example
+		.code
+			div(c-widget="Segment; class:inverted;")
+				each color in colors
+					- var config ="progress; total:20; value:11; class:tiny; showProgress:false; activeMessage:tiny; tag:size"
+					div(c-widget=config)
+
 	script(type="text/javascript").
 		cola(function (model) {
 		})
-		$("[progress]").click(function () {
-			var $dom = $(this),
-					minusBtn = $dom.hasClass("minus"),
-					progress = cola.widget($dom.attr("progress"));
+
+		function progressAction(progress, minusBtn) {
 			var total = progress.get("total"), value = progress.get("value");
 			var p = value / total;
 			if (minusBtn) {
@@ -30,4 +134,21 @@ block content
 			} else {
 				progress.set("value", parseInt(p > 0.9 ? total : ((total - value) * 0.5 + value)))
 			}
+		}
+
+		$("[progress]").click(function () {
+			var $dom = $(this),
+					minusBtn = $dom.hasClass("minus"),
+					progress = cola.widget($dom.attr("progress"));
+			progressAction(progress, minusBtn)
+
+		})
+		$("[tagProgress]").click(function () {
+			var $dom = $(this),
+					minusBtn = $dom.hasClass("minus");
+
+			$(cola.tag($dom.attr("tagProgress"))).each(function () {
+				progressAction(this, minusBtn)
+			})
+
 		})

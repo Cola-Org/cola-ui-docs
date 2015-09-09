@@ -1004,7 +1004,7 @@
         type: "boolean",
         defaultValue: true,
         setter: function(value) {
-          this._limitValues = !!value;
+          this._limitValues = value;
           if (this._dom) {
             this._setting("limitValues", this._limitValues);
           }

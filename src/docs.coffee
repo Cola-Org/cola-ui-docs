@@ -30,8 +30,14 @@ $(".example:not(.ignore)").each((index, el)->
 			class: "prettyprint lang-html c-ignore"
 			content: code
 		})
-
-		$code.after(codeEl)
+		if $code[0]
+			parentNode = $code[0].parentNode
+			if parentNode isnt el
+				while parentNode isnt el
+					parentNode = parentNode.parentNode
+				$(parentNode).after(codeEl)
+			else
+				$code.after(codeEl)
 )
 
 $(".markdown-content pre>code").each((index, el)->

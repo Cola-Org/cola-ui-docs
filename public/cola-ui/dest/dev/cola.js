@@ -7716,22 +7716,16 @@
     }
   };
 
-  _compileResourceUrl = function(resUrl, htmlUrl, suffix) {
-    var defaultRes, i;
-    if (resUrl === "$") {
-      defaultRes = true;
-    } else if (resUrl.indexOf("$.") === 0) {
-      defaultRes = true;
-      suffix = resUrl.substring(2);
-    }
-    if (defaultRes) {
-      resUrl = null;
+  _compileResourceUrl = function(jsUrl, htmlUrl, suffix) {
+    var i;
+    if (jsUrl === "$") {
+      jsUrl = null;
       if (htmlUrl) {
         i = htmlUrl.lastIndexOf(".");
-        resUrl = (i > 0 ? htmlUrl.substring(0, i) : htmlUrl) + suffix;
+        jsUrl = (i > 0 ? htmlUrl.substring(0, i) : htmlUrl) + suffix;
       }
     }
-    return resUrl;
+    return jsUrl;
   };
 
   _loadHtml = function(targetDom, url, data, callback) {
@@ -9151,7 +9145,7 @@
   };
 
   cola.xRender = function(template, model, context) {
-    var child, div, documentFragment, dom, l, len1, next, node, oldScope, widget;
+    var child, div, documentFragment, dom, l, len1, node, oldScope, widget;
     if (!template) {
       return;
     }
@@ -9163,9 +9157,8 @@
       div.innerHTML = template;
       child = div.firstChild;
       while (child) {
-        next = child.nextSibling;
         documentFragment.appendChild(child);
-        child = next;
+        child = child.nextSibling;
       }
     } else {
       oldScope = cola.currentScope;

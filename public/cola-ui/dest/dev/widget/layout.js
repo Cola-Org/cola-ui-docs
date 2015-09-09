@@ -546,15 +546,18 @@
       return Sidebar.__super__.constructor.apply(this, arguments);
     }
 
-    Sidebar.CLASS_NAME = "ui sidebar layer transition hidden";
+    Sidebar.CLASS_NAME = "ui sidebar";
 
     Sidebar.ATTRIBUTES = {
       direction: {
         defaultValue: "left",
+        refreshDom: true,
         "enum": ["left", "right", "top", "bottom"]
       },
       size: {
-        defaultValue: 100
+        type: "number",
+        defaultValue: 200,
+        refreshDom: true
       },
       modalOpacity: {
         type: "number",
@@ -593,7 +596,7 @@
       duration = options.duration || this._duration || 300;
       $dom = this.get$Dom();
       width = $dom.width();
-      height = $dom.height();
+      height = $dom.height() || $dom.outerHeight();
       isHorizontal = direction === "left" || direction === "right";
       if (direction === "left") {
         x = -width;
@@ -674,6 +677,7 @@
             };
           })(this));
         }
+        $(_dimmerDom).css("position", "fixed");
         container = this._context || this._dom.parentNode;
         container.appendChild(_dimmerDom);
         this._doms.modalLayer = _dimmerDom;
@@ -704,7 +708,7 @@
 
     Sidebar.prototype.isVisible = function() {
       if (this._dom) {
-        return this.get$Dom().hasClass("active");
+        return this.get$Dom().hasClass("visible");
       } else {
         return false;
       }
