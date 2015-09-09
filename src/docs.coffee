@@ -27,7 +27,7 @@ $(".example:not(.ignore)").each((index, el)->
 
 		codeEl = $.xCreate({
 			tagName: "pre"
-			class: "prettyprint lang-html"
+			class: "prettyprint lang-html c-ignore"
 			content: code
 		})
 
@@ -36,7 +36,7 @@ $(".example:not(.ignore)").each((index, el)->
 
 $(".markdown-content pre>code").each((index, el)->
 	code = $(el).text();
-	$(el).parent().addClass("prettyprint lang-html").text(code)
+	$(el).parent().addClass("prettyprint lang-html c-ignore").text(code)
 )
 $(".markdown-content>pre.code").each((index, el)->
 	code = html_beautify($(el).html(), jsBeautifyOptions);

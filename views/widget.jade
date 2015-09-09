@@ -12,7 +12,7 @@ block content
 		}
 
 	+addCatalog("inline","Inline模式")
-	.example#inline
+	.example(name="inline")#inline
 		h4.ui.header Inline模式
 		p 对于一些简单的控件，我们只要直接在DOM中借助c-widget指令就可以快速的将其声明成控件。
 		p.
@@ -27,6 +27,8 @@ block content
 		.code
 			div(c-widget="button; caption:Hello World")
 			div(c-widget="button; class:blue") Hello World
+		script(type="text/javascript").
+			cola("inline", function (model) {});
 
 	+addCatalog("widgetConfig","JSON模式")
 	.example(name="widgetConfig")#widgetConfig
@@ -72,7 +74,7 @@ block content
 				model.widgetConfig({
 					buttonConfig: {
 						$type: "button",
-						class: "green",
+						class: "teal",
 						click: function (self) {
 							alert("您点击了 " + self.get("caption"));
 						}
@@ -98,7 +100,7 @@ block content
 					buttonCreate: {
 						$type: "button",
 						class: "green",
-						caption: "Create",
+						caption: "New Widget",
 						click: function() {
 							var button = new cola.Button({
 								caption: "Dynamic Button",
@@ -127,8 +129,8 @@ block content
 				model.widgetConfig({
 					buttonCreate: {
 						$type: "button",
-						class: "green",
-						caption: "Create",
+						class: "violet",
+						caption: "Create By Config",
 						click: function() {
 							var button = cola.widget({
 								$type: "button",
@@ -163,8 +165,8 @@ block content
 				model.widgetConfig({
 					buttonCreate: {
 						$type: "button",
-						class: "green",
-						caption: "Create",
+						class: "pink",
+						caption: "xRender",
 						click: function() {
 							var fragment = cola.xRender(
 								"<div c-repeat='num in [1, 2, 3, 4, 5]' c-bind='num' c-widget='#newButton'></div><br>",
@@ -183,12 +185,103 @@ block content
 				});
 			});
 
-	+addCatalog("event", "绑定事件")
-	+addCatalog("event_action", "绑定Action")
+		p.
+			cola.xRender()是一个功能非常强大的方法，并不仅仅限于传入例子中这种String型的HTML片段。
+			在实际的应用中我们更加推荐使用一种以JSON形式表达的HTML，具体用法请参考cola.xRender()的API文档。
+
 	+addCatalog("expression", "属性表达式")
+	.example.c-ignore(name="expression")#expression
+		h4.ui.header 属性表达式
+		p 只要为某个属性赋以"{{...}}"形式的属性值，就会被Cola处理为绑定表达式。可以方便的在控件属性和Model中的数据间建立起双向数据绑定。
+
+		.code
+			div(c-widget="button; class:olive; caption:{{counter}}; click:increase")
+			div(c-widget="label; text:{{counter}}")
+		script(type="text/javascript" name="expression").
+			cola("expression", function (model) {
+				model.set("counter", 1);
+				model.action({
+					increase: function() {
+						model.set("counter", model.get("counter") + 1);
+					}
+				});
+			});
+
+	+addCatalog("event_action", "绑定Action")
+	.example(name="event_action")#event_action
+		h4.ui.header 绑定Action
+		p.
+			前面的例子中我们已经看到了如何为一个控件绑定事件方法。
+			假设我们希望某个事件调用一个Model中的Action，你当然可以直接在事件的方法中再去调用Action，但是你也可以尝试更加简单的方法。
+		p.
+			如果我们为某个事件绑定一个字符串，那么Cola会认为这是一个Action的名字，自动建立事件与Action之间的绑定。
+
+		.code
+			div(c-widget="button; caption:Call Action; class:purple inverted; click:showMessage")
+		script(type="text/javascript" name="event_action").
+			cola("event_action", function (model) {
+				model.action({
+					showMessage: function() {
+						alert("Action调用成功！");
+					}
+				});
+			});
+
+	+addCatalog("event_scope", "事件上下文数据")
+	.example.c-ignore(name="event_scope")#event_scope
+		h4.ui.header 事件上下文数据
+		p.
+			对于那些通过c-repeat或者类似的其他方式生成的控件，要在其事件中获得相应的上下文数据是需要一些额外的技巧的。
+			例如下面的例子，我们通过c-repeat产生了5个按钮，如何在按钮在的事件获得与当前的按钮对应的skill呢？
+			直接通过model.get()肯定是不行的，因为skill只存在于迭代循环中。
+		p.
+			在下面的例子中，我们利用了click事件的arg传入参数。在所有的Cola事件中都会提供一个arg参数，通过arg.model我们就可以得到这个控件真正对应的上下文Model。
+			对于迭代过程中产生的控件，这里所说的上下文Model也就是主Model的某个子Model，这个子Model中保存着当前的迭代变量，即例子中的skill。
+
+		p 关于子Model的具体概念请进一步阅读
+			a(href="model") Model(视图模型)
+
+		.code
+			div(c-repeat="skill in skills" c-widget="#buttonConfig")
+		script(type="text/javascript" name="event_scope").
+			cola("event_scope", function (model) {
+				model.set("skills", ["Javascript", "CSS3", "HTML5", "Coffee", "LESS"]);
+				model.widgetConfig({
+					buttonConfig: {
+						$type: "button",
+						class: "orange",
+						caption: "{{skill}}",
+						click: function(arg) {
+							alert(arg.model.get("skill"));
+						}
+					}
+				});
+			});
+
 	+addCatalog("event_expression", "事件表达式")
+	.example(name="event_expression")#event_expression
+		h4.ui.header 事件表达式
+		p.
+			不但属性中可以使用表达式，事件也可以如此。
+			如果我们将一个表达式与一个事件绑定，那么每当这个事件触发时Cola都会自动的执行这个表达式。
+			我们可以利用这个表达式调用Action，或者利用表达式方便的向Action中传递上下文数据。
 
-	script(type="text/javascript").
-		cola( function (model) {});
-
-
+		.code
+			div(c-repeat="skill in skills" c-widget="#buttonConfig")
+		script(type="text/javascript" name="event_expression").
+			cola("event_expression", function (model) {
+				model.set("skills", ["Javascript", "CSS3", "HTML5", "Coffee", "LESS"]);
+				model.action({
+					showMessage: function(skill) {
+						alert(skill);
+					}
+				});
+				model.widgetConfig({
+					buttonConfig: {
+						$type: "button",
+						class: "purple",
+						caption: "{{skill}}",
+						click: "{{showMessage(skill)}}"
+					}
+				});
+			});
