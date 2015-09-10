@@ -9,6 +9,7 @@
 * **方法调用**
 例如：`remove(person)` 调用Model中名为remove的Action，Action通常是一个Function，同时将person指向的数据作为参数传递给该方法。
 需要特别注意的是，此处的方法特指Model中的Action，我们并不能通过表达式来访问Javascript中的各种全局Function。
+另外，Cola中包含一些隐式的Action，即不需要我们定义便可以使用的Action。如：not()、isEmpty()等，具体请参考 [Action(动作)](action)。
 
 * **字符串**
 例如：`'Hello ' + person.name` 表示将字符串'Hello'与person.name指向的数据进行连接。
