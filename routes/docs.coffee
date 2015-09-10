@@ -1,6 +1,7 @@
 express = require 'express'
 router = express.Router()
 mdConfig = require './md-config'
+articals = require './articals'
 jstransformer = require 'jstransformer'
 path = require 'path'
 fs = require 'fs'
@@ -15,6 +16,8 @@ router.get '/*', (req, res, next) ->
 		if mdOptions
 			res.render "markdown",
 				title: mdOptions.title
+				articals: articals
+				pathName: "/docs/#{pathName}"
 				markdown: markdown,
 				(err, html)->
 					fs.readFile(path.join(__dirname, mdConfig.options.cwd, mdOptions.file), (err, data)->
@@ -28,9 +31,12 @@ router.get '/*', (req, res, next) ->
 	else
 		pathName = "preview"
 		title = "Cola UI"
+
 	res.render pathName,
 		title: title
 		markdown: markdown
 		less: less
+		articals: articals
+		pathName: "/docs/#{pathName}"
 
 module.exports = router

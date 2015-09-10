@@ -173,6 +173,12 @@ template {
   -ms-flex-align: start;
   align-items: flex-start;
 }
+.v-box > .box,
+.h-box > .box,
+.v-box > .flex-box,
+.h-box > .flex-box {
+  overflow: auto;
+}
 .v-box .box,
 .h-box .box {
   -webkit-flex: 0 1 auto;

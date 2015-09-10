@@ -655,7 +655,7 @@
       }
       direction = this._direction || "left";
       style = direction === "left" || direction === "right" ? "width" : "height";
-      this.get$Dom().css(style, size);
+      cola.util.style(this._dom, style, size, "important");
     };
 
     Sidebar.prototype._showModalLayer = function() {

@@ -360,7 +360,7 @@
 
     Checkbox.prototype._refreshEditorDom = function() {
       if (this._triState && this._value !== this._onValue && this._value !== this._offValue) {
-        this.get$Dom().checkbox("indeterminate");
+        this.get$Dom().checkbox('set indeterminate');
         return;
       }
       return Checkbox.__super__._refreshEditorDom.call(this);

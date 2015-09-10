@@ -11,7 +11,7 @@ html
 		link(rel="stylesheet" type="text/css" href="/docs.css")
 
 
-	body
+	body.v-box
 		// 公共变量与MIXIN定义区域
 		- var colors = ["red", "orange", "yellow","olive", "green", "teal","blue","violet","purple","pink","brown","grey"]
 		- var sizes=["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"]
@@ -38,7 +38,7 @@ html
 						a.item(href=href)= item.caption
 
 		mixin catalog()
-			.ui.right.rail
+			.ui.right.internal.rail
 				.ui.sticky#catalog
 					h4.ui.header 文档目录
 					.ui.vertical.following.fluid.accordion.text.menu
@@ -48,11 +48,57 @@ html
 							if index == 0
 								-className+=" active"
 							+_makeCatalogGroup(groupName,items,index)(class=className)
+		mixin _makeDocLink(docs)
+			each doc in docs
+				- var url="/docs/"+doc.url
 
-		.main.ui.container
-			block content
-			if createCatalog
-				+catalog()
+				a.item(href=url class= url == pathName ? "active" : "")= doc.name
+		mixin _makeArticals(className)
+			.ui.vertical.menu.inverted(class=className ? className : "")
+				each category in articals
+					.item
+						.header=category.name
+						.menu
+							+_makeDocLink(category.docs)
+
+		#header.box
+			.ui.menu.inverted
+				a.item(c-onclick="showSidebar()")
+					i.content.icon
+				.header.item Cola UI
+
+		#content.flex-box
+			.h-box
+				#toc.box.teal-background
+					div
+						+_makeArticals("teal")
+				#article.flex-box
+					div
+						.content
+							block content
+						if createCatalog
+							+catalog()
+						#footer.black-background
+
+		#sidebar.ui.sidebar.black-background
+			+_makeArticals()
+
+
+
+
 	script(src="/prettify/prettify.js")
 	script(src="/jsbeautify.js")
 	script(src="/docs.js")
+	script(type="text/javascript").
+		cola(function (model) {
+			model.action({
+				showSidebar: function () {
+					cola.widget("sidebar").toggle()
+				}
+			})
+			model.widgetConfig({
+				sidebar: {
+					$type: "Sidebar"
+				}
+			})
+		})

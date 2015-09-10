@@ -163,6 +163,7 @@
     };
 
     AbstractItemGroup.prototype.destroy = function() {
+      cola.util.cancelDelay(this, "_refreshItems");
       this.clearItems();
       delete this._items;
       return AbstractItemGroup.__super__.destroy.call(this);
@@ -800,7 +801,7 @@
       setTimeout(function() {
         return carousel._scroller = new Swipe(carousel._dom, {
           vertical: carousel._orientation === "vertical",
-          disableScroll: true,
+          disableScroll: false,
           continuous: true,
           callback: function(pos) {
             carousel.setCurrentIndex(pos);

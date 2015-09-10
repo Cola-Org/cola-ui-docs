@@ -51,8 +51,7 @@ $(".markdown-content>pre.code").each((index, el)->
 prettyPrint()
 
 $('#catalog').sticky({
-	context: ".main.ui.container > .ui.right.rail"
-	offset: 30
+	offset:30
 })
 
 
@@ -85,8 +84,5 @@ $("#catalog").delegate("a.item", "click", (event)->
 
 $("#catalog > .ui.vertical.following.fluid.accordion.text.menu").accordion({
 	exclusive: false,
-	animateChildren: false,
-	onChange: ()->
-		$('.ui.sticky').sticky('refresh');
-
+	animateChildren: false
 })

@@ -66,7 +66,6 @@
   prettyPrint();
 
   $('#catalog').sticky({
-    context: ".main.ui.container > .ui.right.rail",
     offset: 30
   });
 
@@ -107,10 +106,7 @@
 
   $("#catalog > .ui.vertical.following.fluid.accordion.text.menu").accordion({
     exclusive: false,
-    animateChildren: false,
-    onChange: function() {
-      return $('.ui.sticky').sticky('refresh');
-    }
+    animateChildren: false
   });
 
 }).call(this);

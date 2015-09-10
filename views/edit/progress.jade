@@ -1,59 +1,60 @@
 extends ../doc-layout
 block content
 
-	+addCatalog("standard","进度条")
-
-	.example
+	+addCatalog("standard","标准")
+	.example#standard
 		h4 标准
 		.code
 			#p1(c-widget="progress; total:100; value:20")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p1")
 		div(c-widget="button; icon:plus; class:basic green" progress="p1")
-
-	.example
+	+addCatalog("activeMessage","活跃状态消息")
+	.example#activeMessage
 		h4 活跃状态消息
+		p.
+			当进度进行时的消息显示模式的定义，可通过属性#[code activeMessage]定义。
+			可如下模式显示#[code value]和#[code total]
+		p #[code activeMessage:{total}资源的{value}已装载]
 		.code
-			#p2(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total}; ratioText:{value}/{total}; ")
+			#p2(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total}; ")
+
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p2")
 		div(c-widget="button; icon:plus; class:basic green" progress="p2")
-
-	.example
+	+addCatalog("successMessage","完成状态消息")
+	.example#successMessage
 		h4 完成状态消息
-		p 当进度到100%时显示此消息
+		p 当进度到100%时显示此消息,可通过属性#[code successMessage]定义。
+
 		.code
 			#p3(c-widget="progress; total:12; value:3; successMessage:上传完成; activeMessage:已上传{value}/{total}; ratioText:{value}/{total}; ")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p3")
 		div(c-widget="button; icon:plus; class:basic green" progress="p3")
-
-	.example
+	+addCatalog("showProgress","隐藏进度数值")
+	.example#showProgress
 		h4 隐藏进度数值
+		p 可通过属性#[code showProgress:false]隐藏进度数值。默认值为false
 		.code
 			#p4(c-widget="progress; total:12; value:3; showProgress:false")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p4")
 		div(c-widget="button; icon:plus; class:basic green" progress="p4")
-	.example
-		h4 隐藏进度数值
-		.code
-			#p4(c-widget="progress; total:12; value:3; showProgress:false")
-	div(c-widget="buttonGroup;")
-		div(c-widget="button; icon:minus; class:basic minus red" progress="p4")
-		div(c-widget="button; icon:plus; class:basic green" progress="p4")
-
-	.example
+	+addCatalog("indicating","颜色指示")
+	.example#indicating
 		h4 颜色指示
-		p 通过一个进度条指示直观地显示当前任务的进度。
+		p 通过一个进度条指示直观地显示当前任务的进度。p 可通过属性#[code class:indicating]设置。
 		.code
 			#p5(c-widget="progress; total:12; value:3; showProgress:false; class:indicating")
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" progress="p5")
 		div(c-widget="button; icon:plus; class:basic green" progress="p5")
-
-	.example(name="warning")
+	+addCatalog("warning","警告状态")
+	.example(name="warning")#warning
 		h4 警告状态
+		p.
+			进度条的状态可通过调用控件提供的#[code warning(message)]Api进行触发。 message内容将直接显示在activeMessage显示位置。
 		.code
 			#p6(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total};")
 			div(c-widget="button; caption:触发警告; class:yellow; click:warning")
@@ -67,8 +68,10 @@ block content
 				}
 			})
 		})
-	.example(name="error")
+	+addCatalog("error","错误状态")
+	.example(name="error")#error
 		h4 错误状态
+		p 进度条的状态可通过调用控件提供的#[code error(message)]Api进行触发。 message内容将直接显示在activeMessage显示位置。
 		.code
 			#p7(c-widget="progress; total:12; value:3; activeMessage:已上传{value}/{total};")
 			div(c-widget="button; caption:触发错误; class:red; click:warning")
@@ -82,12 +85,14 @@ block content
 				}
 			})
 		})
-	.example
+	+addCatalog("disabled","Disabled 状态")
+	.example#disabled
 		h4 Disabled 状态
 		.code
 			div(c-widget="progress; total:100; value:20; class:disabled")
 
-	.example
+	+addCatalog("inverted","反白效果")
+	.example#inverted
 		h4 反白效果
 		.code
 			.ui.segment.inverted
@@ -95,13 +100,15 @@ block content
 				div(c-widget="progress; total:100; value:100; class:inverted")
 				div(c-widget="progress; total:100; value:100; class:inverted warning")
 				div(c-widget="progress; total:100; value:100; class:inverted error")
-	.example
+	+addCatalog("attached","Attached")
+	.example#attached
 		h4 Attached
 		.code
 			.ui.segment(style={height: "80px"})
 				div(c-widget="progress; total:100; value:60; class:top attached; showProgress:false")
 				div(c-widget="progress; total:100; value:20; class:bottom attached; showProgress:false")
-	.example
+	+addCatalog("size","尺寸")
+	.example#size
 		h4 尺寸
 		.code
 			.ui.segment
@@ -114,16 +121,36 @@ block content
 	div(c-widget="buttonGroup;")
 		div(c-widget="button; icon:minus; class:basic minus red" tagProgress="size")
 		div(c-widget="button; icon:plus; class:basic green" tagProgress="size")
-
-	.example
+	+addCatalog("color","颜色")
+	.example#color
+		h4 颜色
+		p 默认提供了以下几种颜色
 		.code
-			div(c-widget="Segment; class:inverted;")
+			div(c-widget="Segment;")
 				each color in colors
-					- var config ="progress; total:20; value:11; class:tiny; showProgress:false; activeMessage:tiny; tag:size"
+					- var config ="progress; total:{{random()}}; value:11; class:"+color+"; showProgress:false; activeMessage:"+color+"; tag:color"
 					div(c-widget=config)
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" tagProgress="color")
+		div(c-widget="button; icon:plus; class:basic green" tagProgress="color")
 
+	+addCatalog("colorInverted","反白+颜色")
+	.example#colorInverted
+		.code
+			div(c-widget="Segment; class:inverted")
+				each color in colors
+					- var config ="progress; total:{{random()}}; value:11; class:"+color+" inverted; showProgress:false; activeMessage:"+color+"; tag:colorInverted"
+					div(c-widget=config)
+	div(c-widget="buttonGroup;")
+		div(c-widget="button; icon:minus; class:basic minus red" tagProgress="colorInverted")
+		div(c-widget="button; icon:plus; class:basic green" tagProgress="colorInverted")
 	script(type="text/javascript").
 		cola(function (model) {
+			model.action({
+				random: function () {
+					return Math.ceil(Math.random() * (38 - 8) + 8);
+				}
+			});
 		})
 
 		function progressAction(progress, minusBtn) {

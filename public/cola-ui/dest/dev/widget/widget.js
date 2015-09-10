@@ -3,6 +3,40 @@
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
+  (function() {
+    var escape, isStyleFuncSupported;
+    escape = function(text) {
+      return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    };
+    isStyleFuncSupported = !!CSSStyleDeclaration.prototype.getPropertyValue;
+    if (!isStyleFuncSupported) {
+      CSSStyleDeclaration.prototype.getPropertyValue = function(a) {
+        return this.getAttribute(a);
+      };
+      CSSStyleDeclaration.prototype.setProperty = function(styleName, value, priority) {
+        var rule;
+        this.setAttribute(styleName, value);
+        priority = typeof priority !== 'undefined' ? priority : '';
+        if (priority !== '') {
+          rule = new RegExp(escape(styleName) + '\\s*:\\s*' + escape(value)(+'(\\s*;)?', 'gmi'));
+          return this.cssText = this.cssText.replace(rule, styleName + ': ' + value + ' !' + priority + ';');
+        }
+      };
+      CSSStyleDeclaration.prototype.removeProperty = function(a) {
+        return this.removeAttribute(a);
+      };
+      return CSSStyleDeclaration.prototype.getPropertyPriority = function(styleName) {
+        var rule;
+        rule = new RegExp(escape(styleName) + '\\s*:\\s*[^\\s]*\\s*!important(\\s*;)?', 'gmi');
+        if (rule.test(this.cssText)) {
+          return 'important';
+        } else {
+          return '';
+        }
+      };
+    }
+  })();
+
   cola.util.addClass = function(dom, value, continuous) {
     var className;
     if (!continuous) {
@@ -61,6 +95,21 @@
       }
     }
     return true;
+  };
+
+  cola.util.style = function(dom, styleName, value, priority) {
+    var style;
+    style = dom.style;
+    if (typeof styleName !== 'undefined') {
+      if (typeof value !== 'undefined') {
+        priority = typeof priority !== 'undefined' ? priority : '';
+        return style.setProperty(styleName, value, priority);
+      } else {
+        return style.getPropertyValue(styleName);
+      }
+    } else {
+      return style;
+    }
   };
 
   cola.util.getTextChildData = function(dom) {

@@ -56,85 +56,78 @@
 	}
 }
 
-.main.container {
-	position: relative;
-	#catalog {
-		.content.menu {
-			margin: 0;
-		}
-		a.item.active {
-			padding: 0.5em 1.33333333em;
-		}
-		&.fixed {
-			top: 20px;
+body {
+	color: #2C3E50 !important;
+	font-size: 15px;
+}
+
+#header > .menu {
+	border-radius: 0px;
+}
+
+#footer {
+	height: 200px;
+}
+
+#toc {
+	width: 14em;
+	padding: 0.5em 1em;
+	.ui.vertical.inverted.menu .menu .item, .ui.vertical.inverted.menu .menu .item a:not(.ui) {
+		color: rgba(255, 255, 255, 0.8);
+		font-size: 1em;
+		&:hover {
+			color: rgba(255, 255, 255, 1);
 		}
 	}
-	.right.rail {
-		//padding: 0em;
-		margin: 0em;
+	.ui.vertical.menu .item > .header:not(.ui) {
+		font-size: 1.25em;
+		color: rgba(255, 255, 255, 1);
+
 	}
 }
 
-@media only screen and (max-width: 780px) {
-	.main.container {
-		.example {
-			margin: 2em 0em;
-			pre.prettyprint {
-				padding: 0.5em;
+#sidebar {
+	top: 40px;
+}
+
+#article {
+	> * {
+		> .ui.rail {
+			padding: 0px;
+			margin: 0px;
+			width: 180px;
+		}
+	}
+
+}
+
+@media only screen and (min-width: 1145px) {
+	#header {
+		display: none;
+	}
+
+	#article {
+		> * {
+			> .content {
+				padding: 1em 14em 1em 1em;
 			}
 		}
 	}
 }
 
-@media only screen and (min-width: 780px) {
-	.main.container {
-		.example {
-			margin: 2em 0;
-			pre.prettyprint {
+@media only screen and (max-width: 1144px) {
+	#toc {
+		display: none;
+	}
+
+	#article {
+		> * {
+			> .ui.rail {
+				display: none;
+			}
+			> .content {
 				padding: 1em;
 			}
 		}
 	}
 }
-
-@media only screen  and (max-width: 992px) {
-	.main.container {
-		> .right.rail {
-			display: none;
-		}
-	}
-}
-
-@media only screen and (min-width: 992px) and (max-width: 1144px) {
-	.main.container {
-		width: 700px;
-	}
-}
-
-@media only screen and (min-width: 1144px) and (max-width: 1280px) {
-	.main.container {
-		width: 828px;
-	}
-}
-
-@media only screen and (min-width: 1280px) {
-	.main.container {
-		width: 928px;
-
-	}
-}
-
-body {
-	background-color: #F9F9F5 !important;
-	color: #2C3E50 !important;
-	font-size: 15px;
-}
-
-//body, button, input, select {
-//	font-family: Microsoft Yahei, Hiragino Sans GB, WenQuanYi Micro Hei, sans-serif !important;
-//}
-//
-//h1, h2, h3, h4, h5, h6 {
-//	font-weight: 500;
-//	font-family: Helvetica Neue, Microsoft Yahei, Hiragino Sans GB, WenQuanYi Micro Hei, sans-serif !important;
-//}
