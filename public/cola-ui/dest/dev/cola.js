@@ -1,5 +1,5 @@
 (function() {
-  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildI18NFeature, buildRepeatFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, jsep, key, oldIE, originalAjax, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, jsep, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
     slice = [].slice;
@@ -883,9 +883,7 @@
   I18N
    */
 
-  defaultLocale = "en";
-
-  i18nStore = {};
+  resourceStore = {};
 
   sprintf = function() {
     var i, l, len1, param, params, templ;
@@ -897,12 +895,11 @@
     return templ;
   };
 
-  cola.i18n = function() {
-    var bundle, key, locale, oldBundle, params, ref, str, templ;
+  cola.resource = function() {
+    var bundle, key, params, str, templ;
     key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
     if (typeof key === "string") {
-      locale = cola.setting("locale") || defaultLocale;
-      templ = (ref = i18nStore[locale]) != null ? ref[key] : void 0;
+      templ = resourceStore[key];
       if (templ) {
         if (params.length) {
           return sprintf.apply(this, [templ].concat(params));
@@ -914,29 +911,23 @@
       }
     } else {
       bundle = key;
-      locale = params[0] || defaultLocale;
-      oldBundle = i18nStore[locale];
-      if (oldBundle) {
-        for (key in bundle) {
-          str = bundle[key];
-          oldBundle[key] = str;
-        }
-      } else {
-        i18nStore[locale] = oldBundle = bundle;
+      for (key in bundle) {
+        str = bundle[key];
+        resourceStore[key] = str;
       }
     }
   };
 
-  cola.I18nException = (function(superClass) {
-    extend(I18nException, superClass);
+  cola.ResourceException = (function(superClass) {
+    extend(ResourceException, superClass);
 
-    function I18nException() {
+    function ResourceException() {
       var key, params;
       key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-      I18nException.__super__.constructor.call(this, cola.i18n.apply(cola, [key].concat(slice.call(params))));
+      ResourceException.__super__.constructor.call(this, cola.resource.apply(cola, [key].concat(slice.call(params))));
     }
 
-    return I18nException;
+    return ResourceException;
 
   })(cola.Exception);
 
@@ -1782,25 +1773,24 @@
     if (typeof $ === "function") {
       $(function() {
         var localeStrings;
-        XDate.defaultLocale = cola.setting("locale") || defaultLocale;
-        XDate.locales[defaultLocale] = localeStrings = {};
-        if (cola.i18n("cola.date.monthNames")) {
-          localeStrings.monthNames = cola.i18n("cola.date.monthNames").split(",");
+        XDate.locales[''] = localeStrings = {};
+        if (cola.resource("cola.date.monthNames")) {
+          localeStrings.monthNames = cola.resource("cola.date.monthNames").split(",");
         }
-        if (cola.i18n("cola.date.monthNamesShort")) {
-          localeStrings.monthNamesShort = cola.i18n("cola.date.monthNamesShort").split(",");
+        if (cola.resource("cola.date.monthNamesShort")) {
+          localeStrings.monthNamesShort = cola.resource("cola.date.monthNamesShort").split(",");
         }
-        if (cola.i18n("cola.date.dayNames")) {
-          localeStrings.dayNames = cola.i18n("cola.date.dayNames").split(",");
+        if (cola.resource("cola.date.dayNames")) {
+          localeStrings.dayNames = cola.resource("cola.date.dayNames").split(",");
         }
-        if (cola.i18n("cola.date.dayNamesShort")) {
-          localeStrings.dayNamesShort = cola.i18n("cola.date.dayNamesShort").split(",");
+        if (cola.resource("cola.date.dayNamesShort")) {
+          localeStrings.dayNamesShort = cola.resource("cola.date.dayNamesShort").split(",");
         }
-        if (cola.i18n("cola.date.amDesignator")) {
-          localeStrings.amDesignator = cola.i18n("cola.date.amDesignator");
+        if (cola.resource("cola.date.amDesignator")) {
+          localeStrings.amDesignator = cola.resource("cola.date.amDesignator");
         }
-        if (cola.i18n("cola.date.pmDesignator")) {
-          localeStrings.pmDesignator = cola.i18n("cola.date.pmDesignator");
+        if (cola.resource("cola.date.pmDesignator")) {
+          localeStrings.pmDesignator = cola.resource("cola.date.pmDesignator");
         }
       });
     }
@@ -3021,7 +3011,7 @@
     };
 
     RequiredValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.required", data);
+      return cola.resource("cola.validator.error.required", data);
     };
 
     RequiredValidator.prototype._validate = function(data) {
@@ -3057,7 +3047,7 @@
     };
 
     NumberValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.number", data);
+      return cola.resource("cola.validator.error.number", data);
     };
 
     NumberValidator.prototype._validate = function(data) {
@@ -3089,7 +3079,7 @@
     };
 
     LengthValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.length", data);
+      return cola.resource("cola.validator.error.length", data);
     };
 
     LengthValidator.prototype._validate = function(data) {
@@ -3128,7 +3118,7 @@
     };
 
     RegExpValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.regExp", data);
+      return cola.resource("cola.validator.error.regExp", data);
     };
 
     RegExpValidator.prototype._validate = function(data) {
@@ -3160,7 +3150,7 @@
     }
 
     EmailValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.email", data);
+      return cola.resource("cola.validator.error.email", data);
     };
 
     EmailValidator.prototype._validate = function(data) {
@@ -3182,7 +3172,7 @@
     }
 
     UrlValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.email", data);
+      return cola.resource("cola.validator.error.email", data);
     };
 
     UrlValidator.prototype._validate = function(data) {
@@ -3912,7 +3902,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && typeof loadMode === "object") {
         loadMode = "async";
         callback = loadMode;
       }
@@ -4203,7 +4193,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && typeof loadMode === "object") {
         loadMode = "async";
         callback = loadMode;
       }
@@ -4461,7 +4451,7 @@
         throw new cola.Exception("Provider undefined.");
       }
       this._set(property, void 0);
-      if (typeof loadMode === "function") {
+      if (loadMode && typeof loadMode === "object") {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5139,7 +5129,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && typeof loadMode === "object") {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5440,7 +5430,7 @@
       if (this._providerInvoker == null) {
         throw new cola.Exception("Provider undefined.");
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && typeof loadMode === "object") {
         callback = loadMode;
         loadMode = "async";
       }
@@ -6503,7 +6493,7 @@
         if (aliasHolder) {
           aliasData = aliasHolder.data;
           if (i > 0) {
-            if (typeof loadMode === "function") {
+            if (loadMode && typeof loadMode === "object") {
               loadMode = "async";
               callback = loadMode;
             }
@@ -7290,16 +7280,6 @@
 
   })();
 
-  cola.model.defaultActions.not = function(value) {
-    return !value;
-  };
-
-  cola.model.defaultActions.i18n = function() {
-    var key, params;
-    key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-    return cola.i18n.apply(cola, [key].concat(slice.call(params)));
-  };
-
   cola.submit = function(options, callback) {
     var data, filter, originalOptions, p, v;
     originalOptions = options;
@@ -7359,6 +7339,32 @@
     "dirty-tree": function(data) {
       return data;
     }
+  };
+
+  cola.model.defaultActions.not = function(value) {
+    return !value;
+  };
+
+  cola.model.defaultActions.isEmpty = function(value) {
+    if (value instanceof Array) {
+      return value.length === 0;
+    } else if (value instanceof cola.EntityList) {
+      return value.entityCount === 0;
+    } else if (typeof value === "string") {
+      return value === "";
+    } else {
+      return !value;
+    }
+  };
+
+  cola.model.defaultActions.isNotEmpty = function(value) {
+    return !cola.model.defaultActions.isEmpty(value);
+  };
+
+  cola.model.defaultActions.resource = function() {
+    var key, params;
+    key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    return cola.resource.apply(cola, [key].concat(slice.call(params)));
   };
 
   if (typeof exports !== "undefined" && exports !== null) {
@@ -9178,31 +9184,30 @@
           documentFragment = document.createDocumentFragment();
           for (l = 0, len1 = template.length; l < len1; l++) {
             node = template[l];
-            if (node.tagName) {
-              child = $.xCreate(node, context);
-            } else {
-              if (node instanceof cola.Widget) {
-                widget = node;
-              } else {
-
-              }
+            if (node instanceof cola.Widget) {
+              widget = node;
+            } else if (node.$type) {
               widget = cola.widget(node, context.namespace);
+            }
+            if (widget) {
               child = widget.getDom();
               child.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+            } else {
+              child = $.xCreate(node, context);
             }
             documentFragment.appendChild(child);
           }
         } else {
-          if (template.tagName) {
-            dom = $.xCreate(template, context);
-          } else {
-            if (template instanceof cola.Widget) {
-              widget = template;
-            } else {
-              widget = cola.widget(template, context.namespace);
-            }
+          if (template instanceof cola.Widget) {
+            widget = template;
+          } else if (template.$type) {
+            widget = cola.widget(template, context.namespace);
+          }
+          if (widget) {
             dom = widget.getDom();
             dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+          } else {
+            dom = $.xCreate(template, context);
           }
         }
       } finally {
@@ -9338,8 +9343,8 @@
           } else {
             if (attrName.substring(0, 2) === "on") {
               feature = buildEvent(scope, dom, attrName.substring(2), attrValue);
-            } else if (attrName === "i18n") {
-              feature = buildI18NFeature(scope, dom, attrValue);
+            } else if (attrName === "resource") {
+              feature = buildResourceFeature(scope, dom, attrValue);
             } else if (attrName === "watch") {
               feature = buildWatchFeature(scope, dom, attrValue);
             } else {
@@ -9541,10 +9546,10 @@
     return feature;
   };
 
-  buildI18NFeature = function(scope, dom, expr) {
+  buildResourceFeature = function(scope, dom, expr) {
     expr = cola.util.trim(expr);
     if (expr) {
-      $fly(dom).text(cola.i18n(expr));
+      $fly(dom).text(cola.resource(expr));
     }
   };
 

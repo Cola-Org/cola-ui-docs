@@ -2560,6 +2560,7 @@ template {
   padding: 0;
 }
 .ui.tree .child-nodes {
+  overflow: visible;
   margin-left: 2.25em !important;
 }
 .ui.tree .node {
@@ -2571,16 +2572,15 @@ template {
   float: left;
   width: 2.2em;
   height: 2.2em;
+  line-height: 2.2em;
   margin-right: 0.25em;
+  text-align: center;
 }
 .ui.tree .node > .expand-button:before {
   transition-duration: 0.3s;
   transition-property: transform;
   font-family: Icons;
   content: "\f105";
-  display: block;
-  text-align: center;
-  line-height: 2.2em;
 }
 .ui.tree .node.expanded > .expand-button:before {
   transform: rotate(90deg);
@@ -2607,6 +2607,26 @@ template {
 }
 .ui.tree.impact .node .ui.checkbox {
   top: 0.25em;
+}
+.ui.tree.navigator .node {
+  position: relative;
+  overflow: hidden;
+  padding-left: 1em;
+}
+.ui.tree.navigator .node > .expand-button {
+  float: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: auto;
+  height: 2.7em;
+  line-height: 2.7em;
+  margin-right: 0;
+}
+.ui.tree.navigator .node > .expand-button:before {
+  float: right;
+  margin-right: 1em;
 }
 .ui.tree .item:not(.current) > .node:hover,
 .ui.tree .item:not(.current) > .node:active {
@@ -5229,4 +5249,14 @@ html.ios body {
 .ui.grouped .slider,
 .ui.grouped .toggle {
   padding: 0 0.5em;
+}
+
+.ui.sidebar {
+  display: none;
+}
+.ui.sidebar.visible {
+  display: block;
+}
+.ui.sidebar.animation {
+  display: block;
 }

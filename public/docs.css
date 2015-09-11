@@ -58,6 +58,7 @@ body {
 }
 #toc {
   width: 14em;
+  overflow: hidden;
   padding: 0.5em 1em;
 }
 #toc .ui.vertical.inverted.menu .menu .item,
@@ -72,6 +73,9 @@ body {
 #toc .ui.vertical.menu .item > .header:not(.ui) {
   font-size: 1.25em;
   color: #ffffff;
+}
+#toc:hover {
+  overflow-y: auto;
 }
 #sidebar {
   top: 40px;
