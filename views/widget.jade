@@ -285,3 +285,32 @@ block content
 					}
 				});
 			});
+
+	+addCatalog("get_widget", "获得控件实例")
+	.example(name="get_widget")#get_widget
+		h4.ui.header 获得控件实例
+		p.
+			cola.widget()不但可以用于创建控件，更多时候我们用来它来获得控件的实例。
+			传入DOM的id，cola.widget()就可以为我们返回相应的控件实例。
+
+		.code
+			#buttonSetTime
+			#labelTime
+		script(type="text/javascript" name="get_widget").
+			cola("get_widget", function (model) {
+				model.widgetConfig({
+					buttonSetTime: {
+						$type: "button",
+						class: "basic red",
+						caption: "Set Time",
+						click: function() {
+							cola.widget("labelTime").set("text", (new Date()).toLocaleString());
+						}
+					},
+					labelTime: {
+						$type: "label",
+						class: "blue tag",
+						text: "---"
+					}
+				});
+			});

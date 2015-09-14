@@ -14,7 +14,7 @@
  * [Action(动作)](action)
  * [xRender(快速渲染)](x-render)
  * [router(路由)](router)
- * [国际化](i18n)
+ * [国际化](resource)
 * 布局
  * [Grid(栅格系统)](layout/grid)
  * [Box(箱式布局)](layout/box)

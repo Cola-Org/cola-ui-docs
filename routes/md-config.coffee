@@ -40,4 +40,4 @@ module.exports =
 			file:"router.md"
 		"i18n":
 			title:"国际化"
-			file:"i18n.md"
+			file:"resource.md"

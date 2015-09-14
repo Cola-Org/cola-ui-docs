@@ -53,7 +53,7 @@ module.exports = [
 			}
 			{
 				name: "国际化"
-				url: "i18n"
+				url: "resource"
 			}
 		]
 	}
