@@ -38,6 +38,6 @@ module.exports =
 		"router":
 			title:"router(路由)"
 			file:"router.md"
-		"i18n":
+		"resource":
 			title:"国际化"
 			file:"resource.md"
