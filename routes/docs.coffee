@@ -9,10 +9,20 @@ mit = require('jstransformer-markdown-it')
 less = jstransformer(require('jstransformer-less'))
 markdown = jstransformer(mit)
 marked = require('marked')
+
+docTitleMapping = {}
+
+for category in articals
+	for doc in category.docs
+		docTitleMapping[doc.url] = doc.name
+
+
 router.get '/*', (req, res, next) ->
 	pathName = req.params[0]
 	if pathName
 		mdOptions = mdConfig.router[pathName]
+
+
 		if mdOptions
 			res.render "markdown",
 				title: mdOptions.title
@@ -27,7 +37,8 @@ router.get '/*', (req, res, next) ->
 					return
 			return
 		paths = pathName.split("/")
-		title = if paths.length > 1 then paths[1] else pathName
+		title = docTitleMapping[pathName] or (if paths.length > 1 then paths[1] else pathName)
+		console.log(title)
 	else
 		pathName = "preview"
 		title = "Cola UI"

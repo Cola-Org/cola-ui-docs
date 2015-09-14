@@ -51,7 +51,7 @@ $(".markdown-content>pre.code").each((index, el)->
 prettyPrint()
 
 $('#catalog').sticky({
-	offset:30
+	offset: 30
 })
 
 
@@ -82,7 +82,24 @@ $("#catalog").delegate("a.item", "click", (event)->
 	event.stopImmediatePropagation()
 )
 
+
 $("#catalog > .ui.vertical.following.fluid.accordion.text.menu").accordion({
 	exclusive: false,
 	animateChildren: false
 })
+resizeContent = ()->
+	height = $(window).height()
+	footerHeight = $("#footer").height()
+	$("#article>div>.content").css("minHeight", height - footerHeight)
+$(window).ready(resizeContent).resize(resizeContent)
+
+contentContainer = $("#article")
+$("#back-to-top").click(()->
+	contentContainer.animate({scrollTop: 0}, 1000)
+)
+
+contentContainer.scroll(()->
+	wTop = $(this).scrollTop()
+	$("#back-to-top").toggleClass("show", wTop > 0)
+);
+

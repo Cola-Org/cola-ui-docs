@@ -1,5 +1,5 @@
 (function() {
-  var $examples, jsBeautifyOptions;
+  var $examples, contentContainer, jsBeautifyOptions, resizeContent;
 
   jsBeautifyOptions = {
     space_before_conditional: true,
@@ -107,6 +107,29 @@
   $("#catalog > .ui.vertical.following.fluid.accordion.text.menu").accordion({
     exclusive: false,
     animateChildren: false
+  });
+
+  resizeContent = function() {
+    var footerHeight, height;
+    height = $(window).height();
+    footerHeight = $("#footer").height();
+    return $("#article>div>.content").css("minHeight", height - footerHeight);
+  };
+
+  $(window).ready(resizeContent).resize(resizeContent);
+
+  contentContainer = $("#article");
+
+  $("#back-to-top").click(function() {
+    return contentContainer.animate({
+      scrollTop: 0
+    }, 1000);
+  });
+
+  contentContainer.scroll(function() {
+    var wTop;
+    wTop = $(this).scrollTop();
+    return $("#back-to-top").toggleClass("show", wTop > 0);
   });
 
 }).call(this);
