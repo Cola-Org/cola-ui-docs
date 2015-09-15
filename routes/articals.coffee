@@ -7,8 +7,8 @@ module.exports = [
 				url: "quick-start"
 			}
 			{
-				name: "实例教程"
-				url: "tutorial"
+				name: "实例教程——代办事项"
+				url: "tutorial-todo"
 			}
 			{
 				name: "FAQ"
@@ -54,6 +54,10 @@ module.exports = [
 			{
 				name: "国际化"
 				url: "resource"
+			}
+			{
+				name: "常用名词或规范"
+				url: "definitions"
 			}
 		]
 	}
@@ -169,7 +173,6 @@ module.exports = [
 				name: "Layer(浮动层)"
 				url: "layout/layer"
 			}
-
 		]
 	}
 ]

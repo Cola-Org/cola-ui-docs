@@ -6,11 +6,11 @@ module.exports =
 			title:"Cola-UI文章"
 			file:"articals.md"
 		"quick-start":
-			title:"实例教程——代办事项"
+			title:"快速入门"
 			file:"quick-start.md"
-		"todo-list":
-			title:"FAQ"
-			file:"todo-list.md"
+		"tutorial-list":
+			title:"实例教程——代办事项"
+			file:"tutorial-todo.md"
 		"faq":
 			title:"FAQ"
 			file:"faq.md"
@@ -41,3 +41,6 @@ module.exports =
 		"resource":
 			title:"国际化"
 			file:"resource.md"
+		"definitions":
+			title:"常用名词或规范"
+			file:"definitions.md"
