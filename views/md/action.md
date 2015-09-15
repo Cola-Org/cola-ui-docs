@@ -24,10 +24,12 @@ model.action.showMessage = function() {
 
 Cola中包含一些系统级的Action供我们直接使用，我们称这些Action为隐式Action。目前已支持的隐式Action如下:
 
+* is(value): 将传入的值转换成逻辑值。
 * not(value): 用于对传入的值进行逻辑非运算。
 * isEmpty(value)： 用于判断传入的值是否为空。此方法对于各种类型的value值有不完全相同的处理逻辑:
  * Array - 如果长度为0则认为是空。
  * cola.EntityList - 如果其entityCount属性为0则认为是空。
  * String - 如果长度为0则认为是空。
  * 其他情况下则当其值为null或undefined时才认为是空。
-* i18n(key, param1, param2, ...)： 用于返回cola中定义的国际化资源，其具体用法可以直接参考cola.i18n()方法的API文档。
+* isNotEmpty(value): 与isEmpty(value)的结果相反。
+* resource(key, param1, param2, ...)： 用于返回cola中定义的国际化资源，其具体用法可以直接参考cola.resource()方法的API文档。

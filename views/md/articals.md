@@ -15,6 +15,7 @@
  * [xRender(快速渲染)](x-render)
  * [router(路由)](router)
  * [国际化](resource)
+ * [常用名词或规范](definitions)
 * 布局
  * [Grid(栅格系统)](layout/grid)
  * [Box(箱式布局)](layout/box)
