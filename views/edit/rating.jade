@@ -1,0 +1,25 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 评分控件
+		.code
+			div(c-widget="Rating; maxRating:10; rating:3")
+	+addCatalog("star","Star")
+	.example#star
+		h4.ui.header Star
+		.code
+			div(c-widget="Rating; maxRating:5; rating:3; class:star")
+	+addCatalog("heart","Heart")
+	.example#heart
+		h4.ui.header Heart
+		.code
+			div(c-widget="Rating; maxRating:5; rating:3; class:heart")
+	+addCatalog("heart","Heart")
+	.example#disabled
+		h4.ui.header disabled
+		.code
+			div(c-widget="Rating; maxRating:5; rating:3; disabled:true")
+
+
