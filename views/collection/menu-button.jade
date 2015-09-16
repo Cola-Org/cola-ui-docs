@@ -1,0 +1,39 @@
+extends ../doc-layout
+
+block content
+	+addCatalog("standard","标准")
+	.example#standard
+		h4.ui.header 标准
+		.code
+			div(c-widget="menuButton; caption:搜索引擎")
+				div(c-widget="Menu")
+					a.item Google
+					a.item Bing
+					a.item BaiDu
+					a.item SouGou
+	+addCatalog("event","事件")
+	.example#event(name="event")
+		h4.ui.header 事件
+		.code
+			div(c-widget="menuButton; caption:搜索引擎; menuItemClick:itemClick")
+				div(c-widget="Menu")
+					a(c-widget="item; click:googleClick") Google
+					a.item Bing
+					a.item BaiDu
+					a.item SouGou
+	script(type="text/javascript" name="event").
+		cola("event", function (model) {
+			model.action({
+				googleClick: function (self, arg) {
+					alert("google")
+				},
+				itemClick: function (self, arg) {
+					var text = $(arg.item.getDom()).text();
+					self.set("caption", text);
+				}
+			})
+
+		});
+	script(type="text/javascript").
+		cola(function (model) {
+		});

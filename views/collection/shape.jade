@@ -1,0 +1,67 @@
+extends ../doc-layout
+
+
+block content
+	+addCatalog("standard","标准")
+	.example#standard(name="shape")
+		h4.ui.header 标准
+		.code
+			#s1(c-widget="Shape;")
+				.sides
+					.side
+						img(c-widget="image; src:/images/avatar/large/chris.jpg; class:small centered;")
+					.side
+						img(c-widget="image; src:/images/avatar/large/daniel.jpg; class:small centered;")
+					.side
+						img(c-widget="image; src:/images/avatar/large/christian.jpg; class:small centered;")
+					.side
+						img(c-widget="image; src:/images/avatar/large/helen.jpg; class:small centered;")
+					.side
+						img(c-widget="image; src:/images/avatar/large/laura.jpg; class:small centered;")
+			p
+			div(c-widget="buttonGroup")
+				div(c-widget="button; icon:left long arrow; userData:left; click:flip")
+				div(c-widget="button; icon:up long arrow; userData:up; click:flip")
+				div(c-widget="button; icon:down long arrow; userData:down; click:flip")
+				div(c-widget="button; icon:right long arrow; userData:right; click:flip")
+				div(c-widget="button; icon:retweet arrow; userData:over; click:flip")
+				div(c-widget="button; icon:flipped retweet arrow; userData:back; click:flip")
+	script(type="text/javascript" name="shape").
+		cola("shape", function (model) {
+			model.action("flip", function (self, arg) {
+				var ar = self.get("userData");
+				cola.widget("s1").flip(ar);
+			})
+		})
+	+addCatalog("template","template")
+	.example#template(name="template")
+		h4.ui.header template
+		.code
+			#s2(c-widget="Shape; bind:item in items;")
+				template
+					.side
+						img(c-widget="image; src:{{item.image}}; class:small centered;")
+			p
+			div(c-widget="buttonGroup")
+				div(c-widget="button; icon:left long arrow; userData:left; click:flip2")
+				div(c-widget="button; icon:up long arrow; userData:up; click:flip2")
+				div(c-widget="button; icon:down long arrow; userData:down; click:flip2")
+				div(c-widget="button; icon:right long arrow; userData:right; click:flip2")
+				div(c-widget="button; icon:retweet arrow; userData:over; click:flip2")
+				div(c-widget="button; icon:flipped retweet arrow; userData:back; click:flip2")
+
+	script(type="text/javascript" name="template").
+		cola("template", function (model) {
+			model.set("items", [
+				{image: "/images/avatar/large/ade.jpg"},
+				{image: "/images/avatar/large/chris.jpg"},
+				{image: "/images/avatar/large/daniel.jpg"},
+				{image: "/images/avatar/large/christian.jpg"},
+				{image: "/images/avatar/large/helen.jpg"},
+				{image: "/images/avatar/large/laura.jpg"}
+			]);
+			model.action("flip2", function (self, arg) {
+				var ar = self.get("userData");
+				cola.widget("s2").flip(ar);
+			})
+		})

@@ -102,6 +102,10 @@ module.exports = [
 				url: "base/button"
 			}
 			{
+				name: "Link(链接)"
+				url: "base/link"
+			}
+			{
 				name: "Divider(分割线)"
 				url: "base/divider"
 			}
@@ -138,8 +142,20 @@ module.exports = [
 				url: "collection/menu"
 			}
 			{
+				name: "MenuButton(菜单按钮)"
+				url: "collection/menu-button"
+			}
+			{
 				name: "Steps(步骤行程)"
 				url: "collection/steps"
+			}
+			{
+				name: "Shape(形状)"
+				url: "collection/shape"
+			}
+			{
+				name: "Stack(层堆栈)"
+				url: "collection/stack"
 			}
 			{
 				name: "Tab(标签页)"
@@ -170,9 +186,14 @@ module.exports = [
 				url: "edit/toggle"
 			}
 			{
+				name: "Rating(评分)"
+				url: "edit/rating"
+			}
+			{
 				name: "Layer(浮动层)"
 				url: "layout/layer"
 			}
+
 		]
 	}
 ]

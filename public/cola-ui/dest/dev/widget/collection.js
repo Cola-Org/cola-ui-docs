@@ -866,9 +866,9 @@
     };
 
     Carousel.prototype.refreshIndicators = function() {
-      var currentIndex, i, indicatorCount, itemsCount, ref, span;
+      var currentIndex, i, indicatorCount, itemsCount, ref, ref1, span;
       itemsCount = (ref = this._items) != null ? ref.length : void 0;
-      if (!this._doms.indicators) {
+      if (!((ref1 = this._doms) != null ? ref1.indicators : void 0)) {
         return;
       }
       indicatorCount = this._doms.indicators.children.length;
@@ -1507,6 +1507,11 @@
               menuItem = cola.widget(childNode);
               if (menuItem) {
                 _this.addRightItem(menuItem);
+              } else if (cola.util.hasClass(childNode, "item")) {
+                menuItem = new cola.menu.MenuItem({
+                  dom: childNode
+                });
+                _this.addRightItem(menuItem);
               }
             }
             childNode = childNode.nextSibling;
@@ -1525,6 +1530,11 @@
               } else if (!_this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
                 _this._rightMenuDom = childNode;
                 parseRightMenu(childNode);
+              } else if (cola.util.hasClass(childNode, "item")) {
+                menuItem = new cola.menu.MenuItem({
+                  dom: childNode
+                });
+                _this.addItem(menuItem);
               }
             }
             childNode = childNode.nextSibling;
@@ -1686,7 +1696,7 @@
       if (!parentMenu) {
         return;
       }
-      if (parentMenu instanceof cola.menu.AbstractMenuItem || parentMenu instanceof cola.Menu) {
+      if (parentMenu instanceof cola.menu.AbstractMenuItem || parentMenu instanceof cola.Menu || parentMenu instanceof cola.Button) {
         parentMenu.onItemClick(event, item);
       }
     };
@@ -2025,6 +2035,7 @@
           menu = cola.widget(child);
           if (menu && menu instanceof cola.Menu) {
             this._menu = menu;
+            menu._parent = this;
             break;
           }
         }
@@ -2098,90 +2109,13 @@
 
   })(cola.Button);
 
-  if (cola.shape == null) {
-    cola.shape = {};
-  }
+  cola.registerType("menuButton", "_default", cola.ButtonMenu);
 
-  cola.shape.Side = (function(superClass) {
-    extend(Side, superClass);
+  cola.registerType("menuButton", "menu", cola.ButtonMenu);
 
-    function Side() {
-      return Side.__super__.constructor.apply(this, arguments);
-    }
-
-    Side.ATTRIBUTES = {
-      content: {
-        refreshDom: true,
-        setter: function(value) {
-          var ref;
-          if ((ref = this["_content"]) != null) {
-            if (typeof ref.destroy === "function") {
-              ref.destroy();
-            }
-          }
-          this["_content"] = value;
-          if (this._dom) {
-            this._refreshContent();
-          }
-        }
-      },
-      active: {
-        type: "boolean",
-        defaultValue: false
-      }
-    };
-
-    Side.prototype._createDom = function() {
-      var dom;
-      dom = document.createElement("div");
-      dom.className = "side";
-      return dom;
-    };
-
-    Side.prototype._refreshContent = function() {
-      var content, dom;
-      content = this._content;
-      dom = null;
-      if (content instanceof cola.Widget) {
-        dom = content.getDom();
-      } else if (content.constructor === Object.prototype.constructor) {
-        if (content.$type) {
-          content = this._content = cola.widget(content);
-          content.appendTo(this._dom);
-        } else {
-          this.get$Dom().append($.xCreate(content));
-        }
-      } else if (content.nodeType === 1) {
-        this.get$Dom().append(content);
-      }
-    };
-
-    Side.prototype.getDom = function() {
-      if (this._destroyed) {
-        return;
-      }
-      if (!this._dom) {
-        Side.__super__.getDom.call(this);
-        if (this._content) {
-          this._refreshContent();
-        }
-      }
-      return this._dom;
-    };
-
-    Side.prototype.destroy = function() {
-      if (!this._destroyed) {
-        delete this._dom;
-        delete this._$dom;
-        delete this._content;
-        Side.__super__.destroy.call(this);
-      }
-      this._destroyed = true;
-    };
-
-    return Side;
-
-  })(cola.Widget);
+  cola.registerTypeResolver("menuButton", function(config) {
+    return cola.resolveType("widget", config);
+  });
 
   cola.Shape = (function(superClass) {
     extend(Shape, superClass);
@@ -2190,28 +2124,13 @@
       return Shape.__super__.constructor.apply(this, arguments);
     }
 
-    Shape.CLASS_NAME = "ui shape";
+    Shape.CLASS_NAME = "shape";
 
     Shape.ATTRIBUTES = {
-      sides: {
-        setter: function(sides) {
-          var config, j, len;
-          this.clear();
-          for (j = 0, len = sides.length; j < len; j++) {
-            config = sides[j];
-            this.addSide(config);
-          }
-        }
-      },
-      currentIndex: {
-        type: "number",
-        setter: function(sides) {
-          var config, j, len;
-          this.clear();
-          for (j = 0, len = sides.length; j < len; j++) {
-            config = sides[j];
-            this.addSide(config);
-          }
+      bind: {
+        readonlyAfterCreate: true,
+        setter: function(bindStr) {
+          return this._bindSetter(bindStr);
         }
       }
     };
@@ -2221,183 +2140,149 @@
       afterChange: null
     };
 
-    Shape.prototype.addSide = function(config) {
-      var side;
-      if (this._sides == null) {
-        this._sides = [];
+    Shape.directions = ["up", "down", "left", "right", "over", "back"];
+
+    Shape.prototype.getContentContainer = function() {
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
       }
-      side = null;
-      if (config instanceof cola.Widget) {
-        side = new cola.shape.Side({
-          content: config
-        });
-      } else if (config.constructor === Object.prototype.constructor) {
-        if (config.$type || config.tagName) {
-          side = new cola.shape.Side({
-            content: config
-          });
-        } else if (config.tagName) {
-          side = new cola.shape.Side(config);
-        }
-      }
-      if (side) {
-        this._sides.push(side);
-      }
-      if (this._dom && side) {
-        $(this._doms.sides).append(side.getDom());
-      }
-      return this;
+      return this._doms.wrap;
     };
 
-    Shape.prototype.removeSide = function(side) {
-      var index;
-      index = side;
-      if (side instanceof cola.shape.Side) {
-        index = this._sides.indexOf(side);
+    Shape.prototype._createItemsWrap = function(dom) {
+      if (this._doms == null) {
+        this._doms = {};
       }
-      if (index > -1) {
-        this._sides.splice(index, 1);
-        side.remove();
-      }
+      this._doms.wrap = $.xCreate({
+        tagName: "div",
+        "class": "sides"
+      });
+      dom.appendChild(this._doms.wrap);
+      return null;
     };
 
-    Shape.prototype.clear = function() {
-      var j, len, ref, side;
-      if (!this._sides) {
+    Shape.prototype.setCurrentIndex = function(index) {
+      var currentDom, oldIndex, sides, targetDom;
+      this._currentIndex = index;
+      if (!this._dom) {
         return;
       }
-      ref = this._sides;
-      for (j = 0, len = ref.length; j < len; j++) {
-        side = ref[j];
-        side.destroy();
+      currentDom = this._current;
+      if (this._doms) {
+        sides = $(this._doms.wrap).find(".side");
+        if (currentDom) {
+          oldIndex = sides.index(currentDom);
+          console.log(oldIndex);
+          if (index === oldIndex) {
+            return;
+          }
+        }
+        sides.removeClass("active");
+        targetDom = sides.eq(index).addClass("active");
       }
-      this._sides = [];
-      $(this._doms.sides).empty();
       return this;
     };
 
-    Shape.prototype._createDom = function() {
-      return $.xCreate({
-        tagName: "div",
-        "class": this.constructor.CLASS_NAME,
-        content: [
-          {
-            tagName: "div",
-            "class": "sides",
-            contextKey: "sides"
-          }
-        ]
-      }, this._doms);
-    };
-
-    Shape.prototype.getDom = function() {
-      var $sidesDom, current, j, len, ref, side;
-      if (this._destroyed) {
-        return null;
-      }
-      if (!this._dom) {
-        if (this._doms == null) {
-          this._doms = {};
-        }
-        Shape.__super__.getDom.call(this);
-        $sidesDom = $(this._doms.sides);
-        if (this._sides) {
-          current = null;
-          ref = this._sides;
-          for (j = 0, len = ref.length; j < len; j++) {
-            side = ref[j];
-            $sidesDom.append(side.getDom());
-            if (!!side.get("active")) {
-              current = side;
+    Shape.prototype._parseDom = function(dom) {
+      var child, doms, parseItem;
+      parseItem = (function(_this) {
+        return function(node) {
+          var childNode;
+          _this._items = [];
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              _this.addItem(childNode);
             }
+            $fly(childNode).addClass("side");
+            childNode = childNode.nextSibling;
           }
-          if (current == null) {
-            current = this._sides[0];
-          }
-          current.get$Dom().addClass("active");
-        }
-        this.get$Dom().shape({
-          beforeChange: (function(_this) {
-            return function() {
-              _this.fire("beforeChange", _this, {
-                current: _this._current
-              });
-            };
-          })(this),
-          onChange: (function(_this) {
-            return function() {
-              var k, len1, ref1;
-              _this._current = null;
-              ref1 = _this._sides;
-              for (k = 0, len1 = ref1.length; k < len1; k++) {
-                side = ref1[k];
-                side.get$Dom().hasClass("active");
-                _this._current = side;
-                break;
-              }
-              _this.fire("afterChange", _this, {
-                current: _this._current
-              });
-            };
-          })(this)
-        });
+        };
+      })(this);
+      if (this._doms == null) {
+        this._doms = {};
       }
-      return this._dom;
+      doms = this._doms;
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          if (cola.util.hasClass(child, "sides")) {
+            doms.wrap = child;
+            parseItem(child);
+          } else if (child.nodeName === "TEMPLATE") {
+            this._regTemplate(child);
+          }
+        }
+        child = child.nextSibling;
+      }
     };
 
-    Shape.prototype.getSide = function(index) {
-      var ref;
-      return (ref = this._sides) != null ? ref[index] : void 0;
+    Shape.prototype._initDom = function(dom) {
+      var shape, template;
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
+      }
+      template = this._getTemplate();
+      if (template) {
+        if (this._bindStr) {
+          $fly(template).attr("c-repeat", this._bindStr);
+        }
+        this._doms.wrap.appendChild(template);
+        cola.xRender(template, this._scope);
+      }
+      if (this._items) {
+        this._itemsRender();
+      }
+      shape = this;
+      setTimeout(function() {
+        return $(dom).shape({
+          beforeChange: function() {
+            shape.fire("beforeChange", shape, {
+              current: shape._current
+            });
+          },
+          onChange: function(activeDom) {
+            shape._current = activeDom;
+            shape.fire("afterChange", shape, {
+              current: activeDom
+            });
+          }
+        });
+      }, 0);
+      this.setCurrentIndex(0);
     };
 
-    Shape.prototype.getSideDom = function(index) {
-      var ref, ref1;
-      return (ref = this._sides) != null ? (ref1 = ref[index]) != null ? ref1.getDom() : void 0 : void 0;
-    };
-
-    Shape.prototype.flipUp = function() {
-      this.get$Dom().shape("flip up");
-      return this;
-    };
-
-    Shape.prototype.flipDown = function() {
-      this.get$Dom().shape("flip down");
-      return this;
-    };
-
-    Shape.prototype.flipRight = function() {
-      this.get$Dom().shape("flip right");
-      return this;
-    };
-
-    Shape.prototype.flipLeft = function() {
-      this.get$Dom().shape("flip left");
-      return this;
-    };
-
-    Shape.prototype.flipOver = function() {
-      this.get$Dom().shape("flip over");
-      return this;
-    };
-
-    Shape.prototype.flipBack = function() {
-      this.get$Dom().shape("flip back");
-      return this;
-    };
-
-    Shape.prototype.flip = function(flip) {
-      this.get$Dom().shape("flip " + flip);
+    Shape.prototype.flip = function(direction) {
+      var $dom;
+      if (direction == null) {
+        direction = "right";
+      }
+      if (this.constructor.directions.indexOf(direction) >= 0) {
+        cola._ignoreNodeRemoved = true;
+        $dom = this.get$Dom();
+        if (!$dom.shape("is animating")) {
+          $dom.shape("flip " + direction);
+        }
+        cola._ignoreNodeRemoved = false;
+      }
       return this;
     };
 
     Shape.prototype.setNextSide = function(selector) {
+      if (!this._dom) {
+        return;
+      }
       this.get$Dom().shape("set next side", selector);
       return this;
     };
 
     return Shape;
 
-  })(cola.Widget);
+  })(cola.AbstractItemGroup);
+
+  cola.Element.mixin(cola.Shape, cola.TemplateSupport);
+
+  cola.Element.mixin(cola.Shape, cola.DataItemsWidgetMixin);
 
   if (cola.steps == null) {
     cola.steps = {};
@@ -2920,42 +2805,88 @@
 
     Stack.duration = 200;
 
-    Stack.prototype._createDom = function() {
-      var dom;
+    Stack.prototype._initDom = function(dom) {
+      var itemsWrap;
       if (this._doms == null) {
         this._doms = {};
       }
-      dom = $.xCreate({
-        content: [
-          {
-            tagName: "div",
-            "class": "items-wrap",
-            contextKey: "itemsWrap",
-            content: [
-              {
-                tagName: "div",
-                "class": "item black prev",
-                contextKey: "prevItem"
-              }, {
-                tagName: "div",
-                "class": "item blue current",
-                contextKey: "currentItem",
-                style: {
-                  display: "block"
-                }
-              }, {
-                tagName: "div",
-                "class": "item green next",
-                contextKey: "nextItem"
-              }
-            ]
-          }
-        ]
-      }, this._doms);
+      itemsWrap = this.getItemsWrap();
+      if (!this._doms.prevItem) {
+        this._doms.prevItem = $.xCreate({
+          "class": "prev item"
+        });
+        $fly(itemsWrap).prepend(this._doms.prevItem);
+      }
+      if (!this._doms.currentItem) {
+        this._doms.currentItem = $.xCreate({
+          "class": "current item"
+        });
+        $fly(this._doms.prevItem).after(this._doms.currentItem);
+      }
+      if (!this._doms.nextItem) {
+        this._doms.nextItem = $.xCreate({
+          "class": "next item"
+        });
+        $fly(this._doms.currentItem).after(this._doms.nextItem);
+      }
       this._prevItem = this._doms.prevItem;
       this._currentItem = this._doms.currentItem;
       this._nextItem = this._doms.nextItem;
-      return dom;
+      return $fly(this._currentItem).css({
+        display: "block"
+      });
+    };
+
+    Stack.prototype._parseDom = function(dom) {
+      var child, doms, parseItem, results;
+      parseItem = (function(_this) {
+        return function(node) {
+          var childNode;
+          _this._items = [];
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              if ($fly(childNode).hasClass("prev")) {
+                _this._doms.prevItem = childNode;
+              } else if ($fly(childNode).hasClass("current")) {
+                _this._doms.currentItem = childNode;
+              } else if ($fly(childNode).hasClass("next")) {
+                _this._doms.nextItem = childNode;
+              }
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      doms = this._doms;
+      child = dom.firstChild;
+      results = [];
+      while (child) {
+        if (child.nodeType === 1) {
+          if (cola.util.hasClass(child, "items-wrap")) {
+            doms.wrap = child;
+            parseItem(child);
+          }
+        }
+        results.push(child = child.nextSibling);
+      }
+      return results;
+    };
+
+    Stack.prototype.getItemContainer = function(key) {
+      return this["_" + key + "Item"];
+    };
+
+    Stack.prototype.getItemsWrap = function() {
+      var wrap;
+      if (!this._doms.itemsWrap) {
+        wrap = $.xCreate({
+          "class": "items-wrap"
+        });
+        this._doms.itemsWrap = wrap;
+        this._dom.appendChild(wrap);
+      }
+      return this._doms.itemsWrap;
     };
 
     Stack.prototype._setDom = function(dom, parseChild) {
@@ -3159,7 +3090,8 @@
       this.fire("change", this, {
         current: this._currentItem,
         prev: this._prevItem,
-        next: this._nextItem
+        next: this._nextItem,
+        action: "over"
       });
       return null;
     };
@@ -3175,7 +3107,8 @@
       this.fire("change", this, {
         current: this._currentItem,
         prev: this._prevItem,
-        next: this._nextItem
+        next: this._nextItem,
+        action: "back"
       });
       return null;
     };

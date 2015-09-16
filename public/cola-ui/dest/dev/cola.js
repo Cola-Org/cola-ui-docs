@@ -1,5 +1,5 @@
 (function() {
-  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, jsep, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, jsep, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
     slice = [].slice;
@@ -1637,11 +1637,11 @@
       }
       return this;
     };
-    elements.on = function(eventName, listener) {
+    elements.on = function(eventName, listener, once) {
       var element, len2, o;
       for (o = 0, len2 = elements.length; o < len2; o++) {
         element = elements[o];
-        element.on(eventName, listener);
+        element.on(eventName, listener, once);
       }
       return this;
     };
@@ -3766,14 +3766,14 @@
       }
     }
     if (aggregated) {
-      entityList = new cola.EntityList(dataType);
+      entityList = new cola.EntityList(null, dataType);
       entityList.fillData(json);
       return entityList;
     } else {
       if (json instanceof Array) {
         throw new cola.Exception("Unmatched DataType. expect \"Object\" but \"Array\".");
       }
-      return new cola.Entity(dataType, json);
+      return new cola.Entity(json, dataType);
     }
   };
 
@@ -3880,7 +3880,7 @@
 
     Entity.prototype._disableWriteObservers = 0;
 
-    function Entity(dataType, data) {
+    function Entity(data, dataType) {
       this.id = cola.uniqueId();
       this.timestamp = cola.sequenceNo();
       this.dataType = dataType;
@@ -3902,7 +3902,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (loadMode && typeof loadMode === "object") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         loadMode = "async";
         callback = loadMode;
       }
@@ -4188,103 +4188,6 @@
       return value;
     };
 
-    Entity.prototype.getText = function(prop, loadMode, callback, context) {
-      var entity, i, part1, part2, text;
-      if (loadMode == null) {
-        loadMode = "async";
-      }
-      if (loadMode && typeof loadMode === "object") {
-        loadMode = "async";
-        callback = loadMode;
-      }
-      i = prop.lastIndexOf(".");
-      if (i > 0) {
-        part1 = prop.substring(0, i);
-        part2 = prop.substring(i + 1);
-        if (callback) {
-          return this.get(part1, loadMode, {
-            complete: function(success, entity) {
-              var text;
-              if (success) {
-                if (entity) {
-                  if (typeof entity._getText === "function") {
-                    entity._getText(part2, loadMode, callback);
-                  } else {
-                    text = entity[path];
-                    cola.callback(callback, true, (text != null ? text + "" : ""));
-                  }
-                } else {
-                  cola.callback(callback, true, "");
-                }
-              } else {
-                cola.callback(callback, false, entity);
-              }
-            }
-          }, context);
-        } else {
-          entity = this.get(part1, loadMode, null, context);
-          if (entity) {
-            if (typeof entity._getText === "function") {
-              return entity._getText(part2, null, null, context);
-            } else {
-              text = entity[path] + "";
-              if (text != null) {
-                return text + "";
-              } else {
-                return "";
-              }
-            }
-          }
-        }
-      } else {
-        return this._getText(prop, loadMode, callback, context);
-      }
-    };
-
-    Entity.prototype._getText = function(prop, loadMode, callback, context) {
-      var dataType, property, propertyDataType, ref;
-      if (callback) {
-        dataType = this.dataType;
-        this._get(prop, loadMode, {
-          complete: function(success, value) {
-            var property, propertyDataType, text;
-            if (success) {
-              if (value != null) {
-                property = dataType != null ? dataType.getProperty(prop) : void 0;
-                propertyDataType = property != null ? property._dataType : void 0;
-                if (propertyDataType) {
-                  text = propertyDataType.toText(value, property._format);
-                } else {
-                  text = value != null ? value + "" : "";
-                }
-              }
-              cola.callback(callback, true, text || "");
-            } else {
-              cola.callback(callback, false, value);
-            }
-          }
-        }, context);
-        return "";
-      } else {
-        value = this._get(prop, loadMode, null, context);
-        if (value != null) {
-          property = (ref = this.dataType) != null ? ref.getProperty(prop) : void 0;
-          propertyDataType = property != null ? property._dataType : void 0;
-          if (propertyDataType) {
-            return propertyDataType.toText(value, property._format);
-          } else {
-            if (value != null) {
-              return value + "";
-            } else {
-              return "";
-            }
-          }
-        } else {
-          return "";
-        }
-      }
-    };
-
     Entity.prototype.remove = function() {
       if (this._parent) {
         if (this._parent instanceof _EntityList) {
@@ -4312,7 +4215,7 @@
       if (property != null ? property._aggregated : void 0) {
         entityList = this._get(prop, "never");
         if (entityList == null) {
-          entityList = new cola.EntityList(propertyDataType);
+          entityList = new cola.EntityList(null, propertyDataType);
           provider = property._provider;
           if (provider) {
             entityList.pageSize = provider._pageSize;
@@ -4333,7 +4236,7 @@
       if (data && data instanceof Array) {
         throw new cola.Exception("Unmatched DataType. expect \"Object\" but \"Array\".");
       }
-      brother = new _Entity(this.dataType, data);
+      brother = new _Entity(data, this.dataType);
       brother.setState(_Entity.STATE_NEW);
       parent = this._parent;
       if (parent && parent instanceof _EntityList) {
@@ -4451,7 +4354,7 @@
         throw new cola.Exception("Provider undefined.");
       }
       this._set(property, void 0);
-      if (loadMode && typeof loadMode === "object") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
@@ -4520,6 +4423,13 @@
       } else {
         this._disableObserverCount--;
       }
+      return this;
+    };
+
+    Entity.prototype.notifyObservers = function() {
+      this._notify(cola.constants.MESSAGE_REFRESH, {
+        entity: this
+      });
       return this;
     };
 
@@ -4611,7 +4521,7 @@
           entity: this
         });
       }
-      return keyMessage;
+      return !((keyMessage != null ? keyMessage.type : void 0) === VALIDATION_ERROR);
     };
 
     Entity.prototype._addMessage = function(prop, message) {
@@ -4633,29 +4543,6 @@
         }
       }
       return topKeyChanged;
-    };
-
-    Entity.prototype.clearMessages = function(prop) {
-      var hasPropMessage, topKeyChanged;
-      if (!this._messageHolder) {
-        return this;
-      }
-      if (prop) {
-        hasPropMessage = this._messageHolder.getKeyMessage(prop);
-      }
-      topKeyChanged = this._messageHolder.clear(prop);
-      if (hasPropMessage) {
-        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
-          entity: this,
-          property: prop
-        });
-      }
-      if (topKeyChanged) {
-        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
-          entity: this
-        });
-      }
-      return this;
     };
 
     Entity.prototype.addMessage = function(prop, message) {
@@ -4686,6 +4573,34 @@
     Entity.prototype.getKeyMessage = function(prop) {
       var ref;
       return (ref = this._messageHolder) != null ? ref.getKeyMessage(prop) : void 0;
+    };
+
+    Entity.prototype.getMessages = function(prop) {
+      var ref;
+      return (ref = this._messageHolder) != null ? ref.getMessages(prop) : void 0;
+    };
+
+    Entity.prototype.clearMessages = function(prop) {
+      var hasPropMessage, topKeyChanged;
+      if (!this._messageHolder) {
+        return this;
+      }
+      if (prop) {
+        hasPropMessage = this._messageHolder.getKeyMessage(prop);
+      }
+      topKeyChanged = this._messageHolder.clear(prop);
+      if (hasPropMessage) {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this,
+          property: prop
+        });
+      }
+      if (topKeyChanged) {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this
+        });
+      }
+      return this;
     };
 
     Entity.prototype.findMessages = function(prop, type) {
@@ -4822,7 +4737,7 @@
       dataType = entityList.dataType;
       for (l = 0, len1 = json.length; l < len1; l++) {
         data = json[l];
-        entity = new _Entity(dataType, data);
+        entity = new _Entity(data, dataType);
         this._insertElement(entity);
       }
       if (rawJson.$entityCount != null) {
@@ -4930,10 +4845,13 @@
 
     EntityList.prototype._disableObserverCount = 0;
 
-    function EntityList(dataType) {
+    function EntityList(array, dataType) {
       this.id = cola.uniqueId();
       this.timestamp = cola.sequenceNo();
       this.dataType = dataType;
+      if (array) {
+        this.fillData(array);
+      }
     }
 
     EntityList.prototype.fillData = function(array) {
@@ -5129,7 +5047,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (loadMode && typeof loadMode === "object") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5251,7 +5169,7 @@
           throw new cola.Exception("Entity is already belongs to another owner. \"" + (this._parentProperty || "Unknown") + "\".");
         }
       } else {
-        entity = new _Entity(this.dataType, entity);
+        entity = new _Entity(entity, this.dataType);
         entity.setState(_Entity.STATE_NEW);
       }
       page.dontAutoSetCurrent = true;
@@ -5416,6 +5334,13 @@
       return this;
     };
 
+    EntityList.prototype.notifyObservers = function() {
+      this._notify(cola.constants.MESSAGE_REFRESH, {
+        entityList: this
+      });
+      return this;
+    };
+
     EntityList.prototype._notify = function(type, arg) {
       var ref;
       if (this._disableObserverCount === 0) {
@@ -5430,7 +5355,7 @@
       if (this._providerInvoker == null) {
         throw new cola.Exception("Provider undefined.");
       }
-      if (loadMode && typeof loadMode === "object") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5872,14 +5797,12 @@
             if (!(dataType instanceof cola.DataType)) {
               dataType = new cola.EntityDataType(dataType);
             }
-            this.data.regDefinition(dataType);
           }
         } else {
           dataType = name;
           if (!(dataType instanceof cola.DataType)) {
             dataType = new cola.EntityDataType(dataType);
           }
-          this.data.regDefinition(dataType);
         }
       }
     };
@@ -5900,6 +5823,20 @@
 
     AbstractModel.prototype.enableObservers = function() {
       this.data.enableObservers();
+      return this;
+    };
+
+    AbstractModel.prototype.notifyObservers = function() {
+      this.data.notifyObservers();
+      return this;
+    };
+
+    AbstractModel.prototype.watch = function(path, fn) {
+      this.data.bind(path, {
+        _processMessage: function(bindingPath, path, type, arg) {
+          fn(path, type, arg);
+        }
+      });
       return this;
     };
 
@@ -6493,7 +6430,7 @@
         if (aliasHolder) {
           aliasData = aliasHolder.data;
           if (i > 0) {
-            if (loadMode && typeof loadMode === "object") {
+            if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
               loadMode = "async";
               callback = loadMode;
             }
@@ -6735,8 +6672,12 @@
       return this;
     };
 
-    AbstractDataModel.prototype.isObserversDisabled = function() {
-      return this.disableObserverCount > 0;
+    AbstractDataModel.prototype.notifyObservers = function() {
+      var ref;
+      if ((ref = this._rootData) != null) {
+        ref.notifyObservers();
+      }
+      return this;
     };
 
     AbstractDataModel.prototype._onDataMessage = function(path, type, arg) {
@@ -6747,7 +6688,7 @@
       if (!this.bindingRegistry) {
         return;
       }
-      if (this.isObserversDisabled()) {
+      if (this.disableObserverCount > 0) {
         return;
       }
       oldScope = cola.currentScope;
@@ -6836,7 +6777,7 @@
         if (this._rootDataType == null) {
           this._rootDataType = new cola.EntityDataType();
         }
-        this._rootData = rootData = new cola.Entity(this._rootDataType);
+        this._rootData = rootData = new cola.Entity(null, this._rootDataType);
         rootData.state = cola.Entity.STATE_NEW;
         dataModel = this;
         rootData._setListener({
@@ -7139,8 +7080,9 @@
       return this;
     };
 
-    AliasDataModel.prototype.isObserversDisabled = function() {
-      return this.parent.isObserversDisabled();
+    AliasDataModel.prototype.notifyObservers = function() {
+      this.parent.notifyObservers();
+      return this;
     };
 
     return AliasDataModel;
@@ -7339,6 +7281,10 @@
     "dirty-tree": function(data) {
       return data;
     }
+  };
+
+  cola.model.defaultActions.is = function(value) {
+    return !!value;
   };
 
   cola.model.defaultActions.not = function(value) {
@@ -7614,7 +7560,7 @@
     var cssUrl, cssUrls, failed, htmlUrl, jsUrl, jsUrls, l, len1, len2, len3, len4, loadingUrls, o, q, r, ref, ref1, resourceLoadCallback;
     loadingUrls = [];
     failed = false;
-    resourceLoadCallback = function(success, context, url) {
+    resourceLoadCallback = function(success, result, url) {
       var error, errorMessage, i, initFunc, l, len1, ref;
       if (success) {
         if (!failed) {
@@ -7642,7 +7588,7 @@
         }
       } else {
         failed = true;
-        error = context;
+        error = result;
         if (cola.callback(context.callback, false, error) !== false) {
           if (error.xhr) {
             errorMessage = error.status + " " + error.statusText;
@@ -7686,12 +7632,14 @@
           cssUrl = ref1[o];
           cssUrl = _compileResourceUrl(cssUrl, htmlUrl, ".css");
           if (cssUrl) {
+            loadingUrls.push(cssUrl);
             cssUrls.push(cssUrl);
           }
         }
       } else {
         cssUrl = _compileResourceUrl(context.cssUrl, htmlUrl, ".css");
         if (cssUrl) {
+          loadingUrls.push(cssUrl);
           cssUrls.push(cssUrl);
         }
       }
@@ -7700,7 +7648,7 @@
     if (htmlUrl) {
       _loadHtml(targetDom, htmlUrl, void 0, {
         complete: function(success, result) {
-          return resourceLoadCallback(success, (success ? context : result), htmlUrl);
+          return resourceLoadCallback(success, result, htmlUrl);
         }
       });
     }
@@ -7709,7 +7657,7 @@
         jsUrl = jsUrls[q];
         _loadJs(context, jsUrl, {
           complete: function(success, result) {
-            return resourceLoadCallback(success, (success ? context : result), jsUrl);
+            return resourceLoadCallback(success, result, jsUrl);
           }
         });
       }
@@ -7717,7 +7665,34 @@
     if (cssUrls) {
       for (r = 0, len4 = cssUrls.length; r < len4; r++) {
         cssUrl = cssUrls[r];
-        _loadCss(cssUrl);
+        _loadCss(cssUrl, {
+          complete: function(success, result) {
+            return resourceLoadCallback(success, result, cssUrl);
+          }
+        });
+      }
+    }
+  };
+
+  cola.unloadSubView = function(targetDom, context) {
+    var cssUrl, htmlUrl, l, len1, ref;
+    $fly(targetDom).empty();
+    htmlUrl = context.htmlUrl;
+    if (context.cssUrl) {
+      if (context.cssUrl instanceof Array) {
+        ref = context.cssUrl;
+        for (l = 0, len1 = ref.length; l < len1; l++) {
+          cssUrl = ref[l];
+          cssUrl = _compileResourceUrl(cssUrl, htmlUrl, ".css");
+          if (cssUrl) {
+            _unloadCss(cssUrl);
+          }
+        }
+      } else {
+        cssUrl = _compileResourceUrl(context.cssUrl, htmlUrl, ".css");
+        if (cssUrl) {
+          _unloadCss(cssUrl);
+        }
       }
     }
   };
@@ -7801,7 +7776,7 @@
 
   _cssCache = {};
 
-  _loadCss = function(url) {
+  _loadCss = function(url, callback) {
     var head, linkElement;
     if (!_cssCache[url]) {
       linkElement = $.xCreate({
@@ -7811,9 +7786,23 @@
         charset: cola.setting("defaultCharset"),
         href: url
       });
+      $(linkElement).on("load", function() {
+        cola.callback(callback, true);
+      }).on("error", function() {
+        cola.callback(callback, false);
+      });
       head = document.querySelector("head") || document.documentElement;
       head.appendChild(linkElement);
-      _cssCache[url] = true;
+      _cssCache[url] = linkElement;
+    } else {
+      cola.callback(callback, true);
+    }
+  };
+
+  _unloadCss = function(url) {
+    if (_cssCache[url]) {
+      $fly(_cssCache[url]).remove();
+      delete _cssCache[url];
     }
   };
 
@@ -7886,7 +7875,7 @@
     return currentRouter;
   };
 
-  cola.setRoutePath = function(path) {
+  cola.setRoutePath = function(path, replace) {
     var routerMode;
     if (path && path.charCodeAt(0) === 35) {
       routerMode = "hash";
@@ -7900,7 +7889,15 @@
         window.location.hash = path;
       }
     } else {
-      window.history.pushState({
+      if (replace) {
+        window.history.replaceState(null, null, path);
+      } else {
+        window.history.pushState(null, null, path);
+      }
+      if (location.pathname !== path) {
+        path = location.pathname + location.search + location.hash;
+      }
+      window.history.replaceState({
         path: path
       }, null, path);
       _onStateChange(path);
@@ -7962,11 +7959,18 @@
       prev: currentRouter,
       next: router
     };
-    cola.fire("beforeRouterSwitch", cola, eventArg);
+    if (cola.fire("beforeRouterSwitch", cola, eventArg) === false) {
+      return;
+    }
     if (currentRouter) {
       oldModel = currentRouter.realModel;
       if (typeof currentRouter.leave === "function") {
         currentRouter.leave(currentRouter, oldModel);
+      }
+      if (currentRouter.targetDom) {
+        cola.unloadSubView(currentRouter.targetDom, {
+          cssUrl: currentRouter.cssUrl
+        });
       }
       delete currentRouter.realModel;
       if (currentRouter.destroyModel) {

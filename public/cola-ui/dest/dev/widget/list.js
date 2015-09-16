@@ -2575,7 +2575,6 @@
         highlightCurrentitem: true,
         allowNoCurrent: !highlightCurrentItem,
         highlightCurrentItem: highlightCurrentItem,
-        width: "100%",
         height: "100%",
         userData: index,
         renderItem: (function(_this) {

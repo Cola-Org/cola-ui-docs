@@ -1,0 +1,57 @@
+extends ../doc-layout
+
+
+block content
+	style
+		:less
+			.stack {
+				h1 {
+					line-height: 60px;
+					text-align: center;
+				}
+				.prev{
+					background-color: #00827c;
+				}
+				.next{
+					background-color: #e5e5e5;
+				}
+				.current{
+					background-color: #e5d02f;
+				}
+			}
+
+	+addCatalog("standard","标准")
+	.example#standard(name="standard")
+		h4.ui.header 标准
+		.code
+			#s1(c-widget="Stack; change:change; createDom:ready; height:60; width:60")
+			p
+			div(c-widget="buttonGroup")
+				div(c-widget="button; icon:left long arrow; userData:prev; click:prev")
+				div(c-widget="button; icon:right long arrow; userData:next; click:next")
+	script(type="text/javascript" name="standard").
+		cola("standard", function (model) {
+			var current = 2;
+
+			function itemRender(stack) {
+				$(stack.getItemContainer("prev")).html($.xCreate({tagName: "h1", content: (current - 1) + ""}))
+				$(stack.getItemContainer("current")).html($.xCreate({tagName: "h1", content: current + ""}))
+				$(stack.getItemContainer("next")).html($.xCreate({tagName: "h1", content: (current + 1) + ""}))
+			}
+
+			model.action({
+				prev: function (self, arg) {
+					cola.widget("s1").prev();
+				},
+				next: function (self, arg) {
+					cola.widget("s1").next();
+				},
+				change: function (self, arg) {
+					arg.action === "over" ? current++ : current--;
+					itemRender(self);
+				},
+				ready: function (self, arg) {
+					itemRender(self);
+				}
+			})
+		})

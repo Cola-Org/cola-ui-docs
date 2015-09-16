@@ -2059,11 +2059,9 @@
       };
 
       DateGrid.prototype.getDateCellDom = function(date) {
-        var ddd, value;
+        var value;
         value = new XDate(date).toString("yyyy-M-d");
-        ddd = $(this._dom).find("td[c-date='" + value + "']");
-        console.log(ddd);
-        return ddd;
+        return $(this._dom).find("td[c-date='" + value + "']");
       };
 
       DateGrid.prototype.doRefreshCell = function(cell, row, column) {
@@ -2822,6 +2820,10 @@
       },
       param: {
         readOnlyAfterCreate: true
+      },
+      showLoadingContent: null,
+      showDimmer: {
+        defaultValue: true
       }
     };
 
@@ -2832,6 +2834,13 @@
     };
 
     SubView.prototype._initDom = function(dom) {
+      var $dom;
+      $dom = $fly(dom);
+      if ($dom.find(">.content").length === 0) {
+        $dom.xAppend({
+          "class": "content"
+        });
+      }
       if (this._url) {
         this.load({
           url: this._url,
@@ -2843,7 +2852,7 @@
     };
 
     SubView.prototype.load = function(options, callback) {
-      var dom, model;
+      var $content, $dimmer, $dom, dom, model;
       dom = this._dom;
       this.unload();
       model = new cola.Model(this._scope);
@@ -2853,7 +2862,25 @@
       this._cssUrl = options.cssUrl;
       this._param = options.param;
       this._loading = true;
-      cola.loadSubView(this._dom, {
+      $dom = $(this._dom);
+      $content = $dom.find(">.content");
+      if (!this._showLoadingContent) {
+        $content.css("visibility", "hidden");
+      }
+      if (this._showDimmer) {
+        $dimmer = $dom.find(">.ui.dimmer");
+        if ($dimmer.length === 0) {
+          $dom.xAppend({
+            "class": "ui inverted dimmer",
+            content: {
+              "class": "ui loader"
+            }
+          });
+          $dimmer = $dom.find(">.ui.dimmer");
+        }
+        $dimmer.addClass("active");
+      }
+      cola.loadSubView($content[0], {
         model: model,
         htmlUrl: this._url,
         jsUrl: this._jsUrl,
@@ -2862,6 +2889,12 @@
         callback: {
           complete: (function(_this) {
             return function(success, result) {
+              if (!_this._showLoadingContent) {
+                $dom.find(">.content").css("visibility", "");
+              }
+              if (_this._showDimmer) {
+                $dom.find(">.ui.dimmer").removeClass("active");
+              }
               _this._loading = false;
               if (success) {
                 _this.fire("load", _this);
@@ -2887,17 +2920,22 @@
 
     SubView.prototype.unload = function() {
       var dom, model;
-      dom = this._dom;
+      if (!this._dom) {
+        return;
+      }
+      cola.unloadSubView($fly(this._dom).find(">.content")[0], {
+        cssUrl: this._cssUrl
+      });
       delete this._url;
       delete this._jsUrl;
       delete this._cssUrl;
       delete this._param;
+      dom = this._dom;
       model = cola.util.userData(dom, "_model");
       if (model != null) {
         model.destroy();
       }
       cola.util.removeUserData(dom, "_model");
-      $fly(dom).empty();
       this.fire("unload", this);
     };
 

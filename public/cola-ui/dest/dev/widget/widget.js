@@ -1047,6 +1047,7 @@
     RenderableElement.prototype._parseDom = function(dom) {};
 
     RenderableElement.prototype._setDom = function(dom, parseChild) {
+      var arg;
       if (!dom) {
         return;
       }
@@ -1057,6 +1058,11 @@
         this._parseDom(dom);
       }
       this._initDom(dom);
+      arg = {
+        dom: dom,
+        returnValue: null
+      };
+      this.fire("createDom", this, arg);
       this._refreshDom();
       this._rendered = true;
     };
@@ -1110,18 +1116,13 @@
     RenderableElement.prototype._resetDimension = function() {};
 
     RenderableElement.prototype.getDom = function() {
-      var arg, dom;
+      var dom;
       if (this._destroyed) {
         return null;
       }
       if (!this._dom) {
         dom = this._createDom();
         this._setDom(dom);
-        arg = {
-          dom: dom,
-          returnValue: null
-        };
-        this.fire("createDom", this, arg);
       }
       return this._dom;
     };

@@ -2534,6 +2534,9 @@ template {
   margin-top: -10px;
 }
 
+.ui.nested-list {
+  position: relative;
+}
 .ui.nested-list .detail {
   border-left: 1px solid #dcddde;
 }
@@ -3434,6 +3437,12 @@ template {
   border-bottom-width: 1px;
 }
 
+.ui.sub-view {
+  overflow: hidden;
+}
+.ui.sub-view > .content {
+  height: 100%;
+}
 .ui.iframe {
   position: relative;
 }

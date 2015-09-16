@@ -1,0 +1,27 @@
+extends ../doc-layout
+block content
+	+addCatalog("standard ","标准")
+	.example#standard
+		h4 Link
+		p 定义一个标准的链接, html 模板定义时需要将tagName定义为#[code a]
+		.code
+			a(c-widget="link; href:http://www.bstek.com" ) bstek.com
+	+addCatalog("target ","target")
+	.example#target
+		h4 target
+		p 通过#[code target] 属性定义新页面view展现模式
+		.code
+			a(c-widget="link; href:http://www.bstek.com; target:_blank" ) bstek.com
+	+addCatalog("content ","content")
+	.example#content
+		h4 content
+		p 通过#[code content] 属性定义link内容如：图片
+		.code
+			a(c-widget="link; href:http://www.bstek.com; target=_blank" )
+				img(c-widget="image;class:small; src:/images/avatar/large/ade.jpg")
+
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+		})
