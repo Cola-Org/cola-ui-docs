@@ -16,12 +16,10 @@ for category in articals
 	for doc in category.docs
 		docTitleMapping[doc.url] = doc.name
 
-
 router.get '/*', (req, res, next) ->
 	pathName = req.params[0]
 	if pathName
 		mdOptions = mdConfig.router[pathName]
-
 
 		if mdOptions
 			res.render "markdown",
@@ -38,7 +36,6 @@ router.get '/*', (req, res, next) ->
 			return
 		paths = pathName.split("/")
 		title = docTitleMapping[pathName] or (if paths.length > 1 then paths[1] else pathName)
-		console.log(title)
 	else
 		pathName = "preview"
 		title = "Cola UI"

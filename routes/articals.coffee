@@ -190,8 +190,8 @@ module.exports = [
 				url: "edit/rating"
 			}
 			{
-				name: "Layer(浮动层)"
-				url: "layout/layer"
+				name: "Dialog(弹出框)"
+				url: "layout/dialog"
 			}
 
 		]

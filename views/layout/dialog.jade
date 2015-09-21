@@ -1,0 +1,88 @@
+extends ../doc-layout
+block content
+	- defaultGroupName="弹出框"
+
+	h2.ui.header 弹出框
+	p 此控件可定义显示和隐藏动画。并可设置动画时间和监听动画结束事件
+
+	+addCatalog("standard","标准")
+	.example#standard(name="standard")
+		h4.ui.header 标准
+		div(c-widget="Button; caption:显示; class:blue; click:show")
+		.code
+			div#d1(c-widget="Dialog; width:150px;")
+				img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:medium")
+
+	script(type="text/javascript" name="standard").
+		cola("standard", function (model) {
+			model.action({
+				show: function () {
+					cola.widget("d1").toggle()
+				}
+			});
+		});
+
+	+addCatalog("dialogContent","content")
+	.example#dialogContent(name="dialogContent")
+		h4.ui.header content
+		p 通过属性是#[code content] 可定义弹出层头部内容
+		div(c-widget="Button; caption:显示; class:blue; click:showContent")
+		.code
+			div#d2(c-widget="Dialog; width:150px;")
+				.content
+					.description
+						.ui.header 个人信息
+						p 此图片为您上传的头像，还可以从系统预设里选择个性头像。
+
+
+	script(type="text/javascript" name="dialogContent").
+		cola("dialogContent", function (model) {
+			model.action({
+				showContent: function () {
+					cola.widget("d2").toggle()
+				}
+			});
+		});
+
+
+	+addCatalog("headerContent","header")
+	.example#headerContent(name="headerContent")
+		h4.ui.header header
+		p 通过属性是#[code header] 可定义弹出层头部内容
+		div(c-widget="Button; caption:显示; class:blue; click:showHeader")
+		.code
+			div#d3(c-widget="Dialog; width:150px;")
+				.header 个人信息
+				.content
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:medium")
+
+	script(type="text/javascript" name="headerContent").
+		cola("headerContent", function (model) {
+			model.action({
+				showHeader: function () {
+					cola.widget("d3").toggle()
+				}
+			});
+		});
+	+addCatalog("dialogAction","actions")
+	.example#dialogAction(name="dialogAction")
+		h4.ui.header actions
+		p 通过属性是#[code header] 可定义弹出层头部内容
+		div(c-widget="Button; caption:显示; class:blue; click:showActions")
+		.code
+			div#d4(c-widget="Dialog; ")
+				.header 个人信息
+				.content
+					img(c-widget="Image; src:/images/avatar/large/nan.jpg; class:medium")
+				.actions
+					div(c-widget="button; caption:取消")
+					div(c-widget="button; caption:确定")
+
+	script(type="text/javascript" name="dialogAction").
+		cola("dialogAction", function (model) {
+			model.action({
+				showActions: function () {
+					cola.widget("d4").toggle()
+				}
+			});
+		});

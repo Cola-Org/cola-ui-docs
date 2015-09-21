@@ -1025,6 +1025,11 @@
 
     RenderableElement.TAG_NAME = "DIV";
 
+    RenderableElement.EVENTS = {
+      initDom: null,
+      refreshDom: null
+    };
+
     function RenderableElement(config) {
       var dom;
       if (config) {
@@ -1062,7 +1067,7 @@
         dom: dom,
         returnValue: null
       };
-      this.fire("createDom", this, arg);
+      this.fire("initDom", this, arg);
       this._refreshDom();
       this._rendered = true;
     };
@@ -1304,8 +1309,6 @@
     };
 
     Widget.EVENTS = {
-      createDom: null,
-      refreshDom: null,
       click: {
         $event: "click"
       },

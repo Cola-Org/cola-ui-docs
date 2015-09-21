@@ -191,6 +191,8 @@
 
     Layer.SLIDE_ANIMATIONS = ["slide left", "slide right", "slide up", "slide down"];
 
+    Layer.prototype._transitionStart = function() {};
+
     Layer.prototype._doTransition = function(options, callback) {
       var $dom, animation, configs, duration, height, isHorizontal, isShow, layer, onComplete, width, x, y;
       layer = this;
@@ -218,7 +220,12 @@
           animation: animation,
           duration: duration,
           onComplete: onComplete,
-          queue: true
+          queue: true,
+          onStart: (function(_this) {
+            return function() {
+              return _this._transitionStart();
+            };
+          })(this)
         });
       } else {
         $dom = this.get$Dom();
@@ -262,6 +269,7 @@
           configs.x = 0;
         }
         $dom.removeClass("hidden").addClass("visible").transit(configs);
+        this._transitionStart();
       }
     };
 
@@ -341,6 +349,22 @@
       }
     };
 
+    Dialog.prototype._transitionStart = function() {
+      var $dom, height, pHeight, pWidth, width;
+      $dom = this.get$Dom();
+      if (this._currentAnimation === "show") {
+        width = $dom.width();
+        height = $dom.height();
+        pWidth = $(window).width();
+        pHeight = $(window).height();
+        return $dom.css({
+          left: (pWidth - width) / 2,
+          top: (pHeight - height) / 2,
+          zIndex: cola.floatWidget.zIndex()
+        });
+      }
+    };
+
     Dialog.prototype._createCloseButton = function() {
       var dom;
       dom = this._closeBtn = $.xCreate({
@@ -395,30 +419,22 @@
     };
 
     Dialog.prototype._transition = function(options, callback) {
-      var $dom, height, isShow, pHeight, pWidth, parentNode, width;
+      var isShow;
       if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
         return false;
       }
-      $dom = this.get$Dom();
       isShow = options.target === "show";
+      if (isShow) {
+        this._currentAnimation = "show";
+      } else {
+        this._currentAnimation = "hide";
+      }
       if (this.get("modal")) {
         if (isShow) {
           this._showModalLayer();
         } else {
           this._hideModalLayer();
         }
-      }
-      if (isShow) {
-        width = $dom.width();
-        height = $dom.height();
-        parentNode = this._context || this._dom.parentNode;
-        pWidth = $(parentNode).width();
-        pHeight = $(parentNode).height();
-        $dom.css({
-          left: (pWidth - width) / 2,
-          top: (pHeight - height) / 2,
-          zIndex: cola.floatWidget.zIndex()
-        });
       }
       options.animation = options.animation || this._animation || "scale";
       return this._doTransition(options, callback);
@@ -498,7 +514,7 @@
     };
 
     Dialog.prototype._showModalLayer = function() {
-      var _dimmerDom, container;
+      var _dimmerDom;
       if (this._doms == null) {
         this._doms = {};
       }
@@ -516,8 +532,7 @@
             };
           })(this));
         }
-        container = this._context || this._dom.parentNode;
-        container.appendChild(_dimmerDom);
+        document.body.appendChild(_dimmerDom);
         this._doms.modalLayer = _dimmerDom;
       }
       $(_dimmerDom).css({

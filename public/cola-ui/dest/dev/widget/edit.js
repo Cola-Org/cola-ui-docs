@@ -1666,18 +1666,6 @@
         type: "boolean",
         refreshDom: true,
         defaultValue: false
-      },
-      size: {
-        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
-        refreshDom: true,
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_size"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_size"] = value;
-        }
       }
     };
 
