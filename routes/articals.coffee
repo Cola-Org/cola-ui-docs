@@ -44,6 +44,10 @@ module.exports = [
 				url: "action"
 			}
 			{
+				name: "xCreate"
+				url: "x-create"
+			}
+			{
 				name: "xRender(快速渲染)"
 				url: "x-render"
 			}

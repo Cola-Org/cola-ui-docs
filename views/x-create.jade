@@ -1,0 +1,155 @@
+extends doc-layout
+
+block content
+
+	style(type="text/css").
+		.demo-container {
+			border: 1px solid #d0d0d0;
+			padding: 1em;
+			margin: 1em 0;
+		}
+
+		.demo-container td {
+			border: 1px black solid;
+		}
+
+	p xCreate方法的目的是通过JSON来定义HTML，以方便开发者在Javascript中创建DOM。常用的与xCreate相关的方法共有如下几个:
+	ul
+		li $.xCreate()	-	根据JSON创建DOM元素并返回。
+		li $().xAppend()	-	jQuery扩展，根据JSON创建DOM元素并添加到当前jQuery包装的DOM中。
+		li $().xInsertBefore()	-	jQuery扩展，根据JSON创建DOM元素并添加到当前jQuery包装的DOM之前。
+		li $().xInsertAfter()	-	jQuery扩展，根据JSON创建DOM元素并添加到当前jQuery包装的DOM之后。
+	p 下面的示例都将以xCreate()为例来说明，具体请参考各个方法的API文档：
+		a(href="../api/$.html#method:xCreate") xCreate
+
+	h4.ui.header 简单JSON
+	p tagName表示DOM的节点名，content表示DOM节点的内容
+	pre#simpleJson.prettyprint.
+		$.xCreate({
+			tagName: "div",
+			content: "Hello World!"
+		});
+	div(c-widget="#runButton" c-onclick="xCreateIt('simpleJson')")
+	#simpleJsonDiv.demo-container
+
+	h4.ui.header 创建多个对象
+	p 如果要创建的某个DOM的tagName是DIV，那么相应的JSON对象的tagName是可以省略的。
+	pre#simpleArray.prettyprint.
+		$.xCreate([
+			{
+				content: "Hello World!"
+			},
+			{
+				tagName: "input",
+				value: "This is an input"
+			}
+		]);
+	div(c-widget="#runButton" c-onclick="xCreateIt('simpleArray')")
+	#simpleArrayDiv.demo-container
+
+	h4.ui.header 定义Style
+	p style既可以通过字符串定义，也可以通过子JSON来定义。
+	pre#simpleStyle.prettyprint.
+		$.xCreate([
+			{
+				content: "Style by String",
+				style: "color:red; font-weight:bold"
+			},
+			{
+				content: "Style by JSON",
+				style: {
+					color: "blue",
+					fontStyle: "italic"
+				}
+			}
+		]);
+	div(c-widget="#runButton" c-onclick="xCreateIt('simpleStyle')")
+	#simpleStyleDiv.demo-container
+
+	h4.ui.header 子对象
+	p 当content的值是子JSON对象或数组，就表示要定义DOM的子节点而不是文本内容。
+	pre#subNode.prettyprint.
+		$.xCreate([
+			{
+				content: {
+					tagName: "input",
+					type: "text"
+				}
+			},
+			{
+				content: [
+					"Some text ",
+					{
+						tagName: "input",
+						type: "checkbox"
+					},
+					{
+						tagName: "input",
+						type: "checkbox"
+					}
+				]
+			}
+		]);
+	div(c-widget="#runButton" c-onclick="xCreateIt('subNode')")
+	#subNodeDiv.demo-container
+
+	h4.ui.header 空节点的简写
+	p 有时我们只需要创建一个空的节点，那么只要利用“^”开头的字符串指定好节点名就可以了。
+	pre#emptyNode.prettyprint.
+		$.xCreate([ "^input", "^hr" ]);
+	div(c-widget="#runButton" c-onclick="xCreateIt('emptyNode')")
+	#emptyNodeDiv.demo-container
+
+	h4.ui.header 创建Table
+	pre#table.prettyprint.
+		$.xCreate({
+			tagName: "table",
+			style: {
+				width: 200
+			},
+			content: [
+				{
+					tagName: "tr",
+					style: "height: 30px",
+					content: ["^td", "^td"]
+				},
+				{
+					tagName: "tr",
+					style: "height: 30px",
+					content: ["^td", "^td"]
+				}
+			]
+		});
+	div(c-widget="#runButton" c-onclick="xCreateIt('table')")
+	#tableDiv.demo-container
+
+	h4.ui.header 绑定事件
+	p 如果某个属性的值是一个Function则表示我们绑定一个事件。
+	pre#event.prettyprint.
+		$.xCreate({
+			tagName: "button",
+			content: "Click Me",
+			click: function() {
+				alert("Hello World!");
+			}
+		});
+	div(c-widget="#runButton" c-onclick="xCreateIt('event')")
+	#eventDiv.demo-container
+
+	script(type="text/javascript" name="style").
+		cola(function (model) {
+			model.widgetConfig({
+				runButton: {
+					$type: "button",
+					caption: "Run",
+					class: "green"
+				}
+			});
+			model.action({
+				xCreateIt: function (name) {
+					var code = document.getElementById(name).innerText;
+					var result = eval(code);
+					$("#" + name + "Div").append(result);
+				}
+			});
+		});

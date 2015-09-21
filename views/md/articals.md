@@ -12,6 +12,7 @@
  * [DOM指令](dom-directives)
  * [Element](element)
  * [Action(动作)](action)
+ * [xCreate](x-create)
  * [xRender(快速渲染)](x-render)
  * [router(路由)](router)
  * [国际化](resource)
