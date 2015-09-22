@@ -1,0 +1,172 @@
+extends doc-layout
+block content
+	style(type="text/css").
+		input, button {
+			margin: 1px;
+		}
+
+		.demo-container {
+			border: 1px solid #d0d0d0;
+			padding: 1em;
+			margin: 1em 0;
+		}
+
+		.demo-container td {
+			border: 1px black solid;
+		}
+
+	p.
+		cola.xRender()主要用于动态的对页面进行局部渲染。其支持很多种传入参数。
+		有些时候cola.xRender()的功能看起来很像$.xCreate()，但其实$.xCreate()只是cola.xRender()的基础，
+		cola.xRender()可以在创建DOM的同时解析其中的所有DOM指令，基本可以满足所有在运行时动态创建DOM元素和控件的需求。
+
+	+addCatalog("createDom","创建DOM")
+	.example(name="createDom")#createDom
+		h4.ui.header 创建DOM
+		p 利用最基本的JSON格式的DOM配置来创建DOM元素。
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#createDomDiv.demo-container
+		script(type="text/javascript" name="createDom").
+			cola("createDom", function (model) {
+				model.action({
+					run: function() {
+						var fragment = cola.xRender({
+							tagName: "input"
+						}, model);
+						$("#createDomDiv").append(fragment);
+					}
+				});
+			});
+
+	+addCatalog("binding","建立绑定")
+	.example(name="binding")#binding
+		h4.ui.header 建立绑定
+		p 创建DOM元素并建立双向数据绑定。
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#bindingDiv.demo-container
+		script(type="text/javascript" name="binding").
+			cola("binding", function (model) {
+				model.action({
+					run: function() {
+						var fragment = cola.xRender([
+							{
+								tagName: "input",
+								placeholder: "请尝试输入一些文字",
+								"c-bind": "text"
+							},
+							{
+								tagName: "input",
+								"c-bind": "text"
+							}
+						], model);
+						$("#bindingDiv").append(fragment);
+					}
+				});
+			});
+
+	+addCatalog("repeat","使用迭代")
+	.example(name="repeat")#repeat
+		h4.ui.header 使用迭代
+		p c-repeat迭代指令
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#repeatDiv.demo-container
+		script(type="text/javascript" name="repeat").
+			cola("repeat", function (model) {
+				model.action({
+					run: function () {
+						var fragment = cola.xRender({
+							content: {
+								tagName: "button",
+								"c-repeat": "num in [1,2,3,4,5]",
+								"c-bind": "num"
+							}
+						}, model);
+						$("#repeatDiv").append(fragment);
+					}
+				});
+			});
+
+	+addCatalog("html", "渲染HTML")
+	.example(name="html")#html
+		h4.ui.header 渲染HTML
+		p 直接渲染HTML字符串
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#htmlDiv.demo-container
+		script(type="text/javascript" name="html").
+			cola("html", function (model) {
+				model.action({
+					run: function () {
+						var fragment = cola.xRender("<div c-widget='button; caption:Test'>", model);
+						$("#htmlDiv").append(fragment);
+					}
+				});
+			});
+
+	+addCatalog("dom", "渲染DOM对象")
+	.example(name="dom")#dom
+		h4.ui.header 渲染DOM对象
+		p 直接渲染现有的DOM对象
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#domDiv.demo-container
+		script(type="text/javascript" name="dom").
+			cola("dom", function (model) {
+				model.action({
+					run: function () {
+						var domDiv = document.getElementById("domDiv");
+						domDiv.innerHTML = "<input c-bind='text' placeholder='请尝试输入一些文字'><br><label c-bind='text'>";
+						cola.xRender(domDiv, model);
+					}
+				});
+			});
+
+	+addCatalog("widgetConfig", "渲染控件配置对象")
+	.example(name="widgetConfig")#widgetConfig
+		h4.ui.header 渲染控件配置对象
+		p.
+			除了前面的各种输入参数，xRender还能够直接利用控件实例或控件的JSON配置来完成渲染。
+			在下面的例子中，我们利用了四种不同的方法创建了四个完全相同的按钮。
+
+		.code
+			div(c-widget="button; caption:Run; class:green; click:run")
+			#widgetConfigDiv.demo-container
+		script(type="text/javascript" name="widgetConfig").
+			cola("widgetConfig", function (model) {
+				model.action({
+					run: function () {
+						var fragment = cola.xRender([
+							{
+								tagName: "div",
+								"c-widget": "button; caption:Test; class:red"
+							},
+							{
+								tagName: "div",
+								class: "red",
+								"c-widget": {
+									$type: "button",
+									caption: "Test"
+								}
+							},
+							{
+								$type: "button",
+								caption: "Test",
+								class: "red"
+							},
+							new cola.Button({
+								caption: "Test",
+								class: "red"
+							})
+						], model);
+						$("#widgetConfigDiv").append(fragment);
+					}
+				});
+			});

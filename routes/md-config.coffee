@@ -32,9 +32,6 @@ module.exports =
 		"action":
 			title:"Action(动作)"
 			file:"action.md"
-		"x-render":
-			title:"xRender(快速渲染)"
-			file:"x-render.md"
 		"router":
 			title:"router(路由)"
 			file:"router.md"

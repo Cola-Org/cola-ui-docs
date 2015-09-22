@@ -167,7 +167,7 @@ body {
   -o-transform: scale(1) rotate(-360deg) translate(0px);
   transform: scale(1) rotate(-360deg) translate(0px);
 }
-@media only screen and (min-width: 1145px) {
+@media only screen and (min-width: 979px) {
   #header {
     display: none;
   }
@@ -175,7 +175,7 @@ body {
     padding: 1em 14em 1em 1em;
   }
 }
-@media only screen and (max-width: 1144px) {
+@media only screen and (max-width: 978px) {
   #toc {
     display: none;
   }

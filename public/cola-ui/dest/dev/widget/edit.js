@@ -801,6 +801,10 @@
       inputFormat: null,
       inputType: {
         defaultValue: "text"
+      },
+      postOnInput: {
+        type: "boolean",
+        defaultValue: false
       }
     };
 
@@ -828,11 +832,12 @@
     };
 
     Input.prototype._initDom = function(dom) {
+      var doPost;
       Input.__super__._initDom.call(this, dom);
-      $(this._doms.input).on("change", (function(_this) {
+      doPost = (function(_this) {
         return function() {
           var dataType, inputFormat, readOnly, value;
-          readOnly = !!_this.get("readOnly");
+          readOnly = _this._readOnly;
           if (!readOnly) {
             value = $(_this._doms.input).val();
             dataType = _this._dataType;
@@ -850,6 +855,11 @@
             }
             _this.set("value", value);
           }
+        };
+      })(this);
+      $(this._doms.input).on("change", (function(_this) {
+        return function() {
+          doPost();
         };
       })(this)).on("focus", (function(_this) {
         return function() {
@@ -871,6 +881,12 @@
                 entity.validate(_this._bindInfo.property);
               }
             }
+          }
+        };
+      })(this)).on("input", (function(_this) {
+        return function() {
+          if (_this._postOnInput) {
+            doPost();
           }
         };
       })(this));

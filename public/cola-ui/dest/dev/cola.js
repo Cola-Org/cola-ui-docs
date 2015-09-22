@@ -1,8 +1,8 @@
 (function() {
   var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, XDate, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, jsep, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+    slice = [].slice,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty,
-    slice = [].slice;
+    hasProp = {}.hasOwnProperty;
 
   this.cola = cola = function() {
     var ref;
@@ -360,6 +360,28 @@
     }
     type = typeof value;
     return type !== "object" && type !== "function" || type instanceof Date;
+  };
+
+  cola.util.concatUrl = function() {
+    var changed, i, l, last, len1, part, parts;
+    parts = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    last = parts.length - 1;
+    for (i = l = 0, len1 = parts.length; l < len1; i = ++l) {
+      part = parts[i];
+      changed = false;
+      if (i > 0 && part.charCodeAt(0) === 47) {
+        part = part.substring(1);
+        changed = true;
+      }
+      if (i < last && part.charCodeAt(part.length - 1) === 47) {
+        part = part.substring(0, part.length - 1);
+        changed = true;
+      }
+      if (changed) {
+        parts[i] = part;
+      }
+    }
+    return parts.join("/");
   };
 
   cola.util.parseStyleLikeString = function(styleStr, headerProp) {
@@ -900,7 +922,7 @@
     key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
     if (typeof key === "string") {
       templ = resourceStore[key];
-      if (templ) {
+      if (templ != null) {
         if (params.length) {
           return sprintf.apply(this, [templ].concat(params));
         } else {
@@ -1584,6 +1606,12 @@
   cola.Definition = (function(superClass) {
     extend(Definition, superClass);
 
+    Definition.ATTRIBUTES = {
+      name: {
+        readOnlyAfterCreate: true
+      }
+    };
+
     function Definition(config) {
       var scope;
       if (config != null ? config.name : void 0) {
@@ -2203,6 +2231,9 @@
     if (number == null) {
       return "";
     }
+    if (isNaN(number)) {
+      return number;
+    }
     return formatNumber(format, number);
   };
 
@@ -2769,7 +2800,6 @@
 
     AjaxService.ATTRIBUTES = {
       url: null,
-      sendJson: null,
       method: null,
       parameter: null,
       ajaxOptions: null
@@ -2807,10 +2837,6 @@
       }
       options.url = this.getUrl(context);
       options.data = this._parameter;
-      options.sendJson = this._sendJson;
-      if (options.sendJson && !options.method) {
-        options.method = "post";
-      }
       return options;
     };
 
@@ -2861,7 +2887,7 @@
     };
 
     Provider.prototype.getInvokerOptions = function(context) {
-      var data, oldParameter, options, p, parameter, v;
+      var oldParameter, options, p, parameter, v;
       options = Provider.__super__.getInvokerOptions.call(this, context);
       parameter = options.data;
       if (parameter != null) {
@@ -2879,36 +2905,22 @@
           }
         }
       }
-      data = {};
       if (this._pageSize > 1) {
-        data.from = 0;
-        data.limit = this._pageSize;
+        if (parameter == null) {
+          parameter = {};
+        } else if (!(parameter instanceof Object)) {
+          parameter = {
+            parameter: parameter
+          };
+        }
+        parameter.from = 0;
+        parameter.limit = this._pageSize;
       }
-      if (parameter != null) {
-        data.parameter = parameter;
-      }
-      options.data = data;
+      options.data = parameter;
       return options;
     };
 
     return Provider;
-
-  })(cola.AjaxService);
-
-  cola.Resolver = (function(superClass) {
-    extend(Resolver, superClass);
-
-    function Resolver() {
-      return Resolver.__super__.constructor.apply(this, arguments);
-    }
-
-    Resolver.ATTRIBUTES = {
-      sendJson: {
-        defaultValue: true
-      }
-    };
-
-    return Resolver;
 
   })(cola.AjaxService);
 
@@ -3238,7 +3250,6 @@
 
     AjaxValidator.ATTRIBUTES = {
       url: null,
-      sendJson: null,
       method: null,
       ajaxOptions: null,
       data: null
@@ -3271,11 +3282,7 @@
       options.async = !!callback;
       options.url = this._url;
       options.data = sendData;
-      options.sendJson = this._sendJson;
       options.method = this._method;
-      if (options.sendJson && !options.method) {
-        options.method = "post";
-      }
       invoker = new cola.AjaxServiceInvoker(this, options);
       if (callback) {
         return invoker.invokeAsync(callback);
@@ -3292,6 +3299,9 @@
     extend(CustomValidator, superClass);
 
     CustomValidator.ATTRIBUTES = {
+      async: {
+        defaultValue: false
+      },
       validateEmptyValue: {
         defaultValue: true
       },
@@ -3311,7 +3321,7 @@
     }
 
     CustomValidator.prototype._validate = function(data, callback) {
-      if (callback) {
+      if (this._async && callback) {
         if (this._func) {
           this._func(data, callback);
         } else {
@@ -3344,12 +3354,6 @@
     function DataType() {
       return DataType.__super__.constructor.apply(this, arguments);
     }
-
-    DataType.ATTRIBUTES = {
-      name: {
-        readOnlyAfterCreate: true
-      }
-    };
 
     return DataType;
 
@@ -3500,7 +3504,6 @@
     extend(EntityDataType, superClass);
 
     EntityDataType.ATTRIBUTES = {
-      readOnly: null,
       properties: {
         setter: function(properties) {
           var config, l, len1, property, results, results1;
@@ -3550,13 +3553,11 @@
     EntityDataType.prototype.addProperty = function(property) {
       if (!(property instanceof cola.Property)) {
         if (typeof property === "string") {
-          property = new cola.BaseProperty({
+          property = new cola.Property({
             property: property
           });
-        } else if (typeof property.compute === "function") {
-          property = new cola.ComputeProperty(property);
         } else {
-          property = new cola.BaseProperty(property);
+          property = new cola.Property(property);
         }
       } else if (property._owner && property._owner !== this) {
         throw new cola.Exception("Property(" + property._property + ") is already belongs to anthor DataType.");
@@ -3628,12 +3629,15 @@
   cola.Property = (function(superClass) {
     extend(Property, superClass);
 
+    function Property() {
+      return Property.__super__.constructor.apply(this, arguments);
+    }
+
     Property.ATTRIBUTES = {
       property: {
         readOnlyAfterCreate: true
       },
       name: {
-        readOnlyAfterCreate: true,
         setter: function(name) {
           this._name = name;
           if (this._property == null) {
@@ -3648,25 +3652,7 @@
       dataType: {
         setter: cola.DataType.dataTypeSetter
       },
-      description: null
-    };
-
-    function Property(config) {
-      Property.__super__.constructor.call(this, config);
-    }
-
-    return Property;
-
-  })(cola.Definition);
-
-  cola.BaseProperty = (function(superClass) {
-    extend(BaseProperty, superClass);
-
-    function BaseProperty() {
-      return BaseProperty.__super__.constructor.apply(this, arguments);
-    }
-
-    BaseProperty.ATTRIBUTES = {
+      description: null,
       provider: {
         setter: function(provider) {
           if ((provider != null) && !(provider instanceof cola.Provider)) {
@@ -3676,7 +3662,6 @@
         }
       },
       defaultValue: null,
-      readOnly: null,
       required: null,
       aggregated: {
         readOnlyAfterCreate: true
@@ -3715,44 +3700,16 @@
       rejectInvalidValue: null
     };
 
-    BaseProperty.EVENTS = {
+    Property.EVENTS = {
       beforeWrite: null,
       write: null,
       beforeLoad: null,
       loaded: null
     };
 
-    return BaseProperty;
+    return Property;
 
-  })(cola.Property);
-
-  cola.ComputeProperty = (function(superClass) {
-    extend(ComputeProperty, superClass);
-
-    function ComputeProperty() {
-      return ComputeProperty.__super__.constructor.apply(this, arguments);
-    }
-
-    ComputeProperty.ATTRIBUTES = {
-      delay: null,
-      watchingDataPath: null
-    };
-
-    ComputeProperty.EVENTS = {
-      compute: {
-        singleListener: true
-      }
-    };
-
-    ComputeProperty.prototype.compute = function(entity) {
-      return this.fire("compute", this, {
-        entity: entity
-      });
-    };
-
-    return ComputeProperty;
-
-  })(cola.Property);
+  })(cola.Definition);
 
   cola.DataType.jsonToEntity = function(json, dataType, aggregated) {
     var entityList;
@@ -3816,7 +3773,7 @@
     })
   };
 
-  defaultDataTypes["number"] = defaultDataTypes["int"];
+  defaultDataTypes["number"] = defaultDataTypes["float"];
 
   if (typeof exports !== "undefined" && exports !== null) {
     cola = require("./data-type");
@@ -3964,17 +3921,13 @@
       value = this._data[prop];
       if (value === void 0) {
         if (property) {
-          if (property instanceof cola.BaseProperty) {
-            provider = property.get("provider");
-            if (context != null) {
-              context.unloaded = true;
-            }
-            if (provider) {
-              value = loadData.call(this, provider);
-              callbackProcessed = true;
-            }
-          } else if (property instanceof cola.ComputeProperty) {
-            value = property.compute(this);
+          provider = property.get("provider");
+          if (context != null) {
+            context.unloaded = true;
+          }
+          if (provider) {
+            value = loadData.call(this, provider);
+            callbackProcessed = true;
           }
         }
       } else if (value instanceof cola.Provider) {
@@ -4035,9 +3988,6 @@
       var actualType, changed, convert, dataType, expectedType, item, l, len1, len2, len3, matched, message, messages, o, oldValue, property, provider, q, ref, ref1, ref2, ref3, ref4, validator;
       oldValue = this._data[prop];
       property = (ref = this.dataType) != null ? ref.getProperty(prop) : void 0;
-      if (property && property instanceof cola.ComputeProperty) {
-        throw new cola.Exception("Cannot set value to ComputeProperty \"" + prop + "\".");
-      }
       if (value != null) {
         if (value instanceof cola.Provider) {
           changed = oldValue !== void 0;
@@ -4100,7 +4050,7 @@
         changed = oldValue !== value;
       }
       if (changed) {
-        if (property && property instanceof cola.BaseProperty) {
+        if (property) {
           if (property._validators && property._rejectInvalidValue) {
             messages = null;
             ref2 = property._validators;
@@ -4458,7 +4408,7 @@
     Entity.prototype._validate = function(prop) {
       var data, l, len1, message, messageChanged, property, ref, validator;
       property = this.dataType.getProperty(prop);
-      if (property && property instanceof cola.BaseProperty) {
+      if (property) {
         if (property._validators) {
           data = this._data[prop];
           if (data && (data instanceof cola.Provider || data instanceof cola.AjaxServiceInvoker)) {
@@ -5784,7 +5734,7 @@
     AbstractModel.prototype.dataType = function(name) {
       var dataType, l, len1;
       if (typeof name === "string") {
-        dataType = this.data.getDefinition(name);
+        dataType = this.data.definition(name);
         if (dataType instanceof cola.DataType) {
           return dataType;
         } else {
@@ -5807,8 +5757,8 @@
       }
     };
 
-    AbstractModel.prototype.getDefinition = function(name) {
-      return this.data.getDefinition(name);
+    AbstractModel.prototype.definition = function(name) {
+      return this.data.definition(name);
     };
 
     AbstractModel.prototype.flush = function(name, loadMode) {
@@ -5832,11 +5782,20 @@
     };
 
     AbstractModel.prototype.watch = function(path, fn) {
-      this.data.bind(path, {
+      var l, len1, p, processor;
+      processor = {
         _processMessage: function(bindingPath, path, type, arg) {
           fn(path, type, arg);
         }
-      });
+      };
+      if (path instanceof Array) {
+        for (l = 0, len1 = path.length; l < len1; l++) {
+          p = path[l];
+          this.data.bind(p, processor);
+        }
+      } else {
+        this.data.bind(path, processor);
+      }
       return this;
     };
 
@@ -6801,7 +6760,7 @@
             });
           }
           if (typeof config === "string") {
-            dataType = this.getDefinition(config);
+            dataType = this.definition(config);
             if (!dataType) {
               throw new cola.Exception("Unrecognized DataType \"" + config + "\".");
             }
@@ -6831,7 +6790,7 @@
       return dataType;
     };
 
-    DataModel.prototype.getDefinition = function(name) {
+    DataModel.prototype.definition = function(name) {
       var definition, ref;
       definition = (ref = this._definitionStore) != null ? ref[name] : void 0;
       if (definition == null) {
@@ -6942,8 +6901,8 @@
       }
     };
 
-    AliasDataModel.prototype.getDefinition = function(name) {
-      return this.parent.getDefinition(name);
+    AliasDataModel.prototype.definition = function(name) {
+      return this.parent.definition(name);
     };
 
     AliasDataModel.prototype.regDefinition = function(definition) {
@@ -7305,6 +7264,19 @@
 
   cola.model.defaultActions.isNotEmpty = function(value) {
     return !cola.model.defaultActions.isEmpty(value);
+  };
+
+  cola.model.defaultActions.len = function(value) {
+    if (!value) {
+      return 0;
+    }
+    if (value instanceof Array) {
+      return value.length;
+    }
+    if (value instanceof cola.EntityList) {
+      return value.entityCount;
+    }
+    return 0;
   };
 
   cola.model.defaultActions.resource = function() {
@@ -7876,7 +7848,7 @@
   };
 
   cola.setRoutePath = function(path, replace) {
-    var routerMode;
+    var pathRoot, realPath, routerMode;
     if (path && path.charCodeAt(0) === 35) {
       routerMode = "hash";
       path = path.substring(1);
@@ -7889,17 +7861,26 @@
         window.location.hash = path;
       }
     } else {
-      if (replace) {
-        window.history.replaceState(null, null, path);
+      pathRoot = cola.setting("routerContextPath");
+      if (pathRoot && path.charCodeAt(0) === 47) {
+        realPath = cola.util.concatUrl(pathRoot, path);
       } else {
-        window.history.pushState(null, null, path);
+        realPath = path;
       }
-      if (location.pathname !== path) {
-        path = location.pathname + location.search + location.hash;
+      if (replace) {
+        window.history.replaceState(null, null, realPath);
+      } else {
+        window.history.pushState(null, null, realPath);
+      }
+      if (location.pathname !== realPath) {
+        realPath = location.pathname + location.search + location.hash;
+        if (pathRoot && realPath.indexOf(pathRoot) === 0) {
+          path = realPath.substring(pathRoot.length);
+        }
       }
       window.history.replaceState({
         path: path
-      }, null, path);
+      }, null, realPath);
       _onStateChange(path);
     }
   };
@@ -9188,6 +9169,7 @@
           documentFragment = document.createDocumentFragment();
           for (l = 0, len1 = template.length; l < len1; l++) {
             node = template[l];
+            widget = null;
             if (node instanceof cola.Widget) {
               widget = node;
             } else if (node.$type) {

@@ -574,6 +574,10 @@
         defaultValue: 200,
         refreshDom: true
       },
+      modal: {
+        type: "boolean",
+        defaultValue: true
+      },
       modalOpacity: {
         type: "number",
         defaultValue: 0.6
@@ -586,10 +590,12 @@
 
     Sidebar.prototype._doTransition = function(options, callback) {
       var $dom, configs, direction, duration, height, isHorizontal, isShow, onComplete, sidebar, width, x, y;
-      if (options.target === "show") {
-        this._showModalLayer();
-      } else {
-        this._hideModalLayer();
+      if (this.get("modal")) {
+        if (options.target === "show") {
+          this._showModalLayer();
+        } else {
+          this._hideModalLayer();
+        }
       }
       sidebar = this;
       this.get$Dom().css({
