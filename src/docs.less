@@ -68,6 +68,7 @@ body {
 #footer {
 	height: 20em;
 	padding: 1.5em;
+	overflow: hidden;
 	> * {
 		float: left;
 		display: inline-block;
@@ -198,6 +199,7 @@ body {
 	#article {
 		> * {
 			> .content {
+				position: relative;
 				padding: 1em 14em 1em 1em;
 			}
 		}
@@ -215,6 +217,7 @@ body {
 				display: none;
 			}
 			> .content {
+				position: relative;
 				padding: 1em;
 			}
 		}
@@ -224,4 +227,33 @@ body {
 		display: none;
 	}
 
+}
+
+
+
+.banner {
+
+	background: url("/images/home-bg.jpg") repeat center;
+
+	.masthead {
+		position: absolute;
+		background-color: rgba(0, 0, 0, 0.7);
+		left: 0px;
+		right: 0px;
+		top: 0px;
+		bottom: 0px;
+		text-align: center;
+		h1{
+			line-height: 2em;
+			.library {
+				display: block;
+				font-size: 1.75em;
+				font-weight: bold;
+			}
+			.tagline {
+				font-size: 0.75em;
+			}
+		}
+
+	}
 }

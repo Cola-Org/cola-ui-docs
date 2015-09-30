@@ -67,6 +67,11 @@
       }
     };
 
+    ItemsView.prototype.destroy = function() {
+      ItemsView.__super__.destroy.call(this);
+      delete this._emptyItemDom;
+    };
+
     ItemsView.prototype._doSet = function(attr, attrConfig, value) {
       if (attrConfig != null ? attrConfig.refreshItems : void 0) {
         attrConfig.refreshDom = true;
@@ -125,11 +130,11 @@
         this._templateContext = {};
       }
       $itemsWrapper = $fly(this._doms.itemsWrapper);
-      $itemsWrapper.addClass("items").delegate(".item", "click", (function(_this) {
+      $itemsWrapper.addClass("items").delegate(".list.item", "click", (function(_this) {
         return function(evt) {
           return _this._onItemClick(evt);
         };
-      })(this)).delegate(".item", "dblclick", (function(_this) {
+      })(this)).delegate(".list.item", "dblclick", (function(_this) {
         return function(evt) {
           return _this._onItemDoubleClick(evt);
         };
@@ -178,20 +183,6 @@
       }
     };
 
-    ItemsView.prototype._createNewItem = function(itemType, item) {
-      var itemDom, template;
-      template = this._getTemplate(itemType);
-      if (template) {
-        itemDom = this._cloneTemplate(template);
-      } else {
-        itemDom = document.createElement("li");
-        itemDom.setAttribute("c-bind", "$default");
-      }
-      $fly(itemDom).addClass("item " + itemType);
-      itemDom._itemType = itemType;
-      return itemDom;
-    };
-
     ItemsView.prototype._getItemType = function(item) {
       var ref;
       if (item != null ? item.isDataWrapper : void 0) {
@@ -208,6 +199,7 @@
     ItemsView.prototype._onItemInsert = function(arg) {
       var insertMode, item, itemDom, itemType, itemsWrapper, refDom, refEntityId;
       if (this._realItems === this._realOriginItems) {
+        this._refreshEmptyItemDom();
         item = arg.entity;
         itemType = this._getItemType(item);
         itemsWrapper = this._doms.itemsWrapper;
@@ -254,6 +246,7 @@
           }
         }
       }
+      this._refreshEmptyItemDom();
     };
 
     ItemsView.prototype._setCurrentItemDom = function(currentItemDom) {
@@ -301,6 +294,25 @@
       return items;
     };
 
+    ItemsView.prototype._refreshEmptyItemDom = function() {
+      var emptyItemDom, items, itemsWrapper;
+      emptyItemDom = this._emptyItemDom = this._getTemplate("empty-item");
+      if (emptyItemDom) {
+        items = this._realItems;
+        if (items instanceof cola.EntityList && items.entityCount === 0 || items instanceof Array && items.length === 0) {
+          $fly(emptyItemDom).show();
+          itemsWrapper = this._doms.itemsWrapper;
+          if (emptyItemDom.parentNode !== itemsWrapper) {
+            $fly(emptyItemDom).addClass("protected");
+            cola.xRender(emptyItemDom, this._scope);
+            itemsWrapper.appendChild(emptyItemDom);
+          }
+        } else {
+          $fly(emptyItemDom).hide();
+        }
+      }
+    };
+
     ItemsView.prototype._refreshItems = function() {
       if (!this._dom) {
         this._refreshItemsScheduled = true;
@@ -339,6 +351,7 @@
         if (this._autoLoadPage && !this._realOriginItems && items instanceof cola.EntityList) {
           limit = items.pageNo;
         }
+        this._refreshEmptyItemDom();
         lastItem = null;
         cola.each(items, (function(_this) {
           return function(item) {
@@ -363,7 +376,9 @@
                   break;
                 } else {
                   _nextItemDom = nextItemDom.nextSibling;
-                  itemsWrapper.removeChild(nextItemDom);
+                  if (!cola.util.hasClass(nextItemDom, "protected")) {
+                    itemsWrapper.removeChild(nextItemDom);
+                  }
                   nextItemDom = _nextItemDom;
                 }
               }
@@ -390,7 +405,7 @@
           itemDom = nextItemDom;
           while (itemDom) {
             nextItemDom = itemDom.nextSibling;
-            if ($fly(itemDom).hasClass("item")) {
+            if (!cola.util.hasClass(itemDom, "protected")) {
               itemsWrapper.removeChild(itemDom);
               if (itemDom._itemId) {
                 delete this._itemDomMap[itemDom._itemId];
@@ -406,7 +421,7 @@
         if (documentFragment) {
           itemsWrapper.appendChild(documentFragment);
         }
-        if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList) {
+        if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList && items.pageSize > 0) {
           currentPageNo = lastItem != null ? (ref = lastItem._page) != null ? ref.pageNo : void 0 : void 0;
           if (currentPageNo && (currentPageNo < items.pageCount || !items.pageCountDetermined)) {
             if (itemsWrapper.scrollHeight && (itemsWrapper.scrollTop + itemsWrapper.clientHeight) < itemsWrapper.scrollHeight) {
@@ -1225,14 +1240,14 @@
         itemDom.setAttribute("c-bind", "$default");
       }
       if (itemType === "group") {
-        klass = "group";
+        klass = "list group";
       } else if (itemType === "group-header") {
-        klass = "group-header";
+        klass = "list group-header";
         if (this._groupCollapsible) {
           klass += " collapsible";
         }
       } else {
-        klass = "item " + itemType;
+        klass = "list item " + itemType;
       }
       itemDom._itemType = itemType;
       $itemDom = $fly(itemDom);
@@ -1571,6 +1586,9 @@
             return goIndex(evt.target, true);
           },
           mouseup: clearCurrent,
+          touchstart: function(evt) {
+            return goIndex(evt.target, true);
+          },
           touchmove: function(evt) {
             var target, touch;
             touch = evt.originalEvent.touches[0];
@@ -1618,36 +1636,40 @@
     };
 
     ListView.prototype._initItemSlide = function() {
-      var itemScope, itemsWrapper, leftSlidePaneTemplate, list, rightSlidePaneTemplate;
-      if (!(this._itemSlide && this._itemSlide !== "none")) {
-        return;
-      }
-      itemsWrapper = this._doms.itemsWrapper;
-      list = this;
-      $fly(itemsWrapper).on("touchstart", function(evt) {
-        return list._onItemsWrapperTouchStart(evt);
-      }).on("touchmove", function(evt) {
-        return list._onItemsWrapperTouchMove(evt);
-      }).on("touchend", function(evt) {
-        return list._onItemsWrapperTouchEnd(evt);
-      });
+      var itemScope, itemsWrapper, leftSlidePaneTemplate, rightSlidePaneTemplate;
       leftSlidePaneTemplate = this._getTemplate("slide-left-pane");
       rightSlidePaneTemplate = this._getTemplate("slide-right-pane");
       if (!(leftSlidePaneTemplate || rightSlidePaneTemplate)) {
         return;
       }
+      itemsWrapper = this._doms.itemsWrapper;
+      if (this._itemSlide && this._itemSlide !== "none") {
+        $fly(itemsWrapper).on("touchstart", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchStart(evt);
+          };
+        })(this)).on("touchmove", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchMove(evt);
+          };
+        })(this)).on("touchend", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchEnd(evt);
+          };
+        })(this));
+      }
       itemScope = new cola.ItemScope(this._itemsScope, this._alias);
       this._templateContext.defaultPath = this._alias;
-      if (this._leftItemSlide && leftSlidePaneTemplate) {
-        $fly(leftSlidePaneTemplate).addClass("item-slide-pane").css("left", "100%");
+      if (leftSlidePaneTemplate) {
+        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%");
         cola.xRender(leftSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(leftSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
         itemsWrapper.appendChild(leftSlidePaneTemplate);
         cola._ignoreNodeRemoved = false;
       }
-      if (this._rightItemSlide && rightSlidePaneTemplate) {
-        $fly(rightSlidePaneTemplate).addClass("item-slide-pane").css("right", "100%");
+      if (rightSlidePaneTemplate) {
+        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%");
         cola.xRender(rightSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(rightSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -1663,35 +1685,6 @@
         touches = evt.originalEvent.changedTouches;
       }
       return touches[0];
-    };
-
-    ListView.prototype._onTouchStart = function(evt) {
-      var dom, inSlidPane, list, slidePane;
-      if (!this._itemSlidePane) {
-        return;
-      }
-      slidePane = this._itemSlidePane;
-      dom = evt.target;
-      while (dom) {
-        if (dom === slidePane) {
-          inSlidPane = true;
-          break;
-        }
-        dom = dom.parentNode;
-      }
-      this._itemSlideState = "prevent";
-      if (inSlidPane) {
-        list = this;
-        $fly(slidePane).one("touchend", function() {
-          setTimeout(function() {
-            list._hideItemSlidePane(true);
-          }, 50);
-        });
-      } else {
-        this._hideItemSlidePane(true);
-        evt.stopImmediatePropagation();
-        return false;
-      }
     };
 
     ListView.prototype._onItemsWrapperTouchStart = function(evt) {
@@ -1731,8 +1724,56 @@
       this._touchTimestamp = new Date();
     };
 
+    ListView.prototype._initItemSlidePane = function(itemDom, direction) {
+      var indexBar, item, itemScope, oldSlidePane, slidePane;
+      item = cola.util.userData(itemDom, "item");
+      if (direction !== this._itemSlideDirection) {
+        oldSlidePane = this._itemSlidePane;
+        if (oldSlidePane) {
+          $fly(oldSlidePane).hide();
+          if (!SAFE_SLIDE_EFFECT) {
+            $fly(oldSlidePane).css("transform", "");
+          }
+        }
+        this._itemSlideDirection = direction;
+        this._itemSlidePane = slidePane = this._getTemplate("slide-" + direction + "-pane");
+        if (slidePane) {
+          itemScope = cola.util.userData(slidePane, "scope");
+          itemScope.data.setTargetData(item);
+          if (this.getListeners("itemSlidePaneInit")) {
+            this.fire("itemSlidePaneInit", this, {
+              item: item,
+              direction: direction,
+              slidePane: slidePane
+            });
+          }
+          if (direction === "right" && this._maxDistanceAdjust === void 0 && this._indexBar) {
+            indexBar = this._doms.indexBar;
+            if (indexBar) {
+              this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
+            } else {
+              this._maxDistanceAdjust = 0;
+            }
+          }
+          $fly(slidePane).css({
+            top: itemDom.offsetTop,
+            "pointer-events": "none"
+          }).show();
+          this._maxSlideDistance = slidePane.offsetWidth;
+          if (direction === "right") {
+            this._maxSlideDistance += this._maxDistanceAdjust || 0;
+          }
+        } else {
+          this._maxSlideDistance = itemDom.offsetWidth;
+        }
+      } else {
+        slidePane = this._itemSlidePane;
+      }
+      return slidePane;
+    };
+
     ListView.prototype._onItemsWrapperTouchMove = function(evt) {
-      var direction, distanceX, distanceY, factor, indexBar, item, itemDom, itemScope, oldSlidePane, slideDom, slidePane, timestamp, touchPoint, translate;
+      var direction, distanceX, distanceY, factor, item, itemDom, slideDom, slidePane, timestamp, touchPoint, translate;
       if (!this._itemSlide) {
         return;
       }
@@ -1755,7 +1796,7 @@
           this._itemSlideState = "slide";
           this._itemSlideDirection = null;
           if (cola.browser.chrome) {
-            itemDom.style.opacity = 0.9999;
+            itemDom.style.opacity = 0.999;
           }
         } else {
           this._itemSlideState = "ignore";
@@ -1765,61 +1806,18 @@
       this._touchMoveSpeed = distanceX / (timestamp - this._touchLastTimstamp);
       this._touchLastTimstamp = timestamp;
       if (distanceX < 0) {
-        direction = "left";
+        direction = "right";
         factor = -1;
       } else {
-        direction = "right";
+        direction = "left";
         factor = 1;
       }
-      item = cola.util.userData(itemDom, "item");
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
       } else {
         slideDom = itemDom;
       }
-      if (direction !== this._itemSlideDirection) {
-        oldSlidePane = this._itemSlidePane;
-        if (oldSlidePane) {
-          $fly(oldSlidePane).hide();
-          if (!SAFE_SLIDE_EFFECT) {
-            $fly(oldSlidePane).css("transform", "");
-          }
-        }
-        this._itemSlideDirection = direction;
-        this._itemSlidePane = slidePane = this._getTemplate("slide-" + direction + "-pane");
-        if (slidePane) {
-          itemScope = cola.util.userData(slidePane, "scope");
-          itemScope.data.setTargetData(item);
-          if (this.getListeners("itemSlidePaneInit")) {
-            this.fire("itemSlidePaneInit", this, {
-              item: item,
-              direction: direction,
-              slidePane: slidePane
-            });
-          }
-          if (direction === "left" && this._maxDistanceAdjust === void 0 && this._indexBar) {
-            indexBar = this._doms.indexBar;
-            if (indexBar) {
-              this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
-            } else {
-              this._maxDistanceAdjust = 0;
-            }
-          }
-          $fly(slidePane).css({
-            height: itemDom.offsetHeight,
-            top: itemDom.offsetTop,
-            "pointer-events": "none"
-          }).show();
-          this._maxSlideDistance = slidePane.offsetWidth;
-          if (direction === "left") {
-            this._maxSlideDistance += this._maxDistanceAdjust || 0;
-          }
-        } else {
-          this._maxSlideDistance = itemDom.offsetWidth;
-        }
-      } else {
-        slidePane = this._itemSlidePane;
-      }
+      slidePane = this._initItemSlidePane(itemDom, direction);
       if (slidePane) {
         if (Math.abs(distanceX) <= this._maxSlideDistance) {
           this._currentSlideDistance = distanceX;
@@ -1831,21 +1829,22 @@
           $fly(slideDom).css("transform", translate);
           $fly(slidePane).css("transform", translate);
         }
-      }
-      if (this.getListeners("itemSlideStep")) {
-        this.fire("itemSlideStep", this, {
-          event: evt,
-          item: item,
-          distance: distanceX,
-          speed: this._touchMoveSpeed
-        });
+        if (this.getListeners("itemSlideStep")) {
+          item = cola.util.userData(itemDom, "item");
+          this.fire("itemSlideStep", this, {
+            event: evt,
+            item: item,
+            distance: distanceX,
+            speed: this._touchMoveSpeed
+          });
+        }
       }
       evt.stopImmediatePropagation();
       return false;
     };
 
     ListView.prototype._onItemsWrapperTouchEnd = function(evt) {
-      var $slidePane, currentDistance, direction, factor, itemDom, maxDistance, openAnimate, opened, slideDom, slidePane;
+      var currentDistance, direction, itemDom, maxDistance, openAnimate, opened, slideDom, slidePane;
       if (this._itemSlideState !== "slide") {
         return;
       }
@@ -1882,13 +1881,12 @@
         });
       }
       direction = this._itemSlideDirection;
-      factor = direction === "left" ? -1 : 1;
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
       } else {
         slideDom = itemDom;
       }
-      if (direction === "left") {
+      if (direction === "right") {
         if (!SAFE_SLIDE_EFFECT) {
           $(slideDom).transit({
             x: 0,
@@ -1904,27 +1902,7 @@
       if (opened) {
         slidePane = this._itemSlidePane;
         if (slidePane) {
-          this.get$Dom().on("touchstart", (function(_this) {
-            return function(evt) {
-              return _this._onTouchStart(evt);
-            };
-          })(this));
-          $slidePane = $(slidePane);
-          this._currentSlideDistance = maxDistance * factor;
-          if (openAnimate || SAFE_SLIDE_EFFECT) {
-            $slidePane.show().transit({
-              x: maxDistance * factor,
-              duration: SLIDE_ANIMATION_SPEED,
-              complete: (function(_this) {
-                return function() {
-                  $slidePane.css("pointer-events", "");
-                  _this._onItemSlidePaneShow(direction, slidePane, itemDom);
-                };
-              })(this)
-            });
-          } else {
-            this._onItemSlidePaneShow(direction, slidePane, itemDom);
-          }
+          this._showItemSlidePane(itemDom, direction, slidePane, openAnimate);
         } else {
           this._itemSlideState = "closed";
         }
@@ -1933,13 +1911,44 @@
       }
     };
 
-    ListView.prototype._hideItemSlidePane = function(opened) {
+    ListView.prototype._showItemSlidePane = function(itemDom, direction, slidePane, openAnimate) {
+      var $slidePane, factor;
+      $fly(this._doms.itemsWrapper).dimmer({
+        opacity: 0.0001,
+        duration: 0,
+        closable: false
+      }).dimmer("show").find(">.ui.dimmer").on("touchstart", (function(_this) {
+        return function() {
+          if (_this._itemSlideState === "waiting") {
+            _this.hideItemSlidePane();
+          }
+        };
+      })(this));
+      $slidePane = $(slidePane);
+      if (openAnimate || SAFE_SLIDE_EFFECT) {
+        factor = direction === "right" ? -1 : 1;
+        $slidePane.show().transit({
+          x: this._maxSlideDistance * factor,
+          duration: SLIDE_ANIMATION_SPEED,
+          complete: (function(_this) {
+            return function() {
+              $slidePane.css("pointer-events", "");
+              _this._onItemSlidePaneShow(direction, slidePane, itemDom);
+            };
+          })(this)
+        });
+      } else {
+        this._onItemSlidePaneShow(direction, slidePane, itemDom);
+      }
+    };
+
+    ListView.prototype._hideItemSlidePane = function(opened, animation) {
       var direction, itemDom, slideDom, slidePane;
       this._itemSlideState = "closing";
       itemDom = this._slideItemDom;
       slidePane = this._itemSlidePane;
       direction = this._itemSlideDirection;
-      if (direction === "right") {
+      if (direction === "left") {
         if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
           slideDom = itemDom.firstChild;
         } else {
@@ -1950,10 +1959,11 @@
           duration: SLIDE_ANIMATION_SPEED
         });
       }
+      $fly(this._doms.itemsWrapper).dimmer("hide");
       if (slidePane) {
         $(slidePane).transit({
           x: 0,
-          duration: SLIDE_ANIMATION_SPEED,
+          duration: animation ? SLIDE_ANIMATION_SPEED : 0,
           complete: (function(_this) {
             return function() {
               $fly(slidePane).hide();
@@ -1977,9 +1987,9 @@
     };
 
     ListView.prototype._onItemSlidePaneHide = function(opened, direction, slidePane, itemDom) {
+      this._itemSlideDirection = null;
       this._itemSlideState = "closed";
       this._slideItemDom = null;
-      $fly(this._dom).off("touchstart");
       if (opened) {
         this.fire("itemSlidePaneHide", this, {
           item: cola.util.userData(itemDom, "item"),
@@ -1987,6 +1997,21 @@
           slidePane: slidePane
         });
       }
+    };
+
+    ListView.prototype.showItemSlidePane = function(item, direction) {
+      var entityId, itemDom, slidePane;
+      entityId = cola.Entity._getEntityId(item);
+      itemDom = this._itemDomMap[entityId];
+      slidePane = this._initItemSlidePane(itemDom, direction);
+      if (slidePane) {
+        this._slideItemDom = itemDom;
+        this._showItemSlidePane(itemDom, direction, slidePane, true);
+      }
+    };
+
+    ListView.prototype.hideItemSlidePane = function(animation) {
+      this._hideItemSlidePane(true, animation);
     };
 
     return ListView;
@@ -2944,7 +2969,7 @@
         tagName: "ul",
         content: {
           tagName: "div",
-          "class": "node",
+          "class": "tree node",
           content: [
             {
               tagName: "div",
@@ -2957,7 +2982,7 @@
         tagName: "ul",
         content: {
           tagName: "div",
-          "class": "node",
+          "class": "tree node",
           content: [
             {
               tagName: "div",
@@ -3045,9 +3070,12 @@
 
     Tree.prototype._createNewItem = function(itemType, node) {
       var contentDom, itemDom, l, len1, nodeDom, span, templ, template;
-      itemDom = Tree.__super__._createNewItem.call(this, itemType, node);
+      template = this._getTemplate(itemType);
+      itemDom = this._cloneTemplate(template);
+      $fly(itemDom).addClass("tree item " + itemType);
+      itemDom._itemType = itemType;
       nodeDom = itemDom.firstChild;
-      if ((nodeDom != null ? nodeDom.className : void 0) === "node") {
+      if (nodeDom && cola.util.hasClass(nodeDom, "node")) {
         template = this._getTemplate("node-" + itemType, "node-normal");
         if (template) {
           if (template instanceof Array) {
@@ -3974,6 +4002,15 @@
         child = next;
       }
       this._createInnerDom(dom);
+    };
+
+    AbstractTable.prototype._createNewItem = function(itemType, item) {
+      var itemDom, template;
+      template = this._getTemplate(itemType);
+      itemDom = this._cloneTemplate(template);
+      $fly(itemDom).addClass("table item " + itemType);
+      itemDom._itemType = itemType;
+      return itemDom;
     };
 
     return AbstractTable;

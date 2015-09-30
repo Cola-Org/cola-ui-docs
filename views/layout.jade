@@ -5,6 +5,51 @@ html
 		meta(charset="utf-8")
 		meta(name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1")
 		script(src="/include-all.js")
+		script(src="/cola-interceptor.js")
+		link(rel="stylesheet" type="text/css" href="/prettify/themes/tomorrow.css")
+		link(rel="stylesheet" type="text/css" href="/docs.css")
+	body.v-box
 
-	body
-		block content
+		.flex-box.banner
+			div.container
+				.content
+					block content
+				img.github-link-img(src="/images/ribbon.png")
+				a.github-link(href="https://github.com/Cola-Org/cola-ui" target="_blank")
+
+
+		#footer.box.black-background
+			.qq
+				img.ui.image.fluid(src="/images/qq.png")
+				.description
+					div
+						span.label 群名称:
+						span.text Cola-Ui 技术交流
+					div
+						span.label 群号:
+						span.text 309407648
+			.issue.ui.segment.basic.inverted
+				h2.ui.header 技术问答
+				a(href="https://github.com/Cola-Org/cola-ui/issues") GitHub Issue
+			.github.ui.segment.basic.inverted
+				h2.ui.header GitHub仓库
+				a(href="https://github.com/Cola-Org/cola-ui") Cola-UI
+				a(href="https://github.com/Cola-Org/cola-ui-docs") Cola-UI-Docs
+
+
+	script(src="/prettify/prettify.js")
+	script(src="/jsbeautify.js")
+	script(src="/docs.js")
+	script(type="text/javascript").
+		cola(function (model) {
+			model.action({
+				showSidebar: function () {
+					cola.widget("sidebar").toggle()
+				}
+			})
+			model.widgetConfig({
+				sidebar: {
+					$type: "Sidebar"
+				}
+			})
+		})

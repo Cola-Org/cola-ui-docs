@@ -810,7 +810,9 @@
 
     Input.EVENTS = {
       focus: null,
-      blur: null
+      blur: null,
+      keyDown: null,
+      keyPress: null
     };
 
     Input.prototype._createEditorDom = function() {
@@ -888,6 +890,30 @@
           if (_this._postOnInput) {
             doPost();
           }
+        };
+      })(this)).on("keydown", (function(_this) {
+        return function(event) {
+          var arg;
+          arg = {
+            keyCode: event.keyCode,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            altlKey: event.altlKey,
+            event: event
+          };
+          return _this.fire("keyDown", _this, arg);
+        };
+      })(this)).on("keypress", (function(_this) {
+        return function(event) {
+          var arg;
+          arg = {
+            keyCode: event.keyCode,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            altlKey: event.altlKey,
+            event: event
+          };
+          return _this.fire("keyPress", _this, arg);
         };
       })(this));
     };
@@ -1918,6 +1944,7 @@
       opened: {
         readOnly: true
       },
+      dropdownLayer: null,
       dropdownWidth: null,
       dropdownHeight: null
     };
@@ -1930,6 +1957,7 @@
 
     AbstractDropdown.prototype._initDom = function(dom) {
       var valueContent;
+      AbstractDropdown.__super__._initDom.call(this, dom);
       $fly(this._doms.input).xInsertAfter({
         tagName: "div",
         "class": "value-content",
@@ -2023,13 +2051,17 @@
       if ((ref = this.get("actionButton")) != null) {
         ref.set("disabled", this._finalReadOnly);
       }
-      this._setValueContent(this._currentItem);
+      this._setValueContent();
     };
 
-    AbstractDropdown.prototype._setValueContent = function(item) {
-      var alias, ctx, currentItemScope, elementAttrBinding, input, ref, valueContent;
+    AbstractDropdown.prototype._setValueContent = function() {
+      var alias, ctx, currentItemScope, elementAttrBinding, input, item, ref, valueContent;
       input = this._doms.input;
       input.value = "";
+      item = this._currentItem;
+      if ((item == null) && !this._textProperty) {
+        item = this._value;
+      }
       if (item) {
         input.placeholder = "";
         elementAttrBinding = (ref = this._elementAttrBindings) != null ? ref["items"] : void 0;
@@ -2054,6 +2086,7 @@
         $fly(valueContent).show();
       } else {
         input.placeholder = this._placeholder || "";
+        $fly(this._doms.valueContent).hide();
       }
     };
 
@@ -2092,72 +2125,96 @@
     };
 
     AbstractDropdown.prototype._getContainer = function() {
-      var config, container, ctx, openMode, titleContent;
-      if (this._container) {
-        return this._container;
-      }
-      this._finalOpenMode = openMode = this._getFinalOpenMode();
-      config = {
-        "class": "drop-container",
-        dom: $.xCreate({
-          tagName: "div",
-          content: this._getDropdownContent()
-        }),
-        beforeHide: (function(_this) {
-          return function() {
-            $fly(_this._dom).removeClass("opened");
-          };
-        })(this),
-        hide: (function(_this) {
-          return function() {
-            _this._opened = false;
-          };
-        })(this)
-      };
-      if (this._dropdownWidth) {
-        config.width = this._dropdownWidth;
-      }
-      if (this._dropdownHeight) {
-        config.height = this._dropdownHeight;
-      }
-      if (openMode === "drop") {
-        config.duration = 200;
-        config.dropdown = this;
-        config.ui = config.ui + " " + this._ui;
-        container = new DropBox(config);
-      } else if (openMode === "layer") {
-        ctx = {};
-        titleContent = cola.xRender({
-          tagName: "div",
-          "class": "box",
-          content: {
-            tagName: "div",
-            "c-widget": {
-              $type: "titleBar",
-              items: [
-                {
-                  icon: "chevron left",
-                  click: (function(_this) {
-                    return function() {
-                      return _this.close();
-                    };
-                  })(this)
-                }
-              ]
-            }
+      var config, container, ctx, layer, openMode, titleContent;
+      if (this._dropdownLayer) {
+        layer = this._dropdownLayer;
+        if (!(layer instanceof cola.Widget)) {
+          layer = cola.widget(layer);
+          if (layer instanceof cola.Widget) {
+            this.set("dropdownLayer", layer);
+          } else {
+            layer = null;
           }
-        }, this._scope, ctx);
-        $fly(config.dom.firstChild.firstChild).before(titleContent);
-        container = new cola.Layer(config);
-      } else if (openMode === "dialog") {
-        config.modalOpacity = 0.05;
-        config.closeable = false;
-        config.dimmerClose = true;
-        container = new cola.Dialog(config);
+        }
+        if (layer) {
+          layer.on("beforeHide", (function(_this) {
+            return function() {
+              $fly(_this._dom).removeClass("opened");
+            };
+          })(this), true).on("hide", (function(_this) {
+            return function() {
+              _this._opened = false;
+            };
+          })(this), true);
+        }
+        return layer;
+      } else {
+        if (this._container) {
+          return this._container;
+        }
+        this._finalOpenMode = openMode = this._getFinalOpenMode();
+        config = {
+          "class": "drop-container",
+          dom: $.xCreate({
+            tagName: "div",
+            content: this._getDropdownContent()
+          }),
+          beforeHide: (function(_this) {
+            return function() {
+              $fly(_this._dom).removeClass("opened");
+            };
+          })(this),
+          hide: (function(_this) {
+            return function() {
+              _this._opened = false;
+            };
+          })(this)
+        };
+        if (this._dropdownWidth) {
+          config.width = this._dropdownWidth;
+        }
+        if (this._dropdownHeight) {
+          config.height = this._dropdownHeight;
+        }
+        if (openMode === "drop") {
+          config.duration = 200;
+          config.dropdown = this;
+          config.ui = config.ui + " " + this._ui;
+          container = new DropBox(config);
+        } else if (openMode === "layer") {
+          ctx = {};
+          titleContent = cola.xRender({
+            tagName: "div",
+            "class": "box",
+            content: {
+              tagName: "div",
+              "c-widget": {
+                $type: "titleBar",
+                items: [
+                  {
+                    icon: "chevron left",
+                    click: (function(_this) {
+                      return function() {
+                        return _this.close();
+                      };
+                    })(this)
+                  }
+                ]
+              }
+            }
+          }, this._scope, ctx);
+          $fly(config.dom.firstChild.firstChild).before(titleContent);
+          container = new cola.Layer(config);
+        } else if (openMode === "dialog") {
+          config.modalOpacity = 0.05;
+          config.closeable = false;
+          config.dimmerClose = true;
+          container = new cola.Dialog(config);
+        }
+        this._container = container;
+        container.appendTo(document.body);
+        return container;
       }
-      this._container = container;
-      container.appendTo(document.body);
-      return container;
     };
 
     AbstractDropdown.prototype.open = function(callback) {
@@ -2412,7 +2469,7 @@
       var inputDom, list;
       Dropdown.__super__.open.call(this);
       list = this._list;
-      if (this._currentItem !== list.get("currentItem")) {
+      if (list && this._currentItem !== list.get("currentItem")) {
         list.set("currentItem", this._currentItem);
       }
       if (this._opened && this._filterable) {

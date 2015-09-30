@@ -1806,14 +1806,14 @@
         content: [
           {
             "class": "ui button",
-            content: "取消",
+            content: cola.resource("cola.message.deny") || "取消",
             click: function() {
               cola.commonDimmer.hide();
               return timerLayer.hide();
             }
           }, {
             "class": "ui positive button",
-            content: "确定",
+            content: cola.resource("cola.message.approve") || "确认",
             click: function() {
               cola.commonDimmer.hide();
               timerLayer.hide();
@@ -2428,7 +2428,7 @@
 
       Calendar.prototype._createDom = function() {
         var allWeeks, cal, dom, picker, weeks;
-        allWeeks = "日,一,二,三,四,五,六";
+        allWeeks = cola.resource("cola.date.dayNamesShort") || "日,一,二,三,四,五,六";
         weeks = allWeeks.split(",");
         cal = this;
         if (this._doms == null) {
@@ -3399,31 +3399,38 @@
       }
     };
     messageBox = {
-      animation: cola.device.phone ? "slide up" : "scale",
       settings: {
         info: {
-          title: "消息",
+          title: cola.resource("cola.messageBox.info.title"),
           icon: "blue info icon"
         },
         warning: {
-          title: "警告",
+          title: cola.resource("cola.messageBox.warning.title"),
           icon: "yellow warning sign icon"
         },
         error: {
-          title: "错误",
+          title: cola.resource("cola.messageBox.error.title"),
           icon: "red warning sign icon"
         },
         question: {
-          title: "确认框",
+          title: cola.resource("cola.messageBox.question.title"),
           icon: "black help circle icon"
         }
       },
       "class": "standard",
+      dialogMode: true,
       level: {
         WARNING: "warning",
         ERROR: "error",
         INFO: "info",
         QUESTION: "question"
+      },
+      _getAnimation: function() {
+        if (messageBox.dialogMode) {
+          return "scale";
+        } else {
+          return "slide up";
+        }
       },
       _executeCallback: function(name) {
         var _eventName;
@@ -3442,12 +3449,12 @@
       },
       _doShow: function() {
         var $dom, animation, css, height, pHeight, pWidth, width;
-        animation = messageBox.animation;
+        animation = messageBox._getAnimation();
         css = {
           zIndex: cola.floatWidget.zIndex()
         };
         $dom = $(messageBox._dom);
-        if (!cola.device.phone) {
+        if (messageBox.dialogMode) {
           width = $dom.width();
           height = $dom.height();
           pWidth = $(window).width();
@@ -3460,17 +3467,17 @@
         return cola.commonDimmer.show();
       },
       _doApprove: function() {
-        messageBox._executeCallback("approve");
+        messageBox._executeCallback("Approve");
         messageBox._doHide();
       },
       _doDeny: function() {
-        messageBox._executeCallback("deny");
+        messageBox._executeCallback("Deny");
         messageBox._doHide();
       },
       _doHide: function() {
-        $(messageBox._dom).transition(messageBox.animation);
+        $(messageBox._dom).transition(messageBox._settings.animation);
         cola.commonDimmer.hide();
-        messageBox._executeCallback("hide");
+        messageBox._executeCallback("Hide");
       },
       getDom: function() {
         if (!messageBox._dom) {
@@ -3479,7 +3486,7 @@
         return messageBox._dom;
       },
       show: function(options) {
-        var $dom, dom, doms, isAlert, level, oldUI, settings, ui;
+        var $dom, className, dom, doms, isAlert, level, oldClassName, settings;
         dom = messageBox.getDom();
         settings = messageBox.settings;
         level = options.level || messageBox.level.INFO;
@@ -3494,13 +3501,13 @@
         messageBox._onApprove = options.onApprove;
         messageBox._onHide = options.onHide;
         $dom.removeClass("warning error info question").addClass(level);
-        oldUI = $dom.attr("_ui");
-        ui = options.ui || messageBox.ui;
-        if (oldUI !== ui) {
-          if (oldUI) {
-            $dom.removeClass(oldUI);
+        oldClassName = $dom.attr("_class");
+        className = options["class"] || messageBox["class"];
+        if (oldClassName !== className) {
+          if (oldClassName) {
+            $dom.removeClass(oldClassName);
           }
-          $dom.addClass(ui).attr("_ui", ui);
+          $dom.addClass(className).attr("_class", className);
         }
         doms = messageBox._doms;
         isAlert = options.mode === "alert";
@@ -3513,12 +3520,26 @@
         return this;
       }
     };
+    ({
+      _getClassName: function() {
+        if (messageBox.dialogMode) {
+          return "desktop";
+        } else {
+          return "mobile layer";
+        }
+      }
+    });
     createMessageBoxDom = function() {
       var actionsDom, bodyNode, dom, doms;
+      messageBox._settings = {
+        dialogMode: messageBox.dialogMode,
+        className: messageBox.dialogMode ? "desktop" : "mobile layer",
+        animation: messageBox.dialogMode ? "scale" : "slide up"
+      };
       doms = {};
       dom = $.xCreate({
         tagName: "Div",
-        "class": "ui " + (cola.device.phone ? "mobile layer" : "desktop") + " message-box transition hidden",
+        "class": "ui " + messageBox._settings.className + " message-box transition hidden",
         contextKey: "messageBox",
         content: {
           "class": "content-container ",
@@ -3571,13 +3592,13 @@
       }, doms);
       actionsDom = $.xCreate({
         tagName: "div",
-        "class": "actions " + (cola.device.phone ? "ui buttons two fluid top attached" : ""),
+        "class": "actions " + (messageBox._settings.dialogMode ? "" : "ui buttons two fluid top attached"),
         contextKey: "actions",
         content: [
           {
             tagName: "div",
             contextKey: "no",
-            content: "取消",
+            content: cola.resource("cola.message.deny"),
             click: messageBox._doDeny,
             "class": "ui button"
           }, {
@@ -3591,17 +3612,17 @@
                 "class": "checkmark icon"
               }, {
                 tagName: "span",
-                content: "确认",
+                content: cola.resource("cola.message.approve"),
                 contextKey: "yesCaption"
               }
             ]
           }
         ]
       }, doms);
-      if (cola.device.phone) {
-        $(doms.content).before(actionsDom);
-      } else {
+      if (messageBox._settings.dialogMode) {
         doms.contentContainer.appendChild(actionsDom);
+      } else {
+        $(doms.content).before(actionsDom);
       }
       bodyNode = window.document.body;
       if (bodyNode) {

@@ -56,6 +56,7 @@ body {
 #footer {
   height: 20em;
   padding: 1.5em;
+  overflow: hidden;
 }
 #footer > * {
   float: left;
@@ -172,6 +173,7 @@ body {
     display: none;
   }
   #article > * > .content {
+    position: relative;
     padding: 1em 14em 1em 1em;
   }
 }
@@ -183,10 +185,34 @@ body {
     display: none;
   }
   #article > * > .content {
+    position: relative;
     padding: 1em;
   }
   .github-link,
   .github-link-img {
     display: none;
   }
+}
+.banner {
+  background: url("/images/home-bg.jpg") repeat center;
+}
+.banner .masthead {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.7);
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  text-align: center;
+}
+.banner .masthead h1 {
+  line-height: 2em;
+}
+.banner .masthead h1 .library {
+  display: block;
+  font-size: 1.75em;
+  font-weight: bold;
+}
+.banner .masthead h1 .tagline {
+  font-size: 0.75em;
 }

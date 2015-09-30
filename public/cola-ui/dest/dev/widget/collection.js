@@ -2800,7 +2800,8 @@
     Stack.CLASS_NAME = "stack";
 
     Stack.EVENTS = {
-      change: null
+      change: null,
+      beforeChange: null
     };
 
     Stack.duration = 200;
@@ -2970,17 +2971,48 @@
     };
 
     Stack.prototype._onTouchEnd = function(evt) {
-      var duration, width;
+      var arg, duration, restore, width;
       if (!this._touchStart) {
         return;
       }
       duration = this.constructor.duration;
       width = this._currentItem.clientWidth;
+      this._touchStart = false;
+      restore = (function(_this) {
+        return function() {
+          $(_this._currentItem).transit({
+            x: 0,
+            duration: duration
+          });
+          if (_this._touchDirection === "left") {
+            $(_this._nextItem).transit({
+              x: width,
+              duration: duration
+            });
+          } else {
+            $(_this._prevItem).transit({
+              x: -1 * width,
+              duration: duration
+            });
+          }
+        };
+      })(this);
       if (this._moveTotal < 8) {
+        restore();
         return;
       }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "over"
+      };
       if (this._distanceX > width / 3) {
         if (this._touchDirection === "left") {
+          if (this.fire("beforeChange", this, arg) === false) {
+            restore();
+            return;
+          }
           $(this._currentItem).transit({
             x: -1 * width,
             duration: duration
@@ -2991,6 +3023,11 @@
           });
           this._doNext();
         } else {
+          arg.action = "back";
+          if (this.fire("beforeChange", this, arg) === false) {
+            restore();
+            return;
+          }
           $(this._currentItem).transit({
             x: width,
             duration: duration
@@ -3002,28 +3039,22 @@
           this._doPrev();
         }
       } else {
-        $(this._currentItem).transit({
-          x: 0,
-          duration: duration
-        });
-        if (this._touchDirection === "left") {
-          $(this._nextItem).transit({
-            x: width,
-            duration: duration
-          });
-        } else {
-          $(this._prevItem).transit({
-            x: -1 * width,
-            duration: duration
-          });
-        }
+        restore();
       }
-      this._touchStart = false;
     };
 
     Stack.prototype.next = function() {
-      var duration, stack, width;
+      var arg, duration, stack, width;
       if (this._animating) {
+        return;
+      }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "over"
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
         return;
       }
       this._animating = true;
@@ -3051,8 +3082,17 @@
     };
 
     Stack.prototype.prev = function() {
-      var duration, stack, width;
+      var arg, duration, stack, width;
       if (this._animating) {
+        return;
+      }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "back"
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
         return;
       }
       this._animating = true;

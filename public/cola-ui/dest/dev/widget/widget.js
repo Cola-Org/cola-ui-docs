@@ -406,6 +406,9 @@
     oldParentConstr = context.constr;
     constr = cola.resolveType((oldParentConstr != null ? oldParentConstr.CHILDREN_TYPE_NAMESPACE : void 0) || "widget", config, cola.Widget);
     config.$constr = context.constr = constr;
+    if (cola.util.isCompatibleType(cola.AbstractLayer, constr) && config.lazyRender) {
+      cola.util.userData(dom, cola.constants.DOM_SKIP_CHILDREN, true);
+    }
     return function(scope, dom) {
       var oldScope, widget;
       context.constr = oldParentConstr;

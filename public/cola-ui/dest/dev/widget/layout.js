@@ -105,6 +105,9 @@
         getter: function() {
           return this.isVisible();
         }
+      },
+      lazyRender: {
+        type: "boolean"
       }
     };
 
@@ -135,6 +138,10 @@
       }
       if (!this._dom || this.isVisible()) {
         return this;
+      }
+      if (this._lazyRender && !this._contentRendered) {
+        this._contentRendered = true;
+        cola.xRender(this._dom, this._scope);
       }
       if (typeof options === "function") {
         callback = options;
@@ -762,7 +769,7 @@
           oldValue = this["_icon"];
           this["_icon"] = value;
           if (oldValue && oldValue !== value && this._dom && ((ref = this._doms) != null ? ref.icon : void 0)) {
-            $(this._doms.icon).removeClass(oldValue);
+            $fly(this._doms.icon).removeClass(oldValue);
           }
         }
       },
@@ -826,13 +833,13 @@
           base.icon = document.createElement("i");
         }
         dom = this._doms.icon;
-        $(dom).addClass(this._icon + " icon");
+        $fly(dom).addClass(this._icon + " icon");
         if (dom.parentNode !== captionDom) {
           captionDom.appendChild(dom);
         }
       } else {
         if (this._doms.iconDom) {
-          $(this._doms.iconDom).remove();
+          $fly(this._doms.iconDom).remove();
         }
       }
     };
@@ -967,21 +974,9 @@
     }
 
     TabButton.ATTRIBUTES = {
-      control: {
-        setter: function(control) {
-          var old, widget;
-          old = this._control;
-          if (old) {
-            if (old.nodeType === 1) {
-              $(old).remove();
-            } else if (old instanceof cola.Widget) {
-              old.destroy();
-            }
-          }
-          if (control.nodeType === 1) {
-            widget = cola.widget(control);
-          }
-          this._control = widget || control;
+      content: {
+        setter: function(value) {
+          return this._content = cola.xRender(value, this._scope);
         }
       },
       contentContainer: null,
@@ -1010,22 +1005,8 @@
       return this;
     };
 
-    TabButton.prototype.getControlDom = function() {
-      var control, dom;
-      control = this._control;
-      if (control.nodeType !== 1) {
-        if (control instanceof cola.Widget) {
-          dom = control.getDom();
-        } else if (control.constructor === Object.prototype.constructor) {
-          if (control.$type) {
-            control = this._control = cola.widget(control);
-            dom = control.getDom();
-          } else {
-            dom = this._control = $.xCreate(control);
-          }
-        }
-      }
-      return dom || control;
+    TabButton.prototype.getContentDom = function() {
+      return this._content;
     };
 
     TabButton.prototype.destroy = function() {
@@ -1033,7 +1014,7 @@
         return;
       }
       TabButton.__super__.destroy.call(this);
-      delete this._control;
+      delete this._content;
       delete this._contentContainer;
       delete this._parent;
       return this;
@@ -1098,11 +1079,11 @@
 
     Tab.EVENTS = {
       beforeChange: null,
-      afterChange: null
+      change: null
     };
 
     Tab.prototype._tabContentRender = function(tab) {
-      var container, contentsContainer, controlDom, tagName;
+      var container, contentDom, contentsContainer, tagName;
       contentsContainer = this.getContentsContainer();
       container = tab.get("contentContainer");
       if (container && container.parentNode === contentsContainer) {
@@ -1115,9 +1096,9 @@
       });
       contentsContainer.appendChild(container);
       tab.set("contentContainer", container);
-      controlDom = tab.getControlDom();
-      if (controlDom) {
-        return container.appendChild(controlDom);
+      contentDom = tab.getContentDom();
+      if (contentDom) {
+        return container.appendChild(contentDom);
       }
     };
 
@@ -1141,8 +1122,7 @@
         oldTab: oldTab,
         newTab: newTab
       };
-      this.fire("beforeChange", this, arg);
-      if (arg.processDefault === false) {
+      if (this.fire("beforeChange", this, arg) === false) {
         return false;
       }
       if (oldTab) {
@@ -1157,13 +1137,13 @@
       }
       $(container).addClass("active");
       this._currentTab = newTab;
-      this.fire("afterChange", this, arg);
+      this.fire("change", this, arg);
       return true;
     };
 
-    Tab.prototype._setDom = function(dom, parseChild) {
+    Tab.prototype._initDom = function(dom) {
       var activeExclusive, i, len, ref, tab;
-      Tab.__super__._setDom.call(this, dom, parseChild);
+      Tab.__super__._initDom.call(this, dom);
       activeExclusive = (function(_this) {
         return function(targetDom) {
           var tab;
@@ -1228,7 +1208,7 @@
     };
 
     Tab.prototype._parseDom = function(dom) {
-      var _contents, child, control, i, item, len, name, parseContents, tab, tabs;
+      var _contents, child, content, i, item, len, name, parseContents, tab, tabs;
       child = dom.firstChild;
       if (this._doms == null) {
         this._doms = {};
@@ -1264,8 +1244,8 @@
         name = tab.get("name");
         if (name && _contents[name]) {
           item = _contents[name];
-          control = item.children[0];
-          tab.set("control", _contents[name]);
+          content = item.children[0];
+          tab.set("content", _contents[name]);
           tab.set("contentContainer", item);
         }
       }
@@ -1283,7 +1263,7 @@
         });
         this._dom.appendChild(dom);
       }
-      return this._doms.tabs;
+      return this._doms.tabBar;
     };
 
     Tab.prototype.getTabsContainer = function() {
@@ -1325,6 +1305,9 @@
     Tab.prototype.addTab = function(tab) {
       if (this._tabs == null) {
         this._tabs = [];
+      }
+      if (tab.constructor === Object.prototype.constructor) {
+        tab = new cola.TabButton(tab);
       }
       if (this._tabs.indexOf(tab) > -1) {
         return this;
@@ -1376,9 +1359,9 @@
           }
         }
         this._tabs.splice(index, 1);
-        obj.remove();
         contentContainer = obj.get("contentContainer");
-        if ((contentContainer != null ? contentContainer.parentNode : void 0) === this._doms.tabs) {
+        obj.remove();
+        if ((contentContainer != null ? contentContainer.parentNode : void 0) === this._doms.contents) {
           $(contentContainer).remove();
         }
       }

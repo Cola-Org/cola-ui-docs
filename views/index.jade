@@ -1,6 +1,11 @@
-extends doc-layout
-
+extends layout
 block content
+	.doc-layer
+		.masthead.v-box.center
+			.box
+				h1.ui.inverted.header
+					span.library Cola UI
+					span.tagline 支持双向数据绑定的一站式前端UI框架
+				a.ui.button.big.basic.inverted(href="./docs/quick-start") 快速入门
 
-	p 欢迎来到#{title}的世界！
-	include:markdown ./md/articals.md
+				.ui.button.big.basic.inverted(tabindex="0") 在线实例
