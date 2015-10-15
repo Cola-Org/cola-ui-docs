@@ -1,0 +1,24 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("standard","标准")
+	.example(name="standard")#standard
+		h4.ui.header 静态选择项
+
+		.code
+			#dropdownStandard
+				template
+					li(c-bind="country.label")
+		script(type="text/javascript" name="standard").
+			cola("standard", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+
+				model.widgetConfig({
+					dropdownStandard: {
+						$type: "dropdown",
+						items: "{{country in countries}}"
+					}
+				});
+			});

@@ -32,4 +32,5 @@ Cola中包含一些系统级的Action供我们直接使用，我们称这些Acti
  * String - 如果长度为0则认为是空。
  * 其他情况下则当其值为null或undefined时才认为是空。
 * isNotEmpty(value): 与isEmpty(value)的结果相反。
+* len(value): 获得Array或EntityList的长度。
 * resource(key, param1, param2, ...)： 用于返回cola中定义的国际化资源，其具体用法可以直接参考cola.resource()方法的API文档。

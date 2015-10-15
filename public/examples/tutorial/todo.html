@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
+
+	<script type="text/javascript">
+		cola(function (model) {
+			model.set({
+				todos: [
+					{ title: "Meeting", done: true },
+					{ title: "Date" },
+					{ title: "Lunch" , done: true},
+					{ title: "Play basketball" },
+					{ title: "Game" }
+				],
+				sortOptions: ["", "done", "-done", "title", "-title", "done,title"]
+			});
+
+			model.action({
+				add: function () {
+					model.get("todos").insert({
+						title: model.get("newItem")
+					});
+					model.set("newItem", null);
+				},
+				delete: function (todo) {
+					todo.remove();
+				},
+				stat: function () {
+					var todos = model.get("todos"), done = 0, total = 0;
+					todos.each(function (todo) {
+						if (todo.get("done")) done++;
+					});
+					return done + "/" + todos.entityCount;
+				}
+			});
+		});
+	</script>
+</head>
+<body style="padding:20px">
+<p>
+	<input c-bind="newItem">
+	<button c-onclick="add()" c-disabled="newItem?false:true">Add</button>
+</p>
+<p>
+	Filter: <input c-bind="filterParam">
+	Sort: <select c-bind="sortParam" c-options="sortOptions"></select>
+</p>
+<ul>
+	<li c-repeat="todo in todos | filter:filterParam | sort:sortParam">
+		<input type="checkbox" c-bind="todo.done">
+		<span c-bind="todo.title"></span>
+		<button c-onclick="delete(todo)">Delete</button>
+	</li>
+</ul>
+<p>
+	<span c-bind="stat()"></span>
+</p>
+</body>
+</html>

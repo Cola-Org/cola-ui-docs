@@ -1,0 +1,36 @@
+extends ../doc-layout
+block content
+
+	+addCatalog("static","标准")
+	.example(name="static")#static
+		h4.ui.header 静态选择项
+		.code
+			#selectStatic
+		script(type="text/javascript" name="static").
+			cola("static", function (model) {
+				model.widgetConfig({
+					selectStatic: {
+						$type: "select",
+						options: ["Javascript", "CSS3", "HTML5", "Coffee", "LESS"]
+					}
+				});
+			});
+
+	+addCatalog("mapping","键值映射")
+	.example(name="mapping")#mapping
+		h4.ui.header 键值映射
+		.code
+			#selectMapping
+		script(type="text/javascript" name="mapping").
+			cola("mapping", function (model) {
+				model.widgetConfig({
+					selectMapping: {
+						$type: "select",
+						options: [
+							{ value: null, text: "<Unknown>" },
+							{ value: "m", text: "Male" },
+							{ value: "f", text: "Female" }
+						]
+					}
+				});
+			});

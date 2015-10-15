@@ -3,7 +3,7 @@ cola._rootFunc = ()->
 	if arguments.length is 2 and typeof arguments[0] == "string" and typeof arguments[1] == "function"
 		name = arguments[0]
 		fn = arguments[1]
-		targetDoms = $(".example[name='#{name}']").addClass(".c-ignore").children().not(".prettyprint,.c-ignore")
+		targetDoms = $(".example[name='#{name}']").attr("c-ignore", "").children().not(".prettyprint")
 
 		if targetDoms.length
 			targetDoms.each(()-> oldColaRootFn(name, @, fn))

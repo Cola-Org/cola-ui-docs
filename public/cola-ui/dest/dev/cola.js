@@ -243,6 +243,7 @@
 
     function KeyedArray() {
       this.elements = [];
+      this.keys = [];
       this.keyMap = {};
     }
 
@@ -252,10 +253,12 @@
         i = this.elements.indexOf(element);
         if (i > -1) {
           this.elements.splice(i, 1);
+          this.keys.splice(i, 1);
         }
       }
       this.keyMap[key] = element;
       this.size = this.elements.push(element);
+      this.keys.push(key);
       return this;
     };
 
@@ -263,24 +266,20 @@
       var element, i;
       if (typeof key === "number") {
         i = key;
+        key = this.keys[i];
         element = this.elements[i];
         this.elements.splice(i, 1);
+        this.keys.splice(i, 1);
         this.size = this.elements.length;
-        if (element) {
-          for (key in this.keyMap) {
-            if (this.keyMap[key] === element) {
-              delete this.keyMap[key];
-              break;
-            }
-          }
-        }
+        delete this.keyMap[key];
       } else {
         element = this.keyMap[key];
         delete this.keyMap[key];
         if (element) {
-          i = this.elements.indexOf(element);
+          i = this.keys.indexOf(key);
           if (i > -1) {
             this.elements.splice(i, 1);
+            this.keys.splice(i, 1);
             this.size = this.elements.length;
           }
         }
@@ -297,16 +296,15 @@
     };
 
     KeyedArray.prototype.getIndex = function(key) {
-      var element;
-      element = this.keyMap[key];
-      if (element) {
-        return this.elements.indexOf(element);
+      if (this.keyMap.hasOwnProperty(key)) {
+        return this.keys.indexOf(key);
       }
       return -1;
     };
 
     KeyedArray.prototype.clear = function() {
       this.elements = [];
+      this.keys = [];
       this.keyMap = {};
       this.size = 0;
     };
@@ -316,11 +314,12 @@
     };
 
     KeyedArray.prototype.each = function(fn) {
-      var element, l, len1, ref;
+      var element, i, keys, l, len1, ref;
+      keys = this.keys;
       ref = this.elements;
-      for (l = 0, len1 = ref.length; l < len1; l++) {
-        element = ref[l];
-        if (fn.call(this, element) === false) {
+      for (i = l = 0, len1 = ref.length; l < len1; i = ++l) {
+        element = ref[i];
+        if (fn.call(this, element, keys[i]) === false) {
           break;
         }
       }
@@ -361,6 +360,16 @@
     }
     type = typeof value;
     return type !== "object" && type !== "function" || type instanceof Date;
+  };
+
+  cola.util.each = function(array, fn) {
+    var i, item, l, len1;
+    for (i = l = 0, len1 = array.length; l < len1; i = ++l) {
+      item = array[i];
+      if (fn(item, i) === false) {
+        break;
+      }
+    }
   };
 
   cola.util.concatUrl = function() {
@@ -2072,7 +2081,11 @@
       collection = collection.toArray();
     }
     if (comparator) {
-      if (typeof comparator === "string") {
+      if (comparator === "$none") {
+        return collection;
+      } else if (comparator === "$reverse") {
+        return collection.reverse();
+      } else if (typeof comparator === "string") {
         comparatorProps = [];
         ref = comparator.split(",");
         for (l = 0, len1 = ref.length; l < len1; l++) {
@@ -2164,8 +2177,6 @@
           return 0;
         };
       }
-    } else if (comparator === "$none") {
-      return collection;
     } else {
       comparator = function(item1, item2) {
         var result;
@@ -2207,6 +2218,9 @@
     }
     if (!collection) {
       return null;
+    }
+    if (top < 0) {
+      return collection;
     }
     items = [];
     i = 0;
@@ -2900,15 +2914,20 @@
       if (parameter != null) {
         if (typeof parameter === "string") {
           parameter = this._evalParamValue(parameter, context);
-        } else if (typeof parameter === "object") {
-          oldParameter = parameter;
-          parameter = {};
-          for (p in oldParameter) {
-            v = oldParameter[p];
-            if (typeof v === "string") {
-              v = this._evalParamValue(v, context);
+        } else {
+          if (typeof parameter === "function") {
+            parameter = parameter(this);
+          }
+          if (typeof parameter === "object") {
+            oldParameter = parameter;
+            parameter = {};
+            for (p in oldParameter) {
+              v = oldParameter[p];
+              if (typeof v === "string") {
+                v = this._evalParamValue(v, context);
+              }
+              parameter[p] = v;
             }
-            parameter[p] = v;
           }
         }
       }
@@ -3881,8 +3900,8 @@
         loadMode = "async";
       }
       if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
-        loadMode = "async";
         callback = loadMode;
+        loadMode = "async";
       }
       if (prop.indexOf(".") > 0) {
         return _evalDataPath(this, prop, false, loadMode, callback, context);
@@ -3955,7 +3974,6 @@
         value = loadData.call(this, value);
         callbackProcessed = true;
       } else if (value instanceof cola.AjaxServiceInvoker) {
-        value = void 0;
         providerInvoker = value;
         if (loadMode === "sync") {
           value = providerInvoker.invokeSync();
@@ -5693,7 +5711,7 @@
       if (typeof collection.each === "function") {
         collection.each(fn);
       } else {
-        collection.forEach(fn);
+        cola.util.each(collection, fn);
       }
     }
   };

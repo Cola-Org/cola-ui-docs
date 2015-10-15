@@ -183,7 +183,7 @@ model.action({
 	}
 });
 ```
-现在getPersonInfo()的内容不仅仅跟person的子属性相关了，还跟子属性中的子属性相关，`person.*`又不能满足要求了。
+现在getPersonInfo()的内容不仅仅跟person的子属性相关，还跟子属性中的子属性相关，`person.*`又不能满足要求了。
 此时我们可以将表达式写成`getPersonInfo() on person.**`。这表示getPersonInfo()的返回结果与person中任意一级的子属性的变化相关。
 
 让我们把问题进一步复杂化一些，看看下面这个例子...

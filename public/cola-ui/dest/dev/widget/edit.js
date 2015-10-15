@@ -1783,7 +1783,7 @@
       return Select.__super__.constructor.apply(this, arguments);
     }
 
-    Select.CLASS_NAME = "input";
+    Select.CLASS_NAME = "input select";
 
     Select.ATTRIBUTES = {
       options: {
@@ -1834,6 +1834,16 @@
       if (this._options) {
         this._refreshSelectOptions(this._doms.input);
       }
+      $(this._doms.input).on("change", (function(_this) {
+        return function() {
+          var readOnly, value;
+          readOnly = _this._readOnly;
+          if (!readOnly) {
+            value = $(_this._doms.input).val();
+            _this.set("value", value);
+          }
+        };
+      })(this));
     };
 
     Select.prototype._refreshSelectOptions = function(select) {
@@ -1844,17 +1854,37 @@
       } else {
         options.length = this._options.length;
       }
-      cola.each(this._options, function(optionValue, i) {
-        var option;
-        option = options[i];
-        if (cola.util.isSimpleValue(optionValue)) {
-          $fly(option).removeAttr("value").text(optionValue);
-        } else if (optionValue instanceof cola.Entity) {
-          $fly(option).attr("value", optionValue.get("value") || optionValue.get("key")).text(optionValue.get("text") || optionValue.get("name"));
-        } else {
-          $fly(option).attr("value", optionValue.value || optionValue.key).text(optionValue.text || optionValue.name);
-        }
-      });
+      cola.each(this._options, (function(_this) {
+        return function(optionValue, i) {
+          var $option, option, text, value;
+          option = options[i];
+          if (cola.util.isSimpleValue(optionValue)) {
+            value = null;
+            text = optionValue;
+          } else if (optionValue instanceof cola.Entity) {
+            value = optionValue.get("value") || optionValue.get("key") || "";
+            text = optionValue.get("text") || optionValue.get("name");
+          } else {
+            value = optionValue.value || optionValue.key || "";
+            text = optionValue.text || optionValue.name;
+          }
+          $option = $fly(option);
+          if (value == null) {
+            $option.removeAttr("value");
+          } else {
+            $option.attr("value", value);
+            if (value === "" && !text) {
+              text = _this._placeholder;
+            }
+          }
+          $option.text(text || "");
+        };
+      })(this));
+    };
+
+    Select.prototype._refreshInputValue = function(value) {
+      Select.__super__._refreshInputValue.call(this, value);
+      cola.util.toggleClass(this._doms.input, "placeholder", (value == null) || value === "");
     };
 
     return Select;
@@ -2244,15 +2274,15 @@
           $flexContent = $(this._doms.flexContent);
           $flexContent.height("");
           $containerDom = container.get$Dom();
-          $containerDom.show();
+          $containerDom.removeClass("hidden");
           containerHeight = $containerDom.height();
           clientHeight = document.body.clientHeight;
           if (containerHeight > (clientHeight - dropdownDialogMargin * 2)) {
             height = $flexContent.height() - (containerHeight - (clientHeight - dropdownDialogMargin * 2));
-            $containerDom.hide();
+            $containerDom.addClass("hidden");
             $flexContent.height(height);
           } else {
-            $containerDom.hide();
+            $containerDom.addClass("hidden");
           }
           container.show(doCallback);
         }
@@ -2303,7 +2333,7 @@
       return DropBox.__super__.constructor.apply(this, arguments);
     }
 
-    DropBox.CLASS_NAME = "drop-box";
+    DropBox.CLASS_NAME = "drop-box transition";
 
     DropBox.ATTRIBUTES = {
       dropdown: null
@@ -2313,12 +2343,12 @@
       var $dom, bottomSpace, boxHeight, boxWidth, clientHeight, clientWidth, direction, dropdownDom, height, left, rect, top, topSpace;
       $dom = this.get$Dom();
       dropdownDom = this._dropdown._doms.input;
-      $dom.css("height", "").show();
+      $dom.css("height", "").removeClass("hidden");
       boxWidth = $dom.width();
       boxHeight = $dom.height();
-      $dom.hide();
+      $dom.addClass("hidden");
       rect = dropdownDom.getBoundingClientRect();
-      clientWidth = document.body.clientWidth;
+      clientWidth = document.body.offsetWidth;
       clientHeight = document.body.clientHeight;
       bottomSpace = clientHeight - rect.top - dropdownDom.clientHeight;
       if (bottomSpace >= boxHeight) {
@@ -2350,8 +2380,8 @@
       if (height) {
         $dom.css("height", height);
       }
-      $dom.removeClass(direction === "down" ? "direction-up" : "direction-down").addClass("direction-" + direction).toggleClass("x-over", boxWidth > dropdownDom.offsetWidth).css("left", left).css("top", top).css("min-width", dropdownDom.offsetWidth);
-      this._animation = "slide " + direction;
+      $dom.removeClass(direction === "down" ? "direction-up" : "direction-down").addClass("direction-" + direction).toggleClass("x-over", boxWidth > dropdownDom.offsetWidth).css("left", left).css("top", top).css("min-width", dropdownDom.offsetWidth).css("max-width", document.body.clientWidth);
+      this._animation = "fade";
       DropBox.__super__.show.call(this, options, callback);
     };
 

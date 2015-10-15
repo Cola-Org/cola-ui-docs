@@ -48,7 +48,7 @@ template {
   background-color: #a333c8;
 }
 .pink-background {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .brown-background {
   background-color: #a5673f;
@@ -87,7 +87,7 @@ template {
   color: #a333c8;
 }
 .pink-text {
-  color: #e03997;
+  color: #ff4081;
 }
 .brown-text {
   color: #a5673f;
@@ -126,7 +126,7 @@ template {
   border-color: #a333c8;
 }
 .pink-border {
-  border-color: #e03997;
+  border-color: #ff4081;
 }
 .brown-border {
   border-color: #a5673f;
@@ -2367,10 +2367,10 @@ template {
   background: rgba(163, 51, 200, 0.2);
 }
 .ui.list-view.light-pink .list.item:hover:not(.current) {
-  background: rgba(224, 57, 151, 0.1);
+  background: rgba(255, 64, 129, 0.1);
 }
 .ui.list-view.light-pink .list.item.current {
-  background: rgba(224, 57, 151, 0.2);
+  background: rgba(255, 64, 129, 0.2);
 }
 .ui.list-view.light-brown .list.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.1);
@@ -2454,10 +2454,10 @@ template {
   color: #ffffff;
 }
 .ui.list-view.pink .list.item:hover:not(.current) {
-  background: rgba(224, 57, 151, 0.12);
+  background: rgba(255, 64, 129, 0.12);
 }
 .ui.list-view.pink .list.item.current {
-  background: #e03997;
+  background: #ff4081;
   color: #ffffff;
 }
 .ui.list-view.brown .list.item:hover:not(.current) {
@@ -2693,10 +2693,10 @@ template {
   background: rgba(163, 51, 200, 0.2);
 }
 .ui.tree.light-pink .tree.item:not(.current) > .tree.node:hover {
-  background: rgba(224, 57, 151, 0.1);
+  background: rgba(255, 64, 129, 0.1);
 }
 .ui.tree.light-pink .tree.item.current > .tree.node {
-  background: rgba(224, 57, 151, 0.2);
+  background: rgba(255, 64, 129, 0.2);
 }
 .ui.tree.light-brown .tree.item:not(.current) > .tree.node:hover {
   background: rgba(165, 103, 63, 0.1);
@@ -2780,10 +2780,10 @@ template {
   color: #ffffff;
 }
 .ui.tree.pink .tree.item:not(.current) > .tree.node:hover {
-  background: rgba(224, 57, 151, 0.12);
+  background: rgba(255, 64, 129, 0.12);
 }
 .ui.tree.pink .tree.item.current > .tree.node {
-  background: #e03997;
+  background: #ff4081;
   color: #ffffff;
 }
 .ui.tree.brown .tree.item:not(.current) > .tree.node:hover {
@@ -2981,10 +2981,10 @@ template {
   background: rgba(163, 51, 200, 0.2);
 }
 .ui.widget-table.light-pink .table.item:hover:not(.current) {
-  background: rgba(224, 57, 151, 0.1);
+  background: rgba(255, 64, 129, 0.1);
 }
 .ui.widget-table.light-pink .table.item.current {
-  background: rgba(224, 57, 151, 0.2);
+  background: rgba(255, 64, 129, 0.2);
 }
 .ui.widget-table.light-brown .table.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.1);
@@ -3068,10 +3068,10 @@ template {
   color: #ffffff;
 }
 .ui.widget-table.pink .table.item:hover:not(.current) {
-  background: rgba(224, 57, 151, 0.12);
+  background: rgba(255, 64, 129, 0.12);
 }
 .ui.widget-table.pink .table.item.current {
-  background: #e03997;
+  background: #ff4081;
   color: #ffffff;
 }
 .ui.widget-table.brown .table.item:hover:not(.current) {
@@ -3284,6 +3284,9 @@ template {
   width: 0px !important;
 }
 
+.ui.input.select > .editor.placeholder:not(:focus) {
+  color: #999999;
+}
 .ui.input.drop > .icon {
   pointer-events: inherit !important;
 }
@@ -3321,10 +3324,10 @@ template {
 }
 .ui.drop-box {
   position: absolute;
-  display: none;
   overflow: auto;
   border: 1px solid rgba(0, 0, 0, 0.3);
   min-height: 1em;
+  width: auto;
 }
 .ui.drop-box.direction-down {
   border-radius: 0 0 0.28571429rem 0.28571429rem;
@@ -3872,7 +3875,7 @@ template {
 }
 /*rtl:ignore*/
 .ui.dialog > .content > .image > i.icon {
-  margin: 0em;
+  margin: 0;
   opacity: 1;
   width: auto;
   line-height: 1;
@@ -4038,8 +4041,8 @@ template {
   background-color: #a333c8 !important;
 }
 .ui.carousel.pink > .indicators > span.active {
-  border-color: #e03997 !important;
-  background-color: #e03997 !important;
+  border-color: #ff4081 !important;
+  background-color: #ff4081 !important;
 }
 .ui.carousel.brown > .indicators > span.active {
   border-color: #a5673f !important;
@@ -4333,16 +4336,16 @@ template {
   background-color: #a333c8;
 }
 .ui.c-tab.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
 .ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active:hover {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.brown {
   background-color: #a5673f;
@@ -4432,11 +4435,11 @@ template {
   box-shadow: inset 0 2px 0 #a333c8;
 }
 .ui.c-tab:not(.inverted) .tab-button.pink {
-  color: #e03997;
+  color: #ff4081;
 }
 .ui.c-tab:not(.inverted) .tab-button.pink.active,
 .ui.c-tab:not(.inverted) .tab-button.pink.active:hover {
-  box-shadow: inset 0 2px 0 #e03997;
+  box-shadow: inset 0 2px 0 #ff4081;
 }
 .ui.c-tab:not(.inverted) .tab-button.brown {
   color: #a5673f;
@@ -4697,7 +4700,7 @@ template {
   background-color: #a333c8;
 }
 .ui.c-tab.pad.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.pad.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
@@ -4706,7 +4709,7 @@ template {
   background-color: rgba(34, 36, 38, 0.1);
 }
 .ui.c-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button.active {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.pad.inverted.brown {
   background-color: #a5673f;
@@ -5072,13 +5075,13 @@ template {
   background: #a333c8;
 }
 .calendar.pink .header .button {
-  color: #e03997;
+  color: #ff4081;
 }
 .calendar.pink .date-header {
-  border-bottom: 1px solid #e03997;
+  border-bottom: 1px solid #ff4081;
 }
 .calendar.pink .date-table-wrapper .date-table td.selected div.label {
-  background: #e03997;
+  background: #ff4081;
 }
 .calendar.brown .header .button {
   color: #a5673f;
@@ -5174,10 +5177,10 @@ template {
   color: #a333c8;
 }
 .calendar.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .calendar.inverted.pink .date-table-wrapper .date-table td.selected div.label {
-  color: #e03997;
+  color: #ff4081;
 }
 .calendar.inverted.brown {
   background-color: #a5673f;
@@ -5226,8 +5229,8 @@ html.ios body {
   display: none;
 }
 .ui.sidebar.visible {
-  display: block;
+  display: block !important;
 }
 .ui.sidebar.animation {
-  display: block;
+  display: block !important;
 }

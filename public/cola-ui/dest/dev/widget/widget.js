@@ -1481,7 +1481,7 @@
               event: evt,
               returnValue: null
             };
-            _this.fire(eventName, _this, arg);
+            return _this.fire(eventName, _this, arg);
           };
         })(this));
         this._bindedEvents[eventName] = true;

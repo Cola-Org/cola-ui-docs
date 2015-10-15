@@ -174,6 +174,14 @@ module.exports = [
 				url: "edit/input"
 			}
 			{
+				name: "Select(原生选择框)"
+				url: "edit/select"
+			}
+			{
+				name: "Dropdown(下拉框)"
+				url: "edit/dropdown"
+			}
+			{
 				name: "Progress(进度条)"
 				url: "edit/progress"
 			}
@@ -197,7 +205,22 @@ module.exports = [
 				name: "Dialog(弹出框)"
 				url: "layout/dialog"
 			}
-
+			{
+				name: "ListView(列表)"
+				url: "list/list-view"
+			}
+			{
+				name: "NestedList(嵌套列表)"
+				url: "list/nested-list"
+			}
+			{
+				name: "Grid(表格)"
+				url: "list/grid"
+			}
+			{
+				name: "Tree(树)"
+				url: "list/tree"
+			}
 		]
 	}
 ]

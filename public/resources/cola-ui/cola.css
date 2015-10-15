@@ -48,7 +48,7 @@ template {
   background-color: #a333c8;
 }
 .pink-background {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .brown-background {
   background-color: #a5673f;
@@ -87,7 +87,7 @@ template {
   color: #a333c8;
 }
 .pink-text {
-  color: #e03997;
+  color: #ff4081;
 }
 .brown-text {
   color: #a5673f;
@@ -126,7 +126,7 @@ template {
   border-color: #a333c8;
 }
 .pink-border {
-  border-color: #e03997;
+  border-color: #ff4081;
 }
 .brown-border {
   border-color: #a5673f;
@@ -172,6 +172,12 @@ template {
   -webkit-align-items: flex-start;
   -ms-flex-align: start;
   align-items: flex-start;
+}
+.v-box > .box,
+.h-box > .box,
+.v-box > .flex-box,
+.h-box > .flex-box {
+  overflow: auto;
 }
 .v-box .box,
 .h-box .box {
@@ -2140,23 +2146,23 @@ template {
   margin: 0;
   padding: 0;
 }
-.ui.list-view .item {
+.ui.list-view .list.item {
   padding: 0.8em 0.5em;
 }
-.ui.list-view .group {
+.ui.list-view .list.group {
   margin: 0;
   padding: 0;
 }
-.ui.list-view .group-header {
+.ui.list-view .list.group-header {
   color: rgba(0, 0, 0, 0.85);
   background: #f9fafb;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: 0.25em 0.5em;
 }
-.ui.list-view .group-header:active {
+.ui.list-view .list.group-header:active {
   background: #e1e6eb;
 }
-.ui.list-view .group-header.collapsible:before {
+.ui.list-view .list.group-header.collapsible:before {
   transition-duration: 0.3s;
   transition-property: transform;
   font-family: Icons;
@@ -2164,20 +2170,20 @@ template {
   float: right;
   margin-right: 0.5em;
 }
-.ui.list-view .group-header.collapsible.collapsed:before {
+.ui.list-view .list.group-header.collapsible.collapsed:before {
   transform: rotate(90deg);
 }
 .ui.list-view .item-slide-pane {
   position: absolute;
   overflow: hidden;
-  z-index: 1;
+  z-index: 1100;
   box-sizing: border-box;
 }
 .ui.list-view .item-slide-pane.transition {
   transition-duration: 0.15s;
   transition-property: transform;
 }
-.ui.list-view.has-index-bar .group-header.collapsible:before {
+.ui.list-view.has-index-bar .list.group-header.collapsible:before {
   margin-right: 2.2em;
 }
 .ui.list-view > .float-group-header {
@@ -2188,7 +2194,7 @@ template {
   opacity: 0.9;
   pointer-events: none;
 }
-.ui.list-view > .float-group-header > .group-header:before {
+.ui.list-view > .float-group-header > .list.group-header:before {
   display: none;
 }
 .ui.list-view > .index-bar {
@@ -2221,49 +2227,47 @@ template {
 .ui.list-view > .index-bar > .index.current {
   background: #e1e6eb;
 }
-.ui.list-view.striped .item:nth-child(2n):not(.current) {
+.ui.list-view.striped .list.item:nth-child(2n):not(.current) {
   background: #f7f7f7;
 }
-.ui.list-view.striped .group-header {
+.ui.list-view.striped .list.group-header {
   background: #e1e6eb;
 }
-.ui.list-view.striped .group-header:active {
+.ui.list-view.striped .list.group-header:active {
   background: #c8d1da;
 }
-.ui.list-view.impact .item {
+.ui.list-view.impact .list.item {
   padding: 0.125em !important;
 }
-.ui.list-view .item:hover:not(.current),
-.ui.list-view .item:active:not(.current) {
+.ui.list-view .list.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.list-view .item.current {
+.ui.list-view .list.item.current {
   background: rgba(0, 181, 173, 0.2);
   color: rgba(0, 0, 0, 0.85);
 }
-.ui.list-view.striped.inverted .item:nth-child(2n):not(.current) {
+.ui.list-view.striped.inverted .list.item:nth-child(2n):not(.current) {
   background: #252628;
 }
 .ui.list-view.inverted {
   background: #2f3032;
 }
-.ui.list-view.inverted .item {
+.ui.list-view.inverted .list.item {
   color: rgba(255, 255, 255, 0.9);
   background: #2f3032;
 }
-.ui.list-view.inverted .item:hover:not(.current),
-.ui.list-view.inverted .item:active:not(.current) {
+.ui.list-view.inverted .list.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.list-view.inverted .item.current {
+.ui.list-view.inverted .list.item.current {
   background: #2185d0;
 }
-.ui.list-view.inverted .group-header {
+.ui.list-view.inverted .list.group-header {
   color: rgba(255, 255, 255, 0.9);
   background: #4c4f52;
   border-bottom: 1px solid #6a6e72;
 }
-.ui.list-view.inverted .group-header:active {
+.ui.list-view.inverted .list.group-header:active {
   background: #6a6e72;
 }
 .ui.list-view.inverted > .index-bar {
@@ -2279,24 +2283,23 @@ template {
 .ui.list-view.basic {
   background: none;
 }
-.ui.list-view.basic .item {
+.ui.list-view.basic .list.item {
   color: inherit;
   background: none;
 }
-.ui.list-view.basic .item:hover:not(.current),
-.ui.list-view.basic .item:active:not(.current) {
+.ui.list-view.basic .list.item:hover:not(.current) {
   background: none;
 }
-.ui.list-view.basic .item.current {
+.ui.list-view.basic .list.item.current {
   background: none;
   color: inherit;
 }
-.ui.list-view.basic .group-header {
+.ui.list-view.basic .list.group-header {
   color: inherit;
   background: none;
   border-bottom: none;
 }
-.ui.list-view.basic .group-header:active {
+.ui.list-view.basic .list.group-header:active {
   background: none;
 }
 .ui.list-view.basic > .index-bar {
@@ -2309,198 +2312,172 @@ template {
 .ui.list-view.basic > .index-bar > .index.current {
   background: none;
 }
-.ui.list-view.light-red .item:hover:not(.current),
-.ui.list-view.light-red .item:active:not(.current) {
+.ui.list-view.light-red .list.item:hover:not(.current) {
   background: rgba(219, 40, 40, 0.1);
 }
-.ui.list-view.light-red .item.current {
+.ui.list-view.light-red .list.item.current {
   background: rgba(219, 40, 40, 0.2);
 }
-.ui.list-view.light-orange .item:hover:not(.current),
-.ui.list-view.light-orange .item:active:not(.current) {
+.ui.list-view.light-orange .list.item:hover:not(.current) {
   background: rgba(242, 113, 28, 0.1);
 }
-.ui.list-view.light-orange .item.current {
+.ui.list-view.light-orange .list.item.current {
   background: rgba(242, 113, 28, 0.2);
 }
-.ui.list-view.light-yellow .item:hover:not(.current),
-.ui.list-view.light-yellow .item:active:not(.current) {
+.ui.list-view.light-yellow .list.item:hover:not(.current) {
   background: rgba(251, 189, 8, 0.1);
 }
-.ui.list-view.light-yellow .item.current {
+.ui.list-view.light-yellow .list.item.current {
   background: rgba(251, 189, 8, 0.2);
 }
-.ui.list-view.light-olive .item:hover:not(.current),
-.ui.list-view.light-olive .item:active:not(.current) {
+.ui.list-view.light-olive .list.item:hover:not(.current) {
   background: rgba(181, 204, 24, 0.1);
 }
-.ui.list-view.light-olive .item.current {
+.ui.list-view.light-olive .list.item.current {
   background: rgba(181, 204, 24, 0.2);
 }
-.ui.list-view.light-green .item:hover:not(.current),
-.ui.list-view.light-green .item:active:not(.current) {
+.ui.list-view.light-green .list.item:hover:not(.current) {
   background: rgba(33, 186, 69, 0.1);
 }
-.ui.list-view.light-green .item.current {
+.ui.list-view.light-green .list.item.current {
   background: rgba(33, 186, 69, 0.2);
 }
-.ui.list-view.light-teal .item:hover:not(.current),
-.ui.list-view.light-teal .item:active:not(.current) {
+.ui.list-view.light-teal .list.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.list-view.light-teal .item.current {
+.ui.list-view.light-teal .list.item.current {
   background: rgba(0, 181, 173, 0.2);
 }
-.ui.list-view.light-blue .item:hover:not(.current),
-.ui.list-view.light-blue .item:active:not(.current) {
+.ui.list-view.light-blue .list.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.1);
 }
-.ui.list-view.light-blue .item.current {
+.ui.list-view.light-blue .list.item.current {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.list-view.light-violet .item:hover:not(.current),
-.ui.list-view.light-violet .item:active:not(.current) {
+.ui.list-view.light-violet .list.item:hover:not(.current) {
   background: rgba(100, 53, 201, 0.1);
 }
-.ui.list-view.light-violet .item.current {
+.ui.list-view.light-violet .list.item.current {
   background: rgba(100, 53, 201, 0.2);
 }
-.ui.list-view.light-purple .item:hover:not(.current),
-.ui.list-view.light-purple .item:active:not(.current) {
+.ui.list-view.light-purple .list.item:hover:not(.current) {
   background: rgba(163, 51, 200, 0.1);
 }
-.ui.list-view.light-purple .item.current {
+.ui.list-view.light-purple .list.item.current {
   background: rgba(163, 51, 200, 0.2);
 }
-.ui.list-view.light-pink .item:hover:not(.current),
-.ui.list-view.light-pink .item:active:not(.current) {
-  background: rgba(224, 57, 151, 0.1);
+.ui.list-view.light-pink .list.item:hover:not(.current) {
+  background: rgba(255, 64, 129, 0.1);
 }
-.ui.list-view.light-pink .item.current {
-  background: rgba(224, 57, 151, 0.2);
+.ui.list-view.light-pink .list.item.current {
+  background: rgba(255, 64, 129, 0.2);
 }
-.ui.list-view.light-brown .item:hover:not(.current),
-.ui.list-view.light-brown .item:active:not(.current) {
+.ui.list-view.light-brown .list.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.1);
 }
-.ui.list-view.light-brown .item.current {
+.ui.list-view.light-brown .list.item.current {
   background: rgba(165, 103, 63, 0.2);
 }
-.ui.list-view.light-grey .item:hover:not(.current),
-.ui.list-view.light-grey .item:active:not(.current) {
+.ui.list-view.light-grey .list.item:hover:not(.current) {
   background: rgba(118, 118, 118, 0.1);
 }
-.ui.list-view.light-grey .item.current {
+.ui.list-view.light-grey .list.item.current {
   background: rgba(118, 118, 118, 0.2);
 }
-.ui.list-view.light-black .item:hover:not(.current),
-.ui.list-view.light-black .item:active:not(.current) {
+.ui.list-view.light-black .list.item:hover:not(.current) {
   background: rgba(27, 28, 29, 0.1);
 }
-.ui.list-view.light-black .item.current {
+.ui.list-view.light-black .list.item.current {
   background: rgba(27, 28, 29, 0.2);
 }
-.ui.list-view.red .item:hover:not(.current),
-.ui.list-view.red .item:active:not(.current) {
+.ui.list-view.red .list.item:hover:not(.current) {
   background: rgba(219, 40, 40, 0.12);
 }
-.ui.list-view.red .item.current {
+.ui.list-view.red .list.item.current {
   background: #db2828;
   color: #ffffff;
 }
-.ui.list-view.orange .item:hover:not(.current),
-.ui.list-view.orange .item:active:not(.current) {
+.ui.list-view.orange .list.item:hover:not(.current) {
   background: rgba(242, 113, 28, 0.12);
 }
-.ui.list-view.orange .item.current {
+.ui.list-view.orange .list.item.current {
   background: #f2711c;
   color: #ffffff;
 }
-.ui.list-view.yellow .item:hover:not(.current),
-.ui.list-view.yellow .item:active:not(.current) {
+.ui.list-view.yellow .list.item:hover:not(.current) {
   background: rgba(251, 189, 8, 0.12);
 }
-.ui.list-view.yellow .item.current {
+.ui.list-view.yellow .list.item.current {
   background: #fbbd08;
   color: #ffffff;
 }
-.ui.list-view.olive .item:hover:not(.current),
-.ui.list-view.olive .item:active:not(.current) {
+.ui.list-view.olive .list.item:hover:not(.current) {
   background: rgba(181, 204, 24, 0.12);
 }
-.ui.list-view.olive .item.current {
+.ui.list-view.olive .list.item.current {
   background: #b5cc18;
   color: #ffffff;
 }
-.ui.list-view.green .item:hover:not(.current),
-.ui.list-view.green .item:active:not(.current) {
+.ui.list-view.green .list.item:hover:not(.current) {
   background: rgba(33, 186, 69, 0.12);
 }
-.ui.list-view.green .item.current {
+.ui.list-view.green .list.item.current {
   background: #21ba45;
   color: #ffffff;
 }
-.ui.list-view.teal .item:hover:not(.current),
-.ui.list-view.teal .item:active:not(.current) {
+.ui.list-view.teal .list.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.12);
 }
-.ui.list-view.teal .item.current {
+.ui.list-view.teal .list.item.current {
   background: #00b5ad;
   color: #ffffff;
 }
-.ui.list-view.blue .item:hover:not(.current),
-.ui.list-view.blue .item:active:not(.current) {
+.ui.list-view.blue .list.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.12);
 }
-.ui.list-view.blue .item.current {
+.ui.list-view.blue .list.item.current {
   background: #2185d0;
   color: #ffffff;
 }
-.ui.list-view.violet .item:hover:not(.current),
-.ui.list-view.violet .item:active:not(.current) {
+.ui.list-view.violet .list.item:hover:not(.current) {
   background: rgba(100, 53, 201, 0.12);
 }
-.ui.list-view.violet .item.current {
+.ui.list-view.violet .list.item.current {
   background: #6435c9;
   color: #ffffff;
 }
-.ui.list-view.purple .item:hover:not(.current),
-.ui.list-view.purple .item:active:not(.current) {
+.ui.list-view.purple .list.item:hover:not(.current) {
   background: rgba(163, 51, 200, 0.12);
 }
-.ui.list-view.purple .item.current {
+.ui.list-view.purple .list.item.current {
   background: #a333c8;
   color: #ffffff;
 }
-.ui.list-view.pink .item:hover:not(.current),
-.ui.list-view.pink .item:active:not(.current) {
-  background: rgba(224, 57, 151, 0.12);
+.ui.list-view.pink .list.item:hover:not(.current) {
+  background: rgba(255, 64, 129, 0.12);
 }
-.ui.list-view.pink .item.current {
-  background: #e03997;
+.ui.list-view.pink .list.item.current {
+  background: #ff4081;
   color: #ffffff;
 }
-.ui.list-view.brown .item:hover:not(.current),
-.ui.list-view.brown .item:active:not(.current) {
+.ui.list-view.brown .list.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.12);
 }
-.ui.list-view.brown .item.current {
+.ui.list-view.brown .list.item.current {
   background: #a5673f;
   color: #ffffff;
 }
-.ui.list-view.grey .item:hover:not(.current),
-.ui.list-view.grey .item:active:not(.current) {
+.ui.list-view.grey .list.item:hover:not(.current) {
   background: rgba(118, 118, 118, 0.12);
 }
-.ui.list-view.grey .item.current {
+.ui.list-view.grey .list.item.current {
   background: #767676;
   color: #ffffff;
 }
-.ui.list-view.black .item:hover:not(.current),
-.ui.list-view.black .item:active:not(.current) {
+.ui.list-view.black .list.item:hover:not(.current) {
   background: rgba(27, 28, 29, 0.12);
 }
-.ui.list-view.black .item.current {
+.ui.list-view.black .list.item.current {
   background: #1b1c1d;
   color: #ffffff;
 }
@@ -2528,6 +2505,9 @@ template {
   margin-top: -10px;
 }
 
+.ui.nested-list {
+  position: relative;
+}
 .ui.nested-list .detail {
   border-left: 1px solid #dcddde;
 }
@@ -2550,288 +2530,280 @@ template {
   margin-top: -0.6em;
 }
 
-.ui.tree .item {
+.ui.tree .tree.item {
   padding: 0;
 }
 .ui.tree .child-nodes {
+  overflow: visible;
   margin-left: 2.25em !important;
 }
-.ui.tree .node {
+.ui.tree .tree.node {
   min-height: 2.7em;
   padding: 0.25em;
   line-height: 2.2em;
 }
-.ui.tree .node > .expand-button {
+.ui.tree .tree.node > .expand-button {
   float: left;
   width: 2.2em;
   height: 2.2em;
+  line-height: 2.2em;
   margin-right: 0.25em;
+  text-align: center;
 }
-.ui.tree .node > .expand-button:before {
+.ui.tree .tree.node > .expand-button:before {
   transition-duration: 0.3s;
   transition-property: transform;
   font-family: Icons;
   content: "\f105";
-  display: block;
-  text-align: center;
-  line-height: 2.2em;
 }
-.ui.tree .node.expanded > .expand-button:before {
+.ui.tree .tree.node.expanded > .expand-button:before {
   transform: rotate(90deg);
 }
-.ui.tree .node.leaf > .expand-button {
+.ui.tree .tree.node.leaf > .expand-button {
   visibility: hidden;
 }
-.ui.tree .node .ui.checkbox {
+.ui.tree .tree.node .ui.checkbox {
   top: 0.35em;
 }
 .ui.tree.impact .child-nodes {
   margin-left: 1.5em !important;
 }
-.ui.tree.impact .node {
+.ui.tree.impact .tree.node {
   min-height: 2em;
   line-height: 1.5em;
 }
-.ui.tree.impact .node > .expand-button {
+.ui.tree.impact .tree.node > .expand-button {
   width: 1.5em;
   height: 1.5em;
 }
-.ui.tree.impact .node > .expand-button:before {
+.ui.tree.impact .tree.node > .expand-button:before {
   line-height: 1.5em;
 }
-.ui.tree.impact .node .ui.checkbox {
+.ui.tree.impact .tree.node .ui.checkbox {
   top: 0.25em;
 }
-.ui.tree .item:not(.current) > .node:hover,
-.ui.tree .item:not(.current) > .node:active {
+.ui.tree.navigator .tree.node {
+  position: relative;
+  overflow: hidden;
+  padding-left: 1em;
+}
+.ui.tree.navigator .tree.node > .expand-button {
+  float: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: auto;
+  height: 2.7em;
+  line-height: 2.7em;
+  margin-right: 0;
+}
+.ui.tree.navigator .tree.node > .expand-button:before {
+  float: right;
+  margin-right: 1em;
+}
+.ui.tree .tree.item:not(.current) > .tree.node:hover {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.tree .item.current > .node {
+.ui.tree .tree.item.current > .tree.node {
   background: rgba(0, 181, 173, 0.2);
   color: rgba(0, 0, 0, 0.85);
 }
 .ui.tree.inverted {
   background: #2f3032;
 }
-.ui.tree.inverted .item {
+.ui.tree.inverted .tree.item {
   color: rgba(255, 255, 255, 0.9);
   background: #2f3032;
 }
-.ui.tree.inverted .item:not(.current) > .node:hover,
-.ui.tree.inverted .item:not(.current) > .node:active {
+.ui.tree.inverted .tree.item:not(.current) > .tree.node:hover {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.tree.inverted .item.current > .node {
+.ui.tree.inverted .tree.item.current > .tree.node {
   background: #2185d0;
 }
 .ui.tree.basic {
   background: none;
 }
-.ui.tree.basic .item:not(.current) {
+.ui.tree.basic .tree.item:not(.current) {
   color: inherit;
   background: none;
 }
-.ui.tree.basic .item:not(.current) > .node,
-.ui.tree.basic .item:not(.current) > .node:hover > .node:active {
+.ui.tree.basic .tree.item:not(.current) > .tree.node,
+.ui.tree.basic .tree.item:not(.current) > .tree.node:hover {
   color: inherit;
   background: none;
 }
-.ui.tree.basic .item.current > .node {
+.ui.tree.basic .tree.item.current > .tree.node {
   color: inherit;
   background: none;
 }
-.ui.tree.light-red .item:not(.current) > .node:hover,
-.ui.tree.light-red .item:not(.current) > .node:active {
+.ui.tree.light-red .tree.item:not(.current) > .tree.node:hover {
   background: rgba(219, 40, 40, 0.1);
 }
-.ui.tree.light-red .item.current > .node {
+.ui.tree.light-red .tree.item.current > .tree.node {
   background: rgba(219, 40, 40, 0.2);
 }
-.ui.tree.light-orange .item:not(.current) > .node:hover,
-.ui.tree.light-orange .item:not(.current) > .node:active {
+.ui.tree.light-orange .tree.item:not(.current) > .tree.node:hover {
   background: rgba(242, 113, 28, 0.1);
 }
-.ui.tree.light-orange .item.current > .node {
+.ui.tree.light-orange .tree.item.current > .tree.node {
   background: rgba(242, 113, 28, 0.2);
 }
-.ui.tree.light-yellow .item:not(.current) > .node:hover,
-.ui.tree.light-yellow .item:not(.current) > .node:active {
+.ui.tree.light-yellow .tree.item:not(.current) > .tree.node:hover {
   background: rgba(251, 189, 8, 0.1);
 }
-.ui.tree.light-yellow .item.current > .node {
+.ui.tree.light-yellow .tree.item.current > .tree.node {
   background: rgba(251, 189, 8, 0.2);
 }
-.ui.tree.light-olive .item:not(.current) > .node:hover,
-.ui.tree.light-olive .item:not(.current) > .node:active {
+.ui.tree.light-olive .tree.item:not(.current) > .tree.node:hover {
   background: rgba(181, 204, 24, 0.1);
 }
-.ui.tree.light-olive .item.current > .node {
+.ui.tree.light-olive .tree.item.current > .tree.node {
   background: rgba(181, 204, 24, 0.2);
 }
-.ui.tree.light-green .item:not(.current) > .node:hover,
-.ui.tree.light-green .item:not(.current) > .node:active {
+.ui.tree.light-green .tree.item:not(.current) > .tree.node:hover {
   background: rgba(33, 186, 69, 0.1);
 }
-.ui.tree.light-green .item.current > .node {
+.ui.tree.light-green .tree.item.current > .tree.node {
   background: rgba(33, 186, 69, 0.2);
 }
-.ui.tree.light-teal .item:not(.current) > .node:hover,
-.ui.tree.light-teal .item:not(.current) > .node:active {
+.ui.tree.light-teal .tree.item:not(.current) > .tree.node:hover {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.tree.light-teal .item.current > .node {
+.ui.tree.light-teal .tree.item.current > .tree.node {
   background: rgba(0, 181, 173, 0.2);
 }
-.ui.tree.light-blue .item:not(.current) > .node:hover,
-.ui.tree.light-blue .item:not(.current) > .node:active {
+.ui.tree.light-blue .tree.item:not(.current) > .tree.node:hover {
   background: rgba(33, 133, 208, 0.1);
 }
-.ui.tree.light-blue .item.current > .node {
+.ui.tree.light-blue .tree.item.current > .tree.node {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.tree.light-violet .item:not(.current) > .node:hover,
-.ui.tree.light-violet .item:not(.current) > .node:active {
+.ui.tree.light-violet .tree.item:not(.current) > .tree.node:hover {
   background: rgba(100, 53, 201, 0.1);
 }
-.ui.tree.light-violet .item.current > .node {
+.ui.tree.light-violet .tree.item.current > .tree.node {
   background: rgba(100, 53, 201, 0.2);
 }
-.ui.tree.light-purple .item:not(.current) > .node:hover,
-.ui.tree.light-purple .item:not(.current) > .node:active {
+.ui.tree.light-purple .tree.item:not(.current) > .tree.node:hover {
   background: rgba(163, 51, 200, 0.1);
 }
-.ui.tree.light-purple .item.current > .node {
+.ui.tree.light-purple .tree.item.current > .tree.node {
   background: rgba(163, 51, 200, 0.2);
 }
-.ui.tree.light-pink .item:not(.current) > .node:hover,
-.ui.tree.light-pink .item:not(.current) > .node:active {
-  background: rgba(224, 57, 151, 0.1);
+.ui.tree.light-pink .tree.item:not(.current) > .tree.node:hover {
+  background: rgba(255, 64, 129, 0.1);
 }
-.ui.tree.light-pink .item.current > .node {
-  background: rgba(224, 57, 151, 0.2);
+.ui.tree.light-pink .tree.item.current > .tree.node {
+  background: rgba(255, 64, 129, 0.2);
 }
-.ui.tree.light-brown .item:not(.current) > .node:hover,
-.ui.tree.light-brown .item:not(.current) > .node:active {
+.ui.tree.light-brown .tree.item:not(.current) > .tree.node:hover {
   background: rgba(165, 103, 63, 0.1);
 }
-.ui.tree.light-brown .item.current > .node {
+.ui.tree.light-brown .tree.item.current > .tree.node {
   background: rgba(165, 103, 63, 0.2);
 }
-.ui.tree.light-grey .item:not(.current) > .node:hover,
-.ui.tree.light-grey .item:not(.current) > .node:active {
+.ui.tree.light-grey .tree.item:not(.current) > .tree.node:hover {
   background: rgba(118, 118, 118, 0.1);
 }
-.ui.tree.light-grey .item.current > .node {
+.ui.tree.light-grey .tree.item.current > .tree.node {
   background: rgba(118, 118, 118, 0.2);
 }
-.ui.tree.light-black .item:not(.current) > .node:hover,
-.ui.tree.light-black .item:not(.current) > .node:active {
+.ui.tree.light-black .tree.item:not(.current) > .tree.node:hover {
   background: rgba(27, 28, 29, 0.1);
 }
-.ui.tree.light-black .item.current > .node {
+.ui.tree.light-black .tree.item.current > .tree.node {
   background: rgba(27, 28, 29, 0.2);
 }
-.ui.tree.red .item:not(.current) > .node:hover,
-.ui.tree.red .item:not(.current) > .node:active {
+.ui.tree.red .tree.item:not(.current) > .tree.node:hover {
   background: rgba(219, 40, 40, 0.12);
 }
-.ui.tree.red .item.current > .node {
+.ui.tree.red .tree.item.current > .tree.node {
   background: #db2828;
   color: #ffffff;
 }
-.ui.tree.orange .item:not(.current) > .node:hover,
-.ui.tree.orange .item:not(.current) > .node:active {
+.ui.tree.orange .tree.item:not(.current) > .tree.node:hover {
   background: rgba(242, 113, 28, 0.12);
 }
-.ui.tree.orange .item.current > .node {
+.ui.tree.orange .tree.item.current > .tree.node {
   background: #f2711c;
   color: #ffffff;
 }
-.ui.tree.yellow .item:not(.current) > .node:hover,
-.ui.tree.yellow .item:not(.current) > .node:active {
+.ui.tree.yellow .tree.item:not(.current) > .tree.node:hover {
   background: rgba(251, 189, 8, 0.12);
 }
-.ui.tree.yellow .item.current > .node {
+.ui.tree.yellow .tree.item.current > .tree.node {
   background: #fbbd08;
   color: #ffffff;
 }
-.ui.tree.olive .item:not(.current) > .node:hover,
-.ui.tree.olive .item:not(.current) > .node:active {
+.ui.tree.olive .tree.item:not(.current) > .tree.node:hover {
   background: rgba(181, 204, 24, 0.12);
 }
-.ui.tree.olive .item.current > .node {
+.ui.tree.olive .tree.item.current > .tree.node {
   background: #b5cc18;
   color: #ffffff;
 }
-.ui.tree.green .item:not(.current) > .node:hover,
-.ui.tree.green .item:not(.current) > .node:active {
+.ui.tree.green .tree.item:not(.current) > .tree.node:hover {
   background: rgba(33, 186, 69, 0.12);
 }
-.ui.tree.green .item.current > .node {
+.ui.tree.green .tree.item.current > .tree.node {
   background: #21ba45;
   color: #ffffff;
 }
-.ui.tree.teal .item:not(.current) > .node:hover,
-.ui.tree.teal .item:not(.current) > .node:active {
+.ui.tree.teal .tree.item:not(.current) > .tree.node:hover {
   background: rgba(0, 181, 173, 0.12);
 }
-.ui.tree.teal .item.current > .node {
+.ui.tree.teal .tree.item.current > .tree.node {
   background: #00b5ad;
   color: #ffffff;
 }
-.ui.tree.blue .item:not(.current) > .node:hover,
-.ui.tree.blue .item:not(.current) > .node:active {
+.ui.tree.blue .tree.item:not(.current) > .tree.node:hover {
   background: rgba(33, 133, 208, 0.12);
 }
-.ui.tree.blue .item.current > .node {
+.ui.tree.blue .tree.item.current > .tree.node {
   background: #2185d0;
   color: #ffffff;
 }
-.ui.tree.violet .item:not(.current) > .node:hover,
-.ui.tree.violet .item:not(.current) > .node:active {
+.ui.tree.violet .tree.item:not(.current) > .tree.node:hover {
   background: rgba(100, 53, 201, 0.12);
 }
-.ui.tree.violet .item.current > .node {
+.ui.tree.violet .tree.item.current > .tree.node {
   background: #6435c9;
   color: #ffffff;
 }
-.ui.tree.purple .item:not(.current) > .node:hover,
-.ui.tree.purple .item:not(.current) > .node:active {
+.ui.tree.purple .tree.item:not(.current) > .tree.node:hover {
   background: rgba(163, 51, 200, 0.12);
 }
-.ui.tree.purple .item.current > .node {
+.ui.tree.purple .tree.item.current > .tree.node {
   background: #a333c8;
   color: #ffffff;
 }
-.ui.tree.pink .item:not(.current) > .node:hover,
-.ui.tree.pink .item:not(.current) > .node:active {
-  background: rgba(224, 57, 151, 0.12);
+.ui.tree.pink .tree.item:not(.current) > .tree.node:hover {
+  background: rgba(255, 64, 129, 0.12);
 }
-.ui.tree.pink .item.current > .node {
-  background: #e03997;
+.ui.tree.pink .tree.item.current > .tree.node {
+  background: #ff4081;
   color: #ffffff;
 }
-.ui.tree.brown .item:not(.current) > .node:hover,
-.ui.tree.brown .item:not(.current) > .node:active {
+.ui.tree.brown .tree.item:not(.current) > .tree.node:hover {
   background: rgba(165, 103, 63, 0.12);
 }
-.ui.tree.brown .item.current > .node {
+.ui.tree.brown .tree.item.current > .tree.node {
   background: #a5673f;
   color: #ffffff;
 }
-.ui.tree.grey .item:not(.current) > .node:hover,
-.ui.tree.grey .item:not(.current) > .node:active {
+.ui.tree.grey .tree.item:not(.current) > .tree.node:hover {
   background: rgba(118, 118, 118, 0.12);
 }
-.ui.tree.grey .item.current > .node {
+.ui.tree.grey .tree.item.current > .tree.node {
   background: #767676;
   color: #ffffff;
 }
-.ui.tree.black .item:not(.current) > .node:hover,
-.ui.tree.black .item:not(.current) > .node:active {
+.ui.tree.black .tree.item:not(.current) > .tree.node:hover {
   background: rgba(27, 28, 29, 0.12);
 }
-.ui.tree.black .item.current > .node {
+.ui.tree.black .tree.item.current > .tree.node {
   background: #1b1c1d;
   color: #ffffff;
 }
@@ -2897,31 +2869,29 @@ template {
 .ui.widget-table.impact table td > div {
   padding: 0.25em !important;
 }
-.ui.widget-table.striped .item:nth-child(2n):not(.current) {
+.ui.widget-table.striped .table.item:nth-child(2n):not(.current) {
   background: #f7f7f7;
 }
-.ui.widget-table .item:hover:not(.current),
-.ui.widget-table .item:active:not(.current) {
+.ui.widget-table .table.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.widget-table .item.current {
+.ui.widget-table .table.item.current {
   background: rgba(0, 181, 173, 0.2);
 }
-.ui.widget-table.striped.inverted .item:nth-child(2n):not(.current) {
+.ui.widget-table.striped.inverted .table.item:nth-child(2n):not(.current) {
   background: #252628;
 }
 .ui.widget-table.inverted {
   background: #2f3032;
 }
-.ui.widget-table.inverted .item {
+.ui.widget-table.inverted .table.item {
   color: rgba(255, 255, 255, 0.9);
   background: #2f3032;
 }
-.ui.widget-table.inverted .item:hover:not(.current),
-.ui.widget-table.inverted .item:active:not(.current) {
+.ui.widget-table.inverted .table.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.widget-table.inverted .item.current {
+.ui.widget-table.inverted .table.item.current {
   background: #2185d0;
 }
 .ui.widget-table.inverted table {
@@ -2945,210 +2915,183 @@ template {
 .ui.widget-table.basic {
   background: none;
 }
-.ui.widget-table.basic .item {
+.ui.widget-table.basic .table.item {
   color: inherit;
   background: none;
 }
-.ui.widget-table.basic .item:hover:not(.current),
-.ui.widget-table.basic .item:active:not(.current) {
+.ui.widget-table.basic .table.item:hover:not(.current) {
   background: none;
 }
-.ui.widget-table.basic .item.current {
+.ui.widget-table.basic .table.item.current {
   background: none;
   color: inherit;
 }
-.ui.widget-table.light-red .item:hover:not(.current),
-.ui.widget-table.light-red .item:active:not(.current) {
+.ui.widget-table.light-red .table.item:hover:not(.current) {
   background: rgba(219, 40, 40, 0.1);
 }
-.ui.widget-table.light-red .item.current {
+.ui.widget-table.light-red .table.item.current {
   background: rgba(219, 40, 40, 0.2);
 }
-.ui.widget-table.light-orange .item:hover:not(.current),
-.ui.widget-table.light-orange .item:active:not(.current) {
+.ui.widget-table.light-orange .table.item:hover:not(.current) {
   background: rgba(242, 113, 28, 0.1);
 }
-.ui.widget-table.light-orange .item.current {
+.ui.widget-table.light-orange .table.item.current {
   background: rgba(242, 113, 28, 0.2);
 }
-.ui.widget-table.light-yellow .item:hover:not(.current),
-.ui.widget-table.light-yellow .item:active:not(.current) {
+.ui.widget-table.light-yellow .table.item:hover:not(.current) {
   background: rgba(251, 189, 8, 0.1);
 }
-.ui.widget-table.light-yellow .item.current {
+.ui.widget-table.light-yellow .table.item.current {
   background: rgba(251, 189, 8, 0.2);
 }
-.ui.widget-table.light-olive .item:hover:not(.current),
-.ui.widget-table.light-olive .item:active:not(.current) {
+.ui.widget-table.light-olive .table.item:hover:not(.current) {
   background: rgba(181, 204, 24, 0.1);
 }
-.ui.widget-table.light-olive .item.current {
+.ui.widget-table.light-olive .table.item.current {
   background: rgba(181, 204, 24, 0.2);
 }
-.ui.widget-table.light-green .item:hover:not(.current),
-.ui.widget-table.light-green .item:active:not(.current) {
+.ui.widget-table.light-green .table.item:hover:not(.current) {
   background: rgba(33, 186, 69, 0.1);
 }
-.ui.widget-table.light-green .item.current {
+.ui.widget-table.light-green .table.item.current {
   background: rgba(33, 186, 69, 0.2);
 }
-.ui.widget-table.light-teal .item:hover:not(.current),
-.ui.widget-table.light-teal .item:active:not(.current) {
+.ui.widget-table.light-teal .table.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.1);
 }
-.ui.widget-table.light-teal .item.current {
+.ui.widget-table.light-teal .table.item.current {
   background: rgba(0, 181, 173, 0.2);
 }
-.ui.widget-table.light-blue .item:hover:not(.current),
-.ui.widget-table.light-blue .item:active:not(.current) {
+.ui.widget-table.light-blue .table.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.1);
 }
-.ui.widget-table.light-blue .item.current {
+.ui.widget-table.light-blue .table.item.current {
   background: rgba(33, 133, 208, 0.2);
 }
-.ui.widget-table.light-violet .item:hover:not(.current),
-.ui.widget-table.light-violet .item:active:not(.current) {
+.ui.widget-table.light-violet .table.item:hover:not(.current) {
   background: rgba(100, 53, 201, 0.1);
 }
-.ui.widget-table.light-violet .item.current {
+.ui.widget-table.light-violet .table.item.current {
   background: rgba(100, 53, 201, 0.2);
 }
-.ui.widget-table.light-purple .item:hover:not(.current),
-.ui.widget-table.light-purple .item:active:not(.current) {
+.ui.widget-table.light-purple .table.item:hover:not(.current) {
   background: rgba(163, 51, 200, 0.1);
 }
-.ui.widget-table.light-purple .item.current {
+.ui.widget-table.light-purple .table.item.current {
   background: rgba(163, 51, 200, 0.2);
 }
-.ui.widget-table.light-pink .item:hover:not(.current),
-.ui.widget-table.light-pink .item:active:not(.current) {
-  background: rgba(224, 57, 151, 0.1);
+.ui.widget-table.light-pink .table.item:hover:not(.current) {
+  background: rgba(255, 64, 129, 0.1);
 }
-.ui.widget-table.light-pink .item.current {
-  background: rgba(224, 57, 151, 0.2);
+.ui.widget-table.light-pink .table.item.current {
+  background: rgba(255, 64, 129, 0.2);
 }
-.ui.widget-table.light-brown .item:hover:not(.current),
-.ui.widget-table.light-brown .item:active:not(.current) {
+.ui.widget-table.light-brown .table.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.1);
 }
-.ui.widget-table.light-brown .item.current {
+.ui.widget-table.light-brown .table.item.current {
   background: rgba(165, 103, 63, 0.2);
 }
-.ui.widget-table.light-grey .item:hover:not(.current),
-.ui.widget-table.light-grey .item:active:not(.current) {
+.ui.widget-table.light-grey .table.item:hover:not(.current) {
   background: rgba(118, 118, 118, 0.1);
 }
-.ui.widget-table.light-grey .item.current {
+.ui.widget-table.light-grey .table.item.current {
   background: rgba(118, 118, 118, 0.2);
 }
-.ui.widget-table.light-black .item:hover:not(.current),
-.ui.widget-table.light-black .item:active:not(.current) {
+.ui.widget-table.light-black .table.item:hover:not(.current) {
   background: rgba(27, 28, 29, 0.1);
 }
-.ui.widget-table.light-black .item.current {
+.ui.widget-table.light-black .table.item.current {
   background: rgba(27, 28, 29, 0.2);
 }
-.ui.widget-table.red .item:hover:not(.current),
-.ui.widget-table.red .item:active:not(.current) {
+.ui.widget-table.red .table.item:hover:not(.current) {
   background: rgba(219, 40, 40, 0.12);
 }
-.ui.widget-table.red .item.current {
+.ui.widget-table.red .table.item.current {
   background: #db2828;
   color: #ffffff;
 }
-.ui.widget-table.orange .item:hover:not(.current),
-.ui.widget-table.orange .item:active:not(.current) {
+.ui.widget-table.orange .table.item:hover:not(.current) {
   background: rgba(242, 113, 28, 0.12);
 }
-.ui.widget-table.orange .item.current {
+.ui.widget-table.orange .table.item.current {
   background: #f2711c;
   color: #ffffff;
 }
-.ui.widget-table.yellow .item:hover:not(.current),
-.ui.widget-table.yellow .item:active:not(.current) {
+.ui.widget-table.yellow .table.item:hover:not(.current) {
   background: rgba(251, 189, 8, 0.12);
 }
-.ui.widget-table.yellow .item.current {
+.ui.widget-table.yellow .table.item.current {
   background: #fbbd08;
   color: #ffffff;
 }
-.ui.widget-table.olive .item:hover:not(.current),
-.ui.widget-table.olive .item:active:not(.current) {
+.ui.widget-table.olive .table.item:hover:not(.current) {
   background: rgba(181, 204, 24, 0.12);
 }
-.ui.widget-table.olive .item.current {
+.ui.widget-table.olive .table.item.current {
   background: #b5cc18;
   color: #ffffff;
 }
-.ui.widget-table.green .item:hover:not(.current),
-.ui.widget-table.green .item:active:not(.current) {
+.ui.widget-table.green .table.item:hover:not(.current) {
   background: rgba(33, 186, 69, 0.12);
 }
-.ui.widget-table.green .item.current {
+.ui.widget-table.green .table.item.current {
   background: #21ba45;
   color: #ffffff;
 }
-.ui.widget-table.teal .item:hover:not(.current),
-.ui.widget-table.teal .item:active:not(.current) {
+.ui.widget-table.teal .table.item:hover:not(.current) {
   background: rgba(0, 181, 173, 0.12);
 }
-.ui.widget-table.teal .item.current {
+.ui.widget-table.teal .table.item.current {
   background: #00b5ad;
   color: #ffffff;
 }
-.ui.widget-table.blue .item:hover:not(.current),
-.ui.widget-table.blue .item:active:not(.current) {
+.ui.widget-table.blue .table.item:hover:not(.current) {
   background: rgba(33, 133, 208, 0.12);
 }
-.ui.widget-table.blue .item.current {
+.ui.widget-table.blue .table.item.current {
   background: #2185d0;
   color: #ffffff;
 }
-.ui.widget-table.violet .item:hover:not(.current),
-.ui.widget-table.violet .item:active:not(.current) {
+.ui.widget-table.violet .table.item:hover:not(.current) {
   background: rgba(100, 53, 201, 0.12);
 }
-.ui.widget-table.violet .item.current {
+.ui.widget-table.violet .table.item.current {
   background: #6435c9;
   color: #ffffff;
 }
-.ui.widget-table.purple .item:hover:not(.current),
-.ui.widget-table.purple .item:active:not(.current) {
+.ui.widget-table.purple .table.item:hover:not(.current) {
   background: rgba(163, 51, 200, 0.12);
 }
-.ui.widget-table.purple .item.current {
+.ui.widget-table.purple .table.item.current {
   background: #a333c8;
   color: #ffffff;
 }
-.ui.widget-table.pink .item:hover:not(.current),
-.ui.widget-table.pink .item:active:not(.current) {
-  background: rgba(224, 57, 151, 0.12);
+.ui.widget-table.pink .table.item:hover:not(.current) {
+  background: rgba(255, 64, 129, 0.12);
 }
-.ui.widget-table.pink .item.current {
-  background: #e03997;
+.ui.widget-table.pink .table.item.current {
+  background: #ff4081;
   color: #ffffff;
 }
-.ui.widget-table.brown .item:hover:not(.current),
-.ui.widget-table.brown .item:active:not(.current) {
+.ui.widget-table.brown .table.item:hover:not(.current) {
   background: rgba(165, 103, 63, 0.12);
 }
-.ui.widget-table.brown .item.current {
+.ui.widget-table.brown .table.item.current {
   background: #a5673f;
   color: #ffffff;
 }
-.ui.widget-table.grey .item:hover:not(.current),
-.ui.widget-table.grey .item:active:not(.current) {
+.ui.widget-table.grey .table.item:hover:not(.current) {
   background: rgba(118, 118, 118, 0.12);
 }
-.ui.widget-table.grey .item.current {
+.ui.widget-table.grey .table.item.current {
   background: #767676;
   color: #ffffff;
 }
-.ui.widget-table.black .item:hover:not(.current),
-.ui.widget-table.black .item:active:not(.current) {
+.ui.widget-table.black .table.item:hover:not(.current) {
   background: rgba(27, 28, 29, 0.12);
 }
-.ui.widget-table.black .item.current {
+.ui.widget-table.black .table.item.current {
   background: #1b1c1d;
   color: #ffffff;
 }
@@ -3341,6 +3284,9 @@ template {
   width: 0px !important;
 }
 
+.ui.input.select > .editor.placeholder:not(:focus) {
+  color: #999999;
+}
 .ui.input.drop > .icon {
   pointer-events: inherit !important;
 }
@@ -3351,7 +3297,7 @@ template {
   right: 0;
   bottom: 0;
   line-height: 1.2142em;
-  padding: 0.67861429em 0.4em;
+  padding: 0.67861429em 1em;
   pointer-events: none;
   list-style: none;
 }
@@ -3408,6 +3354,12 @@ template {
   border-bottom-width: 1px;
 }
 
+.ui.sub-view {
+  overflow: hidden;
+}
+.ui.sub-view > .content {
+  height: 100%;
+}
 .ui.iframe {
   position: relative;
 }
@@ -3807,7 +3759,7 @@ template {
 }
 
 .ui.dialog {
-  position: absolute;
+  position: fixed;
   z-index: 1000;
   display: none;
   top: 50%;
@@ -3923,7 +3875,7 @@ template {
 }
 /*rtl:ignore*/
 .ui.dialog > .content > .image > i.icon {
-  margin: 0em;
+  margin: 0;
   opacity: 1;
   width: auto;
   line-height: 1;
@@ -3974,44 +3926,30 @@ template {
   cursor: pointer;
   display: block;
   box-sizing: border-box;
-  width: 10px;
-  height: 10px;
-  -webkit-border-radius: 50%;
-  -moz-border-radius: 50%;
+  width: 0.6em;
+  height: 0.6em;
   border-radius: 50%;
-  border: transparent solid 2px;
   background-clip: content-box;
-  margin: 2px;
-  -webkit-transition-duration: 0.6s;
-  -moz-transition-duration: 0.6s;
-  -ms-transition-duration: 0.6s;
-  -o-transition-duration: 0.6s;
+  margin: 0.25em;
   transition-duration: 0.6s;
-  -webkit-transition-property: background-color, border-color, color, -webkit-box-shadow, -webkit-transform;
-  -moz-transition-property: background-color, border-color, color, -moz-box-shadow, -moz-transform;
-  transition-property: background-color, border-color, color, box-shadow, transform;
-  -webkit-transition-property: background-color, border;
-  -moz-transition-property: background-color, border;
-  -ms-transition-property: background-color, border;
-  -o-transition-property: background-color, border;
-  transition-property: background-color, border;
-  background-color: rgba(136, 136, 136, 0.5);
+  transition-property: background-color, border-color, color, -webkit-box-shadow, -webkit-transform;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 .ui.carousel > .indicators > span.active {
-  border-color: #15a4fa;
-  background-color: #15a4fa;
+  border-color: #2185d0;
+  background-color: #2185d0;
 }
 .ui.carousel .controls a {
   width: 32px;
+  height: 32px;
   display: block;
   top: 50%;
-  height: 32px;
   cursor: pointer;
   position: absolute;
   z-index: 1;
   margin-top: -16px;
   opacity: 0.5;
-  -webkit-transition: opacity 0.35s linear 0s;
   transition: opacity 0.35s linear 0s;
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUI4MUYyNzJEQUUxMTFFNEI0Q0REOUU2MTU3MEVEMTYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUI4MUYyNzNEQUUxMTFFNEI0Q0REOUU2MTU3MEVEMTYiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5QjgxRjI3MERBRTExMUU0QjRDREQ5RTYxNTcwRUQxNiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5QjgxRjI3MURBRTExMUU0QjRDREQ5RTYxNTcwRUQxNiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Por3U54AAAU1SURBVHja7FrPS1xXFHZm4cZJhECzULEI2qJTF135YIhYtYtKDWQrhPSfcFNCQCnFpVm0/4BZGoS0CEmhLUpMSxZZtGnTKminUogWcaLJQojT7zTfNTfDe/edOzNvsnjvwsdz7j0/vne877577nm5arXaluaWb0t5y2mEMEuKuFwBLgFDQBeDdwr8A/wOrAEruVzuscJeOJlczofLKDAYwuU3YF3LJRfjbBqXz4GAXX8Bj4AycAScA3qBD4F3KfMT8CWcf9PMACTFJcpZF7BafdX+BeaBgRidAWCO8lXqd0UFIAxKLnNKLvMaLmHKAfAUeAksAAXP4HVQ7yXtBPUGIIRLhyeXQhyXWoUS8ALYB0YbWVxEn3bEXsk3AK3iYgv1AQcUfL8ZK6zYoT2x26cNQCu5mME8sAGcxE4Tf8cB7Yr9fFwAWs3FDFzjYnHD02CvUu4G7V9TBMCLi5ZDFBcT8U2gDLR7GJJntAJcV8i20/4m/UUFwYuL+CaHkgfvN7hIxwQjMuthZJwLyh4wrNSZpZ9JRwAmfbiIb3IQLuMe/A2XCfmxyB/dSuUpOtwF+j2cdtPPoiMAXlxot59chNOULxf58RB4olS8zEVk2+fmLf0n9BcVADWXkCBsk9tlHy7yxyFwW6EwQwdbQE+dq/Ayn9moAMjYcp22e8hNOM4o5G/LvcuroBPYixEewWUJ+AMYw956t8430T5w3jF+njL+Wd0rTmPkuETOrib33Jn6dFgCUAEuxkT3Z1yuArIr+7HeRwDtHeCZY/wZZep6BIQbOV4lZ1e7+P+9Z4tg9hrMNkLp3gqnPhnK0uHsQCQ7EssORdN8LJ76wkhWGsuqw1k6rJabABaBh8ChzEbikH2LlMknzHfS4lGxeFQsHpNaHnGPQJ7nALLfN5mfnLg8tk6RJK8uMg+XtgV8wROk0ybeeBiPX60TJDlH+MCbhyMx6eOWscrkYZZpZJR8N2XK1NmgjbYGkSiPKCMlbhlPmDy0exBup84JbZQauPnEeYQpBtYWNGiAfGBtP4M69RPnUSvcxS3jPpOHRqevSUCe0rZWr2U8agVXuW8ebYJTg1HaXPXQaRkPW2Cai8ZCE50aLND2tEK2pTzswQdMHgoJOC7Q9gOFrOHRkQCPjloeZrNQZJLxNXCsfDePEJp2TNsBfUU1w+Mr4HkCG6nntH3GwwTgCq9LSkNSe9sgZpQ6SzW+wpoZu5XgbvLWG744Fe4CO8ppZIojvxAn7NPo7tBX1Pg9Dx6NYIe+zmbAEHPruCaFh2Xm4J8QZfZpihKP6CuqDcbwkK2wpg4xTFkXj0F7Bsjr4WZM1EwxZJulaNPfw74XlHHZuElfUeMuHr2sAeyxGhRlo58yFeo4eeStZOPIETE5SPwWOAA+Buzy+C77DijjOnQ8isnSXDzKnGUFFkHDynL9HCtQthzHw5A55ZFSWJNjplWu5GPMsmrbFseOKRtVrDgXkyG6eEi7D3wKXAC+A+wqdQ/7LlDmvsPOax6cEn8DK45pdZ11uLjFZZiyUeMr9BU1HsfDYMr+WqXm65Aphf4Zj7e2+kag5W8j8wis8SR1IMH37wB9rDlk1j143AE+41tliH/f8eCxbj8CRe6R5xL878/RR9EhY3jMe9gdIbTy8zaPt7YHV+QCLclJsmwwOw/IToSyM8HsVDjNdYF6K0ONV2SaUxlquEKlrQ4LgXEmGZLtvdf2+qNn+bz1TyYfkg1+38QbD+PxETBNHrKr6+SY1AY3yUO+B/hBwyMrj2fl8ZS3/wQYACJrrTvr6HLMAAAAAElFTkSuQmCC');
 }
@@ -4033,7 +3971,7 @@ template {
   left: 0;
   bottom: 0px;
   width: 100%;
-  height: 24px;
+  height: 1.5em;
   -webkit-box-orient: horizontal;
   -moz-box-orient: horizontal;
 }
@@ -4044,17 +3982,79 @@ template {
 .ui.carousel-vertical > .indicators {
   right: 0;
   top: 0;
-  width: 24px;
+  width: 1.5em;
   height: 100%;
   -webkit-box-orient: vertical;
   -moz-box-orient: vertical;
 }
-.ui.carousel-inverse > .indicators > span {
-  background-color: rgba(136, 136, 136, 0.5);
+.ui.carousel-vertical .controls a {
+  margin-top: 0px;
+  margin-left: -16px;
 }
-.ui.carousel-inverse > .indicators > span.active {
-  border-color: #15a4fa;
-  background-color: #fa6b15;
+.ui.carousel-vertical .controls a.prev {
+  top: 0.75em;
+  left: 50%;
+  bottom: auto;
+  background-position: 0 -32px;
+}
+.ui.carousel-vertical .controls a.next {
+  top: auto;
+  left: 50%;
+  bottom: 0.75em;
+  margin-left: -18px;
+  background-position: -32px -32px;
+}
+.ui.carousel.red > .indicators > span.active {
+  border-color: #db2828 !important;
+  background-color: #db2828 !important;
+}
+.ui.carousel.orange > .indicators > span.active {
+  border-color: #f2711c !important;
+  background-color: #f2711c !important;
+}
+.ui.carousel.yellow > .indicators > span.active {
+  border-color: #fbbd08 !important;
+  background-color: #fbbd08 !important;
+}
+.ui.carousel.olive > .indicators > span.active {
+  border-color: #b5cc18 !important;
+  background-color: #b5cc18 !important;
+}
+.ui.carousel.green > .indicators > span.active {
+  border-color: #21ba45 !important;
+  background-color: #21ba45 !important;
+}
+.ui.carousel.teal > .indicators > span.active {
+  border-color: #00b5ad !important;
+  background-color: #00b5ad !important;
+}
+.ui.carousel.blue > .indicators > span.active {
+  border-color: #2185d0 !important;
+  background-color: #2185d0 !important;
+}
+.ui.carousel.violet > .indicators > span.active {
+  border-color: #6435c9 !important;
+  background-color: #6435c9 !important;
+}
+.ui.carousel.purple > .indicators > span.active {
+  border-color: #a333c8 !important;
+  background-color: #a333c8 !important;
+}
+.ui.carousel.pink > .indicators > span.active {
+  border-color: #ff4081 !important;
+  background-color: #ff4081 !important;
+}
+.ui.carousel.brown > .indicators > span.active {
+  border-color: #a5673f !important;
+  background-color: #a5673f !important;
+}
+.ui.carousel.grey > .indicators > span.active {
+  border-color: #767676 !important;
+  background-color: #767676 !important;
+}
+.ui.carousel.black > .indicators > span.active {
+  border-color: #1b1c1d !important;
+  background-color: #1b1c1d !important;
 }
 
 .ui.card-book {
@@ -4336,16 +4336,16 @@ template {
   background-color: #a333c8;
 }
 .ui.c-tab.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.22);
 }
 .ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.pink > .tab-bar > .tabs > .tab-button.active:hover {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.inverted.brown {
   background-color: #a5673f;
@@ -4435,11 +4435,11 @@ template {
   box-shadow: inset 0 2px 0 #a333c8;
 }
 .ui.c-tab:not(.inverted) .tab-button.pink {
-  color: #e03997;
+  color: #ff4081;
 }
 .ui.c-tab:not(.inverted) .tab-button.pink.active,
 .ui.c-tab:not(.inverted) .tab-button.pink.active:hover {
-  box-shadow: inset 0 2px 0 #e03997;
+  box-shadow: inset 0 2px 0 #ff4081;
 }
 .ui.c-tab:not(.inverted) .tab-button.brown {
   color: #a5673f;
@@ -4700,7 +4700,7 @@ template {
   background-color: #a333c8;
 }
 .ui.c-tab.pad.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.pad.inverted.pink > .tab-bar {
   background-color: rgba(34, 36, 38, 0.15);
@@ -4709,7 +4709,7 @@ template {
   background-color: rgba(34, 36, 38, 0.1);
 }
 .ui.c-tab.pad.inverted.pink > .tab-bar > .tabs > .tab-button.active {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .ui.c-tab.pad.inverted.brown {
   background-color: #a5673f;
@@ -5075,13 +5075,13 @@ template {
   background: #a333c8;
 }
 .calendar.pink .header .button {
-  color: #e03997;
+  color: #ff4081;
 }
 .calendar.pink .date-header {
-  border-bottom: 1px solid #e03997;
+  border-bottom: 1px solid #ff4081;
 }
 .calendar.pink .date-table-wrapper .date-table td.selected div.label {
-  background: #e03997;
+  background: #ff4081;
 }
 .calendar.brown .header .button {
   color: #a5673f;
@@ -5177,10 +5177,10 @@ template {
   color: #a333c8;
 }
 .calendar.inverted.pink {
-  background-color: #e03997;
+  background-color: #ff4081;
 }
 .calendar.inverted.pink .date-table-wrapper .date-table td.selected div.label {
-  color: #e03997;
+  color: #ff4081;
 }
 .calendar.inverted.brown {
   background-color: #a5673f;
@@ -5223,4 +5223,14 @@ html.ios body {
 .ui.grouped .slider,
 .ui.grouped .toggle {
   padding: 0 0.5em;
+}
+
+.ui.sidebar {
+  display: none;
+}
+.ui.sidebar.visible {
+  display: block !important;
+}
+.ui.sidebar.animation {
+  display: block !important;
 }

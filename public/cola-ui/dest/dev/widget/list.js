@@ -1100,7 +1100,9 @@
 
     ListView.prototype._getItems = function() {
       if (this._items) {
-        return this._items;
+        return {
+          items: this._items
+        };
       } else {
         return ListView.__super__._getItems.call(this);
       }
@@ -3810,6 +3812,16 @@
       this._columnMap = {};
       AbstractTable.__super__.constructor.call(this, config);
     }
+
+    AbstractTable.prototype._getItems = function() {
+      if (this._items) {
+        return {
+          items: this._items
+        };
+      } else {
+        return AbstractTable.__super__._getItems.call(this);
+      }
+    };
 
     AbstractTable.prototype._regColumn = function(column) {
       if (column._name) {

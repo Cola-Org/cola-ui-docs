@@ -7,10 +7,10 @@
  * If you are unsure which license is appropriate for your use, please contact the sales department
  * at http://www.bstek.com/contact.
  */(function() {
-  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildI18NFeature, buildRepeatFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, defaultLocale, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, i18nStore, key, oldIE, originalAjax, os, preprocessClass, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+    slice = [].slice,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty,
-    slice = [].slice;
+    hasProp = {}.hasOwnProperty;
 
   this.cola = cola = function() {
     var ref;
@@ -32,11 +32,12 @@
     REPEAT_TEMPLATE_KEY: "_template",
     REPEAT_TAIL_KEY: "_tail",
     DOM_ELEMENT_KEY: "_element",
+    DOM_SKIP_CHILDREN: "_skipChildren",
     NOT_WHITE_REG: /\S+/g,
     CLASS_REG: /[\t\r\n\f]/g,
     WIDGET_DIMENSION_UNIT: "px",
     MESSAGE_REFRESH: 0,
-    MESSAGE_DATA_CHANGE: 1,
+    MESSAGE_PROPERTY_CHANGE: 1,
     MESSAGE_CURRENT_CHANGE: 10,
     MESSAGE_EDITING_STATE_CHANGE: 11,
     MESSAGE_VALIDATION_STATE_CHANGE: 15,
@@ -237,6 +238,7 @@
 
     function KeyedArray() {
       this.elements = [];
+      this.keys = [];
       this.keyMap = {};
     }
 
@@ -246,10 +248,12 @@
         i = this.elements.indexOf(element);
         if (i > -1) {
           this.elements.splice(i, 1);
+          this.keys.splice(i, 1);
         }
       }
       this.keyMap[key] = element;
       this.size = this.elements.push(element);
+      this.keys.push(key);
       return this;
     };
 
@@ -257,24 +261,20 @@
       var element, i;
       if (typeof key === "number") {
         i = key;
+        key = this.keys[i];
         element = this.elements[i];
         this.elements.splice(i, 1);
+        this.keys.splice(i, 1);
         this.size = this.elements.length;
-        if (element) {
-          for (key in this.keyMap) {
-            if (this.keyMap[key] === element) {
-              delete this.keyMap[key];
-              break;
-            }
-          }
-        }
+        delete this.keyMap[key];
       } else {
         element = this.keyMap[key];
         delete this.keyMap[key];
         if (element) {
-          i = this.elements.indexOf(element);
+          i = this.keys.indexOf(key);
           if (i > -1) {
             this.elements.splice(i, 1);
+            this.keys.splice(i, 1);
             this.size = this.elements.length;
           }
         }
@@ -291,16 +291,15 @@
     };
 
     KeyedArray.prototype.getIndex = function(key) {
-      var element;
-      element = this.keyMap[key];
-      if (element) {
-        return this.elements.indexOf(element);
+      if (this.keyMap.hasOwnProperty(key)) {
+        return this.keys.indexOf(key);
       }
       return -1;
     };
 
     KeyedArray.prototype.clear = function() {
       this.elements = [];
+      this.keys = [];
       this.keyMap = {};
       this.size = 0;
     };
@@ -310,11 +309,12 @@
     };
 
     KeyedArray.prototype.each = function(fn) {
-      var element, l, len1, ref;
+      var element, i, keys, l, len1, ref;
+      keys = this.keys;
       ref = this.elements;
-      for (l = 0, len1 = ref.length; l < len1; l++) {
-        element = ref[l];
-        if (fn.call(this, element) === false) {
+      for (i = l = 0, len1 = ref.length; l < len1; i = ++l) {
+        element = ref[i];
+        if (fn.call(this, element, keys[i]) === false) {
           break;
         }
       }
@@ -346,6 +346,38 @@
     }
     type = typeof value;
     return type !== "object" && type !== "function" || type instanceof Date;
+  };
+
+  cola.util.each = function(array, fn) {
+    var i, item, l, len1;
+    for (i = l = 0, len1 = array.length; l < len1; i = ++l) {
+      item = array[i];
+      if (fn(item, i) === false) {
+        break;
+      }
+    }
+  };
+
+  cola.util.concatUrl = function() {
+    var changed, i, l, last, len1, part, parts;
+    parts = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+    last = parts.length - 1;
+    for (i = l = 0, len1 = parts.length; l < len1; i = ++l) {
+      part = parts[i];
+      changed = false;
+      if (i > 0 && part.charCodeAt(0) === 47) {
+        part = part.substring(1);
+        changed = true;
+      }
+      if (i < last && part.charCodeAt(part.length - 1) === 47) {
+        part = part.substring(0, part.length - 1);
+        changed = true;
+      }
+      if (changed) {
+        parts[i] = part;
+      }
+    }
+    return parts.join("/");
   };
 
   cola.util.parseStyleLikeString = function(styleStr, headerProp) {
@@ -860,9 +892,7 @@
   I18N
    */
 
-  defaultLocale = "en";
-
-  i18nStore = {};
+  resourceStore = {};
 
   sprintf = function() {
     var i, l, len1, param, params, templ;
@@ -874,13 +904,12 @@
     return templ;
   };
 
-  cola.i18n = function() {
-    var bundle, key, locale, oldBundle, params, ref, str, templ;
+  cola.resource = function() {
+    var bundle, key, params, str, templ;
     key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
     if (typeof key === "string") {
-      locale = cola.setting("locale") || defaultLocale;
-      templ = (ref = i18nStore[locale]) != null ? ref[key] : void 0;
-      if (templ) {
+      templ = resourceStore[key];
+      if (templ != null) {
         if (params.length) {
           return sprintf.apply(this, [templ].concat(params));
         } else {
@@ -891,29 +920,23 @@
       }
     } else {
       bundle = key;
-      locale = params[0] || defaultLocale;
-      oldBundle = i18nStore[locale];
-      if (oldBundle) {
-        for (key in bundle) {
-          str = bundle[key];
-          oldBundle[key] = str;
-        }
-      } else {
-        i18nStore[locale] = oldBundle = bundle;
+      for (key in bundle) {
+        str = bundle[key];
+        resourceStore[key] = str;
       }
     }
   };
 
-  cola.I18nException = (function(superClass) {
-    extend(I18nException, superClass);
+  cola.ResourceException = (function(superClass) {
+    extend(ResourceException, superClass);
 
-    function I18nException() {
+    function ResourceException() {
       var key, params;
       key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-      I18nException.__super__.constructor.call(this, cola.i18n.apply(cola, [key].concat(slice.call(params))));
+      ResourceException.__super__.constructor.call(this, cola.resource.apply(cola, [key].concat(slice.call(params))));
     }
 
-    return I18nException;
+    return ResourceException;
 
   })(cola.Exception);
 
@@ -1561,6 +1584,12 @@
   cola.Definition = (function(superClass) {
     extend(Definition, superClass);
 
+    Definition.ATTRIBUTES = {
+      name: {
+        readOnlyAfterCreate: true
+      }
+    };
+
     function Definition(config) {
       var scope;
       if (config != null ? config.name : void 0) {
@@ -1614,11 +1643,11 @@
       }
       return this;
     };
-    elements.on = function(eventName, listener) {
+    elements.on = function(eventName, listener, once) {
       var element, len2, o;
       for (o = 0, len2 = elements.length; o < len2; o++) {
         element = elements[o];
-        element.on(eventName, listener);
+        element.on(eventName, listener, once);
       }
       return this;
     };
@@ -1739,25 +1768,24 @@
     if (typeof $ === "function") {
       $(function() {
         var localeStrings;
-        XDate.defaultLocale = cola.setting("locale") || defaultLocale;
-        XDate.locales[defaultLocale] = localeStrings = {};
-        if (cola.i18n("cola.date.monthNames")) {
-          localeStrings.monthNames = cola.i18n("cola.date.monthNames").split(",");
+        XDate.locales[''] = localeStrings = {};
+        if (cola.resource("cola.date.monthNames")) {
+          localeStrings.monthNames = cola.resource("cola.date.monthNames", 6).split(",");
         }
-        if (cola.i18n("cola.date.monthNamesShort")) {
-          localeStrings.monthNamesShort = cola.i18n("cola.date.monthNamesShort").split(",");
+        if (cola.resource("cola.date.monthNamesShort")) {
+          localeStrings.monthNamesShort = cola.resource("cola.date.monthNamesShort").split(",");
         }
-        if (cola.i18n("cola.date.dayNames")) {
-          localeStrings.dayNames = cola.i18n("cola.date.dayNames").split(",");
+        if (cola.resource("cola.date.dayNames")) {
+          localeStrings.dayNames = cola.resource("cola.date.dayNames").split(",");
         }
-        if (cola.i18n("cola.date.dayNamesShort")) {
-          localeStrings.dayNamesShort = cola.i18n("cola.date.dayNamesShort").split(",");
+        if (cola.resource("cola.date.dayNamesShort")) {
+          localeStrings.dayNamesShort = cola.resource("cola.date.dayNamesShort").split(",");
         }
-        if (cola.i18n("cola.date.amDesignator")) {
-          localeStrings.amDesignator = cola.i18n("cola.date.amDesignator");
+        if (cola.resource("cola.date.amDesignator")) {
+          localeStrings.amDesignator = cola.resource("cola.date.amDesignator");
         }
-        if (cola.i18n("cola.date.pmDesignator")) {
-          localeStrings.pmDesignator = cola.i18n("cola.date.pmDesignator");
+        if (cola.resource("cola.date.pmDesignator")) {
+          localeStrings.pmDesignator = cola.resource("cola.date.pmDesignator");
         }
       });
     }
@@ -2001,7 +2029,11 @@
       collection = collection.toArray();
     }
     if (comparator) {
-      if (typeof comparator === "string") {
+      if (comparator === "$none") {
+        return collection;
+      } else if (comparator === "$reverse") {
+        return collection.reverse();
+      } else if (typeof comparator === "string") {
         comparatorProps = [];
         ref = comparator.split(",");
         for (l = 0, len1 = ref.length; l < len1; l++) {
@@ -2093,8 +2125,6 @@
           return 0;
         };
       }
-    } else if (comparator === "$none") {
-      return collection;
     } else {
       comparator = function(item1, item2) {
         var result;
@@ -2137,6 +2167,9 @@
     if (!collection) {
       return null;
     }
+    if (top < 0) {
+      return collection;
+    }
     items = [];
     i = 0;
     cola.each(collection, function(item) {
@@ -2160,6 +2193,9 @@
   cola.convertor["number"] = function(number, format) {
     if (number == null) {
       return "";
+    }
+    if (isNaN(number)) {
+      return number;
     }
     return formatNumber(format, number);
   };
@@ -2409,7 +2445,7 @@
                 convertor = compileConvertor(part);
                 if (convertor) {
                   if (convertor.name === "watch") {
-                    this.watch = convertor.params[0];
+                    this.watchPath = convertor.params[0];
                   } else {
                     this.convertors.push(convertor);
                   }
@@ -2422,8 +2458,8 @@
       if (!mainExprCompiled) {
         this.compile(exprStr);
       }
-      if (this.watch) {
-        this.path = this.watch;
+      if (this.watchPath) {
+        this.path = this.watchPath;
       } else if (supportConvertor && this.convertors) {
         subPath = null;
         ref = this.convertors;
@@ -2642,6 +2678,7 @@
       }
       jQuery.ajax(options).done((function(_this) {
         return function(result) {
+          result = ajaxService.translateResult(result, options);
           _this.invokeCallback(true, result);
           if (ajaxService.getListeners("success")) {
             ajaxService.fire("success", ajaxService, {
@@ -2670,8 +2707,8 @@
           });
           ajaxService.fire("complete", ajaxService, {
             success: false,
-            options: options,
             xhr: xhr,
+            options: options,
             error: error
           });
         };
@@ -2706,7 +2743,6 @@
 
     AjaxService.ATTRIBUTES = {
       url: null,
-      sendJson: null,
       method: null,
       parameter: null,
       ajaxOptions: null
@@ -2744,15 +2780,15 @@
       }
       options.url = this.getUrl(context);
       options.data = this._parameter;
-      options.sendJson = this._sendJson;
-      if (options.sendJson && !options.method) {
-        options.method = "post";
-      }
       return options;
     };
 
     AjaxService.prototype.getInvoker = function(context) {
       return new cola.AjaxServiceInvoker(this, this.getInvokerOptions(context));
+    };
+
+    AjaxService.prototype.translateResult = function(result, invokerOptions) {
+      return result;
     };
 
     return AjaxService;
@@ -2767,7 +2803,8 @@
     }
 
     Provider.ATTRIBUTES = {
-      pageSize: null
+      pageSize: null,
+      detectEnd: null
     };
 
     Provider.prototype._evalParamValue = function(expr, context) {
@@ -2798,54 +2835,59 @@
     };
 
     Provider.prototype.getInvokerOptions = function(context) {
-      var data, oldParameter, options, p, parameter, v;
+      var oldParameter, options, p, parameter, v;
       options = Provider.__super__.getInvokerOptions.call(this, context);
       parameter = options.data;
       if (parameter != null) {
         if (typeof parameter === "string") {
           parameter = this._evalParamValue(parameter, context);
-        } else if (typeof parameter === "object") {
-          oldParameter = parameter;
-          parameter = {};
-          for (p in oldParameter) {
-            v = oldParameter[p];
-            if (typeof v === "string") {
-              v = this._evalParamValue(v, context);
+        } else {
+          if (typeof parameter === "function") {
+            parameter = parameter(this);
+          }
+          if (typeof parameter === "object") {
+            oldParameter = parameter;
+            parameter = {};
+            for (p in oldParameter) {
+              v = oldParameter[p];
+              if (typeof v === "string") {
+                v = this._evalParamValue(v, context);
+              }
+              parameter[p] = v;
             }
-            parameter[p] = v;
           }
         }
       }
-      data = {};
       if (this._pageSize > 1) {
-        data.from = 0;
-        data.limit = this._pageSize;
+        if (parameter == null) {
+          parameter = {};
+        } else if (!(parameter instanceof Object)) {
+          parameter = {
+            parameter: parameter
+          };
+        }
+        parameter.from = 0;
+        parameter.limit = this._pageSize + (this._detectEnd ? 1 : 0);
       }
-      if (parameter != null) {
-        data.parameter = parameter;
-      }
-      options.data = data;
+      options.data = parameter;
       return options;
     };
 
-    return Provider;
-
-  })(cola.AjaxService);
-
-  cola.Resolver = (function(superClass) {
-    extend(Resolver, superClass);
-
-    function Resolver() {
-      return Resolver.__super__.constructor.apply(this, arguments);
-    }
-
-    Resolver.ATTRIBUTES = {
-      sendJson: {
-        defaultValue: true
+    Provider.prototype.translateResult = function(result, invokerOptions) {
+      if (this._detectEnd && result instanceof Array) {
+        if (result.length >= this._pageSize) {
+          result.pop();
+        } else {
+          result = {
+            $entityCount: (invokerOptions.data.from || 0) + result.length,
+            $data: result
+          };
+        }
       }
+      return result;
     };
 
-    return Resolver;
+    return Provider;
 
   })(cola.AjaxService);
 
@@ -2939,7 +2981,7 @@
     };
 
     RequiredValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.required", data);
+      return cola.resource("cola.validator.error.required", data);
     };
 
     RequiredValidator.prototype._validate = function(data) {
@@ -2975,7 +3017,7 @@
     };
 
     NumberValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.number", data);
+      return cola.resource("cola.validator.error.number", data);
     };
 
     NumberValidator.prototype._validate = function(data) {
@@ -3007,7 +3049,7 @@
     };
 
     LengthValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.length", data);
+      return cola.resource("cola.validator.error.length", data);
     };
 
     LengthValidator.prototype._validate = function(data) {
@@ -3046,7 +3088,7 @@
     };
 
     RegExpValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.regExp", data);
+      return cola.resource("cola.validator.error.regExp", data);
     };
 
     RegExpValidator.prototype._validate = function(data) {
@@ -3078,7 +3120,7 @@
     }
 
     EmailValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.email", data);
+      return cola.resource("cola.validator.error.email", data);
     };
 
     EmailValidator.prototype._validate = function(data) {
@@ -3100,7 +3142,7 @@
     }
 
     UrlValidator.prototype._getDefaultMessage = function(data) {
-      return cola.i18n("cola.validator.error.email", data);
+      return cola.resource("cola.validator.error.email", data);
     };
 
     UrlValidator.prototype._validate = function(data) {
@@ -3166,7 +3208,6 @@
 
     AjaxValidator.ATTRIBUTES = {
       url: null,
-      sendJson: null,
       method: null,
       ajaxOptions: null,
       data: null
@@ -3199,11 +3240,7 @@
       options.async = !!callback;
       options.url = this._url;
       options.data = sendData;
-      options.sendJson = this._sendJson;
       options.method = this._method;
-      if (options.sendJson && !options.method) {
-        options.method = "post";
-      }
       invoker = new cola.AjaxServiceInvoker(this, options);
       if (callback) {
         return invoker.invokeAsync(callback);
@@ -3220,6 +3257,9 @@
     extend(CustomValidator, superClass);
 
     CustomValidator.ATTRIBUTES = {
+      async: {
+        defaultValue: false
+      },
       validateEmptyValue: {
         defaultValue: true
       },
@@ -3239,7 +3279,7 @@
     }
 
     CustomValidator.prototype._validate = function(data, callback) {
-      if (callback) {
+      if (this._async && callback) {
         if (this._func) {
           this._func(data, callback);
         } else {
@@ -3260,12 +3300,6 @@
     function DataType() {
       return DataType.__super__.constructor.apply(this, arguments);
     }
-
-    DataType.ATTRIBUTES = {
-      name: {
-        readOnlyAfterCreate: true
-      }
-    };
 
     return DataType;
 
@@ -3416,7 +3450,6 @@
     extend(EntityDataType, superClass);
 
     EntityDataType.ATTRIBUTES = {
-      readOnly: null,
       properties: {
         setter: function(properties) {
           var config, l, len1, property, results, results1;
@@ -3466,13 +3499,11 @@
     EntityDataType.prototype.addProperty = function(property) {
       if (!(property instanceof cola.Property)) {
         if (typeof property === "string") {
-          property = new cola.BaseProperty({
+          property = new cola.Property({
             property: property
           });
-        } else if (typeof property.compute === "function") {
-          property = new cola.ComputeProperty(property);
         } else {
-          property = new cola.BaseProperty(property);
+          property = new cola.Property(property);
         }
       } else if (property._owner && property._owner !== this) {
         throw new cola.Exception("Property(" + property._property + ") is already belongs to anthor DataType.");
@@ -3544,12 +3575,15 @@
   cola.Property = (function(superClass) {
     extend(Property, superClass);
 
+    function Property() {
+      return Property.__super__.constructor.apply(this, arguments);
+    }
+
     Property.ATTRIBUTES = {
       property: {
         readOnlyAfterCreate: true
       },
       name: {
-        readOnlyAfterCreate: true,
         setter: function(name) {
           this._name = name;
           if (this._property == null) {
@@ -3564,25 +3598,7 @@
       dataType: {
         setter: cola.DataType.dataTypeSetter
       },
-      description: null
-    };
-
-    function Property(config) {
-      Property.__super__.constructor.call(this, config);
-    }
-
-    return Property;
-
-  })(cola.Definition);
-
-  cola.BaseProperty = (function(superClass) {
-    extend(BaseProperty, superClass);
-
-    function BaseProperty() {
-      return BaseProperty.__super__.constructor.apply(this, arguments);
-    }
-
-    BaseProperty.ATTRIBUTES = {
+      description: null,
       provider: {
         setter: function(provider) {
           if ((provider != null) && !(provider instanceof cola.Provider)) {
@@ -3592,7 +3608,6 @@
         }
       },
       defaultValue: null,
-      readOnly: null,
       required: null,
       aggregated: {
         readOnlyAfterCreate: true
@@ -3631,44 +3646,16 @@
       rejectInvalidValue: null
     };
 
-    BaseProperty.EVENTS = {
+    Property.EVENTS = {
       beforeWrite: null,
       write: null,
       beforeLoad: null,
       loaded: null
     };
 
-    return BaseProperty;
+    return Property;
 
-  })(cola.Property);
-
-  cola.ComputeProperty = (function(superClass) {
-    extend(ComputeProperty, superClass);
-
-    function ComputeProperty() {
-      return ComputeProperty.__super__.constructor.apply(this, arguments);
-    }
-
-    ComputeProperty.ATTRIBUTES = {
-      delay: null,
-      watchingDataPath: null
-    };
-
-    ComputeProperty.EVENTS = {
-      compute: {
-        singleListener: true
-      }
-    };
-
-    ComputeProperty.prototype.compute = function(entity) {
-      return this.fire("compute", this, {
-        entity: entity
-      });
-    };
-
-    return ComputeProperty;
-
-  })(cola.Property);
+  })(cola.Definition);
 
   cola.DataType.jsonToEntity = function(json, dataType, aggregated) {
     var entityList;
@@ -3682,14 +3669,14 @@
       }
     }
     if (aggregated) {
-      entityList = new cola.EntityList(dataType);
+      entityList = new cola.EntityList(null, dataType);
       entityList.fillData(json);
       return entityList;
     } else {
       if (json instanceof Array) {
         throw new cola.Exception("Unmatched DataType. expect \"Object\" but \"Array\".");
       }
-      return new cola.Entity(dataType, json);
+      return new cola.Entity(json, dataType);
     }
   };
 
@@ -3732,7 +3719,7 @@
     })
   };
 
-  defaultDataTypes["number"] = defaultDataTypes["int"];
+  defaultDataTypes["number"] = defaultDataTypes["float"];
 
   getEntityPath = function(markNoncurrent) {
     var lastEntity, parent, part, path, self;
@@ -3786,7 +3773,7 @@
 
     Entity.prototype._disableWriteObservers = 0;
 
-    function Entity(dataType, data) {
+    function Entity(data, dataType) {
       this.id = cola.uniqueId();
       this.timestamp = cola.sequenceNo();
       this.dataType = dataType;
@@ -3808,9 +3795,9 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (typeof loadMode === "function") {
-        loadMode = "async";
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
+        loadMode = "async";
       }
       if (prop.indexOf(".") > 0) {
         return _evalDataPath(this, prop, false, loadMode, callback, context);
@@ -3870,17 +3857,13 @@
       value = this._data[prop];
       if (value === void 0) {
         if (property) {
-          if (property instanceof cola.BaseProperty) {
-            provider = property.get("provider");
-            if (context != null) {
-              context.unloaded = true;
-            }
-            if (provider) {
-              value = loadData.call(this, provider);
-              callbackProcessed = true;
-            }
-          } else if (property instanceof cola.ComputeProperty) {
-            value = property.compute(this);
+          provider = property.get("provider");
+          if (context != null) {
+            context.unloaded = true;
+          }
+          if (provider) {
+            value = loadData.call(this, provider);
+            callbackProcessed = true;
           }
         }
       } else if (value instanceof cola.Provider) {
@@ -3896,6 +3879,9 @@
             providerInvoker.callbacks.push(callback);
           }
           callbackProcessed = true;
+          value = void 0;
+        } else {
+          value = void 0;
         }
         if (context) {
           context.unloaded = true;
@@ -3941,9 +3927,6 @@
       var actualType, changed, convert, dataType, expectedType, item, l, len1, len2, len3, matched, message, messages, o, oldValue, property, provider, q, ref, ref1, ref2, ref3, ref4, validator;
       oldValue = this._data[prop];
       property = (ref = this.dataType) != null ? ref.getProperty(prop) : void 0;
-      if (property && property instanceof cola.ComputeProperty) {
-        throw new cola.Exception("Cannot set value to ComputeProperty \"" + prop + "\".");
-      }
       if (value != null) {
         if (value instanceof cola.Provider) {
           changed = oldValue !== void 0;
@@ -4006,7 +3989,7 @@
         changed = oldValue !== value;
       }
       if (changed) {
-        if (property && property instanceof cola.BaseProperty) {
+        if (property) {
           if (property._validators && property._rejectInvalidValue) {
             messages = null;
             ref2 = property._validators;
@@ -4060,7 +4043,7 @@
         }
         this.timestamp = cola.sequenceNo();
         if (this._disableWriteObservers === 0) {
-          this._notify(cola.constants.MESSAGE_DATA_CHANGE, {
+          this._notify(cola.constants.MESSAGE_PROPERTY_CHANGE, {
             entity: this,
             property: prop,
             value: value,
@@ -4094,103 +4077,6 @@
       return value;
     };
 
-    Entity.prototype.getText = function(prop, loadMode, callback, context) {
-      var entity, i, part1, part2, text;
-      if (loadMode == null) {
-        loadMode = "async";
-      }
-      if (typeof loadMode === "function") {
-        loadMode = "async";
-        callback = loadMode;
-      }
-      i = prop.lastIndexOf(".");
-      if (i > 0) {
-        part1 = prop.substring(0, i);
-        part2 = prop.substring(i + 1);
-        if (callback) {
-          return this.get(part1, loadMode, {
-            complete: function(success, entity) {
-              var text;
-              if (success) {
-                if (entity) {
-                  if (typeof entity._getText === "function") {
-                    entity._getText(part2, loadMode, callback);
-                  } else {
-                    text = entity[path];
-                    cola.callback(callback, true, (text != null ? text + "" : ""));
-                  }
-                } else {
-                  cola.callback(callback, true, "");
-                }
-              } else {
-                cola.callback(callback, false, entity);
-              }
-            }
-          }, context);
-        } else {
-          entity = this.get(part1, loadMode, null, context);
-          if (entity) {
-            if (typeof entity._getText === "function") {
-              return entity._getText(part2, null, null, context);
-            } else {
-              text = entity[path] + "";
-              if (text != null) {
-                return text + "";
-              } else {
-                return "";
-              }
-            }
-          }
-        }
-      } else {
-        return this._getText(prop, loadMode, callback, context);
-      }
-    };
-
-    Entity.prototype._getText = function(prop, loadMode, callback, context) {
-      var dataType, property, propertyDataType, ref;
-      if (callback) {
-        dataType = this.dataType;
-        this._get(prop, loadMode, {
-          complete: function(success, value) {
-            var property, propertyDataType, text;
-            if (success) {
-              if (value != null) {
-                property = dataType != null ? dataType.getProperty(prop) : void 0;
-                propertyDataType = property != null ? property._dataType : void 0;
-                if (propertyDataType) {
-                  text = propertyDataType.toText(value, property._format);
-                } else {
-                  text = value != null ? value + "" : "";
-                }
-              }
-              cola.callback(callback, true, text || "");
-            } else {
-              cola.callback(callback, false, value);
-            }
-          }
-        }, context);
-        return "";
-      } else {
-        value = this._get(prop, loadMode, null, context);
-        if (value != null) {
-          property = (ref = this.dataType) != null ? ref.getProperty(prop) : void 0;
-          propertyDataType = property != null ? property._dataType : void 0;
-          if (propertyDataType) {
-            return propertyDataType.toText(value, property._format);
-          } else {
-            if (value != null) {
-              return value + "";
-            } else {
-              return "";
-            }
-          }
-        } else {
-          return "";
-        }
-      }
-    };
-
     Entity.prototype.remove = function() {
       if (this._parent) {
         if (this._parent instanceof _EntityList) {
@@ -4218,7 +4104,7 @@
       if (property != null ? property._aggregated : void 0) {
         entityList = this._get(prop, "never");
         if (entityList == null) {
-          entityList = new cola.EntityList(propertyDataType);
+          entityList = new cola.EntityList(null, propertyDataType);
           provider = property._provider;
           if (provider) {
             entityList.pageSize = provider._pageSize;
@@ -4239,7 +4125,7 @@
       if (data && data instanceof Array) {
         throw new cola.Exception("Unmatched DataType. expect \"Object\" but \"Array\".");
       }
-      brother = new _Entity(this.dataType, data);
+      brother = new _Entity(data, this.dataType);
       brother.setState(_Entity.STATE_NEW);
       parent = this._parent;
       if (parent && parent instanceof _EntityList) {
@@ -4304,7 +4190,7 @@
         this.resetState();
         this.enableObservers();
         this._notify(cola.constants.MESSAGE_REFRESH, {
-          entity: this
+          data: this
         });
       }
       return this;
@@ -4357,12 +4243,12 @@
         throw new cola.Exception("Provider undefined.");
       }
       this._set(property, void 0);
-      if (typeof loadMode === "function") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
       notifyArg = {
-        entity: this,
+        data: this,
         property: property
       };
       if (loadMode === "async") {
@@ -4429,11 +4315,18 @@
       return this;
     };
 
+    Entity.prototype.notifyObservers = function() {
+      this._notify(cola.constants.MESSAGE_REFRESH, {
+        data: this
+      });
+      return this;
+    };
+
     Entity.prototype._notify = function(type, arg) {
       var path;
       if (this._disableObserverCount === 0) {
         path = this.getPath(true);
-        if ((type === cola.constants.MESSAGE_DATA_CHANGE || type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE || type === cola.constants.MESSAGE_LOADING_START || type === cola.constants.MESSAGE_LOADING_END) && arg.property) {
+        if ((type === cola.constants.MESSAGE_PROPERTY_CHANGE || type === cola.constants.MESSAGE_VALIDATION_STATE_CHANGE || type === cola.constants.MESSAGE_LOADING_START || type === cola.constants.MESSAGE_LOADING_END) && arg.property) {
           if (path) {
             path = path.concat(arg.property);
           } else {
@@ -4454,7 +4347,7 @@
     Entity.prototype._validate = function(prop) {
       var data, l, len1, message, messageChanged, property, ref, validator;
       property = this.dataType.getProperty(prop);
-      if (property && property instanceof cola.BaseProperty) {
+      if (property) {
         if (property._validators) {
           data = this._data[prop];
           if (data && (data instanceof cola.Provider || data instanceof cola.AjaxServiceInvoker)) {
@@ -4517,7 +4410,7 @@
           entity: this
         });
       }
-      return keyMessage;
+      return !((keyMessage != null ? keyMessage.type : void 0) === VALIDATION_ERROR);
     };
 
     Entity.prototype._addMessage = function(prop, message) {
@@ -4539,29 +4432,6 @@
         }
       }
       return topKeyChanged;
-    };
-
-    Entity.prototype.clearMessages = function(prop) {
-      var hasPropMessage, topKeyChanged;
-      if (!this._messageHolder) {
-        return this;
-      }
-      if (prop) {
-        hasPropMessage = this._messageHolder.getKeyMessage(prop);
-      }
-      topKeyChanged = this._messageHolder.clear(prop);
-      if (hasPropMessage) {
-        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
-          entity: this,
-          property: prop
-        });
-      }
-      if (topKeyChanged) {
-        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
-          entity: this
-        });
-      }
-      return this;
     };
 
     Entity.prototype.addMessage = function(prop, message) {
@@ -4592,6 +4462,34 @@
     Entity.prototype.getKeyMessage = function(prop) {
       var ref;
       return (ref = this._messageHolder) != null ? ref.getKeyMessage(prop) : void 0;
+    };
+
+    Entity.prototype.getMessages = function(prop) {
+      var ref;
+      return (ref = this._messageHolder) != null ? ref.getMessages(prop) : void 0;
+    };
+
+    Entity.prototype.clearMessages = function(prop) {
+      var hasPropMessage, topKeyChanged;
+      if (!this._messageHolder) {
+        return this;
+      }
+      if (prop) {
+        hasPropMessage = this._messageHolder.getKeyMessage(prop);
+      }
+      topKeyChanged = this._messageHolder.clear(prop);
+      if (hasPropMessage) {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this,
+          property: prop
+        });
+      }
+      if (topKeyChanged) {
+        this._notify(cola.constants.MESSAGE_VALIDATION_STATE_CHANGE, {
+          entity: this
+        });
+      }
+      return this;
     };
 
     Entity.prototype.findMessages = function(prop, type) {
@@ -4728,7 +4626,7 @@
       dataType = entityList.dataType;
       for (l = 0, len1 = json.length; l < len1; l++) {
         data = json[l];
-        entity = new _Entity(dataType, data);
+        entity = new _Entity(data, dataType);
         this._insertElement(entity);
       }
       if (rawJson.$entityCount != null) {
@@ -4739,8 +4637,9 @@
         entityList.pageCountDetermined = true;
       }
       entityList.entityCount += json.length;
+      entityList.timestamp = cola.sequenceNo();
       entityList._notify(cola.constants.MESSAGE_REFRESH, {
-        entityList: entityList
+        data: entityList
       });
     };
 
@@ -4836,10 +4735,13 @@
 
     EntityList.prototype._disableObserverCount = 0;
 
-    function EntityList(dataType) {
+    function EntityList(array, dataType) {
       this.id = cola.uniqueId();
       this.timestamp = cola.sequenceNo();
       this.dataType = dataType;
+      if (array) {
+        this.fillData(array);
+      }
     }
 
     EntityList.prototype.fillData = function(array) {
@@ -4877,6 +4779,7 @@
     EntityList.prototype._setCurrentPage = function(page) {
       this._currentPage = page;
       this.pageNo = (page != null ? page.pageNo : void 0) || 1;
+      this.timestamp = cola.sequenceNo();
     };
 
     EntityList.prototype._onPathChange = function() {
@@ -5035,7 +4938,7 @@
       if (loadMode == null) {
         loadMode = "async";
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5157,7 +5060,7 @@
           throw new cola.Exception("Entity is already belongs to another owner. \"" + (this._parentProperty || "Unknown") + "\".");
         }
       } else {
-        entity = new _Entity(this.dataType, entity);
+        entity = new _Entity(entity, this.dataType);
         entity.setState(_Entity.STATE_NEW);
       }
       page.dontAutoSetCurrent = true;
@@ -5322,6 +5225,13 @@
       return this;
     };
 
+    EntityList.prototype.notifyObservers = function() {
+      this._notify(cola.constants.MESSAGE_REFRESH, {
+        data: this
+      });
+      return this;
+    };
+
     EntityList.prototype._notify = function(type, arg) {
       var ref;
       if (this._disableObserverCount === 0) {
@@ -5336,7 +5246,7 @@
       if (this._providerInvoker == null) {
         throw new cola.Exception("Provider undefined.");
       }
-      if (typeof loadMode === "function") {
+      if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
         callback = loadMode;
         loadMode = "async";
       }
@@ -5347,7 +5257,7 @@
       }
       if (loadMode === "async") {
         notifyArg = {
-          entityList: this
+          data: this
         };
         this._notify(cola.constants.MESSAGE_LOADING_START, notifyArg);
         page.loadData({
@@ -5697,7 +5607,7 @@
       if (typeof collection.each === "function") {
         collection.each(fn);
       } else {
-        collection.forEach(fn);
+        cola.util.each(collection, fn);
       }
     }
   };
@@ -5756,7 +5666,7 @@
     AbstractModel.prototype.dataType = function(name) {
       var dataType, l, len1;
       if (typeof name === "string") {
-        dataType = this.data.getDefinition(name);
+        dataType = this.data.definition(name);
         if (dataType instanceof cola.DataType) {
           return dataType;
         } else {
@@ -5769,20 +5679,18 @@
             if (!(dataType instanceof cola.DataType)) {
               dataType = new cola.EntityDataType(dataType);
             }
-            this.data.regDefinition(dataType);
           }
         } else {
           dataType = name;
           if (!(dataType instanceof cola.DataType)) {
             dataType = new cola.EntityDataType(dataType);
           }
-          this.data.regDefinition(dataType);
         }
       }
     };
 
-    AbstractModel.prototype.getDefinition = function(name) {
-      return this.data.getDefinition(name);
+    AbstractModel.prototype.definition = function(name) {
+      return this.data.definition(name);
     };
 
     AbstractModel.prototype.flush = function(name, loadMode) {
@@ -5797,6 +5705,29 @@
 
     AbstractModel.prototype.enableObservers = function() {
       this.data.enableObservers();
+      return this;
+    };
+
+    AbstractModel.prototype.notifyObservers = function() {
+      this.data.notifyObservers();
+      return this;
+    };
+
+    AbstractModel.prototype.watch = function(path, fn) {
+      var l, len1, p, processor;
+      processor = {
+        _processMessage: function(bindingPath, path, type, arg) {
+          fn(path, type, arg);
+        }
+      };
+      if (path instanceof Array) {
+        for (l = 0, len1 = path.length; l < len1; l++) {
+          p = path[l];
+          this.data.bind(p, processor);
+        }
+      } else {
+        this.data.bind(path, processor);
+      }
       return this;
     };
 
@@ -6316,7 +6247,7 @@
           this.refreshItems();
           allProcessed = true;
         }
-      } else if (type === cola.constants.MESSAGE_DATA_CHANGE) {
+      } else if (type === cola.constants.MESSAGE_PROPERTY_CHANGE) {
         if (this.isRootOfTarget(path, targetPath)) {
           this.refreshItems();
           allProcessed = true;
@@ -6390,7 +6321,7 @@
         if (aliasHolder) {
           aliasData = aliasHolder.data;
           if (i > 0) {
-            if (typeof loadMode === "function") {
+            if (loadMode && (typeof loadMode === "function" || typeof loadMode === "object")) {
               loadMode = "async";
               callback = loadMode;
             }
@@ -6513,7 +6444,7 @@
             }
           };
           this.bind(aliasHolder.bindingPath, aliasHolder);
-          this._onDataMessage([prop], cola.constants.MESSAGE_DATA_CHANGE, {
+          this._onDataMessage([prop], cola.constants.MESSAGE_PROPERTY_CHANGE, {
             entity: rootData,
             property: prop,
             oldValue: oldAliasData,
@@ -6632,8 +6563,12 @@
       return this;
     };
 
-    AbstractDataModel.prototype.isObserversDisabled = function() {
-      return this.disableObserverCount > 0;
+    AbstractDataModel.prototype.notifyObservers = function() {
+      var ref;
+      if ((ref = this._rootData) != null) {
+        ref.notifyObservers();
+      }
+      return this;
     };
 
     AbstractDataModel.prototype._onDataMessage = function(path, type, arg) {
@@ -6644,7 +6579,7 @@
       if (!this.bindingRegistry) {
         return;
       }
-      if (this.isObserversDisabled()) {
+      if (this.disableObserverCount > 0) {
         return;
       }
       oldScope = cola.currentScope;
@@ -6733,7 +6668,7 @@
         if (this._rootDataType == null) {
           this._rootDataType = new cola.EntityDataType();
         }
-        this._rootData = rootData = new cola.Entity(this._rootDataType);
+        this._rootData = rootData = new cola.Entity(null, this._rootDataType);
         rootData.state = cola.Entity.STATE_NEW;
         dataModel = this;
         rootData._setListener({
@@ -6757,7 +6692,7 @@
             });
           }
           if (typeof config === "string") {
-            dataType = this.getDefinition(config);
+            dataType = this.definition(config);
             if (!dataType) {
               throw new cola.Exception("Unrecognized DataType \"" + config + "\".");
             }
@@ -6787,7 +6722,7 @@
       return dataType;
     };
 
-    DataModel.prototype.getDefinition = function(name) {
+    DataModel.prototype.definition = function(name) {
       var definition, ref;
       definition = (ref = this._definitionStore) != null ? ref[name] : void 0;
       if (definition == null) {
@@ -6861,7 +6796,7 @@
         this._targetPath = data.getPath();
       }
       if (!silence) {
-        this._onDataMessage([this.alias], cola.constants.MESSAGE_DATA_CHANGE, {
+        this._onDataMessage([this.alias], cola.constants.MESSAGE_PROPERTY_CHANGE, {
           entity: null,
           property: this.alias,
           value: data,
@@ -6898,8 +6833,8 @@
       }
     };
 
-    AliasDataModel.prototype.getDefinition = function(name) {
-      return this.parent.getDefinition(name);
+    AliasDataModel.prototype.definition = function(name) {
+      return this.parent.definition(name);
     };
 
     AliasDataModel.prototype.regDefinition = function(definition) {
@@ -7036,8 +6971,9 @@
       return this;
     };
 
-    AliasDataModel.prototype.isObserversDisabled = function() {
-      return this.parent.isObserversDisabled();
+    AliasDataModel.prototype.notifyObservers = function() {
+      this.parent.notifyObservers();
+      return this;
     };
 
     return AliasDataModel;
@@ -7177,16 +7113,6 @@
 
   })();
 
-  cola.model.defaultActions.not = function(value) {
-    return !value;
-  };
-
-  cola.model.defaultActions.i18n = function() {
-    var key, params;
-    key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
-    return cola.i18n.apply(cola, [key].concat(slice.call(params)));
-  };
-
   cola.submit = function(options, callback) {
     var data, filter, originalOptions, p, v;
     originalOptions = options;
@@ -7246,6 +7172,49 @@
     "dirty-tree": function(data) {
       return data;
     }
+  };
+
+  cola.model.defaultActions.is = function(value) {
+    return !!value;
+  };
+
+  cola.model.defaultActions.not = function(value) {
+    return !value;
+  };
+
+  cola.model.defaultActions.isEmpty = function(value) {
+    if (value instanceof Array) {
+      return value.length === 0;
+    } else if (value instanceof cola.EntityList) {
+      return value.entityCount === 0;
+    } else if (typeof value === "string") {
+      return value === "";
+    } else {
+      return !value;
+    }
+  };
+
+  cola.model.defaultActions.isNotEmpty = function(value) {
+    return !cola.model.defaultActions.isEmpty(value);
+  };
+
+  cola.model.defaultActions.len = function(value) {
+    if (!value) {
+      return 0;
+    }
+    if (value instanceof Array) {
+      return value.length;
+    }
+    if (value instanceof cola.EntityList) {
+      return value.entityCount;
+    }
+    return 0;
+  };
+
+  cola.model.defaultActions.resource = function() {
+    var key, params;
+    key = arguments[0], params = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    return cola.resource.apply(cola, [key].concat(slice.call(params)));
   };
 
   _$ = $();
@@ -7486,7 +7455,7 @@
     var cssUrl, cssUrls, failed, htmlUrl, jsUrl, jsUrls, l, len1, len2, len3, len4, loadingUrls, o, q, r, ref, ref1, resourceLoadCallback;
     loadingUrls = [];
     failed = false;
-    resourceLoadCallback = function(success, context, url) {
+    resourceLoadCallback = function(success, result, url) {
       var error, errorMessage, i, initFunc, l, len1, ref;
       if (success) {
         if (!failed) {
@@ -7514,7 +7483,7 @@
         }
       } else {
         failed = true;
-        error = context;
+        error = result;
         if (cola.callback(context.callback, false, error) !== false) {
           if (error.xhr) {
             errorMessage = error.status + " " + error.statusText;
@@ -7558,12 +7527,14 @@
           cssUrl = ref1[o];
           cssUrl = _compileResourceUrl(cssUrl, htmlUrl, ".css");
           if (cssUrl) {
+            loadingUrls.push(cssUrl);
             cssUrls.push(cssUrl);
           }
         }
       } else {
         cssUrl = _compileResourceUrl(context.cssUrl, htmlUrl, ".css");
         if (cssUrl) {
+          loadingUrls.push(cssUrl);
           cssUrls.push(cssUrl);
         }
       }
@@ -7572,7 +7543,7 @@
     if (htmlUrl) {
       _loadHtml(targetDom, htmlUrl, void 0, {
         complete: function(success, result) {
-          return resourceLoadCallback(success, (success ? context : result), htmlUrl);
+          return resourceLoadCallback(success, result, htmlUrl);
         }
       });
     }
@@ -7581,7 +7552,7 @@
         jsUrl = jsUrls[q];
         _loadJs(context, jsUrl, {
           complete: function(success, result) {
-            return resourceLoadCallback(success, (success ? context : result), jsUrl);
+            return resourceLoadCallback(success, result, jsUrl);
           }
         });
       }
@@ -7589,7 +7560,34 @@
     if (cssUrls) {
       for (r = 0, len4 = cssUrls.length; r < len4; r++) {
         cssUrl = cssUrls[r];
-        _loadCss(cssUrl);
+        _loadCss(cssUrl, {
+          complete: function(success, result) {
+            return resourceLoadCallback(success, result, cssUrl);
+          }
+        });
+      }
+    }
+  };
+
+  cola.unloadSubView = function(targetDom, context) {
+    var cssUrl, htmlUrl, l, len1, ref;
+    $fly(targetDom).empty();
+    htmlUrl = context.htmlUrl;
+    if (context.cssUrl) {
+      if (context.cssUrl instanceof Array) {
+        ref = context.cssUrl;
+        for (l = 0, len1 = ref.length; l < len1; l++) {
+          cssUrl = ref[l];
+          cssUrl = _compileResourceUrl(cssUrl, htmlUrl, ".css");
+          if (cssUrl) {
+            _unloadCss(cssUrl);
+          }
+        }
+      } else {
+        cssUrl = _compileResourceUrl(context.cssUrl, htmlUrl, ".css");
+        if (cssUrl) {
+          _unloadCss(cssUrl);
+        }
       }
     }
   };
@@ -7673,7 +7671,7 @@
 
   _cssCache = {};
 
-  _loadCss = function(url) {
+  _loadCss = function(url, callback) {
     var head, linkElement;
     if (!_cssCache[url]) {
       linkElement = $.xCreate({
@@ -7683,9 +7681,23 @@
         charset: cola.setting("defaultCharset"),
         href: url
       });
+      $(linkElement).on("load", function() {
+        cola.callback(callback, true);
+      }).on("error", function() {
+        cola.callback(callback, false);
+      });
       head = document.querySelector("head") || document.documentElement;
       head.appendChild(linkElement);
-      _cssCache[url] = true;
+      _cssCache[url] = linkElement;
+    } else {
+      cola.callback(callback, true);
+    }
+  };
+
+  _unloadCss = function(url) {
+    if (_cssCache[url]) {
+      $fly(_cssCache[url]).remove();
+      delete _cssCache[url];
     }
   };
 
@@ -7758,8 +7770,8 @@
     return currentRouter;
   };
 
-  cola.setRoutePath = function(path) {
-    var routerMode;
+  cola.setRoutePath = function(path, replace) {
+    var pathRoot, realPath, routerMode;
     if (path && path.charCodeAt(0) === 35) {
       routerMode = "hash";
       path = path.substring(1);
@@ -7772,9 +7784,26 @@
         window.location.hash = path;
       }
     } else {
-      window.history.pushState({
+      pathRoot = cola.setting("routerContextPath");
+      if (pathRoot && path.charCodeAt(0) === 47) {
+        realPath = cola.util.concatUrl(pathRoot, path);
+      } else {
+        realPath = path;
+      }
+      if (replace) {
+        window.history.replaceState(null, null, realPath);
+      } else {
+        window.history.pushState(null, null, realPath);
+      }
+      if (location.pathname !== realPath) {
+        realPath = location.pathname + location.search + location.hash;
+        if (pathRoot && realPath.indexOf(pathRoot) === 0) {
+          path = realPath.substring(pathRoot.length);
+        }
+      }
+      window.history.replaceState({
         path: path
-      }, null, path);
+      }, null, realPath);
       _onStateChange(path);
     }
   };
@@ -7834,11 +7863,18 @@
       prev: currentRouter,
       next: router
     };
-    cola.fire("beforeRouterSwitch", cola, eventArg);
+    if (cola.fire("beforeRouterSwitch", cola, eventArg) === false) {
+      return;
+    }
     if (currentRouter) {
       oldModel = currentRouter.realModel;
       if (typeof currentRouter.leave === "function") {
         currentRouter.leave(currentRouter, oldModel);
+      }
+      if (currentRouter.targetDom) {
+        cola.unloadSubView(currentRouter.targetDom, {
+          cssUrl: currentRouter.cssUrl
+        });
       }
       delete currentRouter.realModel;
       if (currentRouter.destroyModel) {
@@ -7982,8 +8018,7 @@
       path = _getHashPath() || trimPath(cola.setting("defaultRouterPath"));
       router = _findRouter(path);
       if (router) {
-        currentRoutePath = path;
-        _switchRouter(router, path);
+        cola.setRoutePath(path, true);
       }
     }, 0);
   });
@@ -8012,7 +8047,9 @@
         this.path = this.expression.path;
         if (!this.path && this.expression.hasCallStatement) {
           this.path = "**";
-          this.delay = true;
+          if (!this.isStatic) {
+            this.delay = true;
+          }
         }
         this.watchingMoreMessage = this.expression.hasCallStatement || this.expression.convertors;
       }
@@ -8030,12 +8067,14 @@
         return;
       }
       if (this.delay && !force) {
-        cola.util.delay(this, "refresh", 100, function() {
-          this._refresh(domBinding, dataCtx);
-          if (this.isStatic && !dataCtx.unloaded) {
-            this.disabled = true;
-          }
-        });
+        cola.util.delay(domBinding, "refresh", 100, (function(_this) {
+          return function() {
+            _this._refresh(domBinding, dataCtx);
+            if (_this.isStatic && !dataCtx.unloaded) {
+              _this.disabled = true;
+            }
+          };
+        })(this));
       } else {
         this._refresh(domBinding, dataCtx);
         if (this.isStatic && !dataCtx.unloaded) {
@@ -8147,7 +8186,7 @@
         };
       })(this);
       scope.onCurrentItemChange = function(arg) {
-        var currentItemDomBinding, itemId;
+        var currentItemDom, currentItemDomBinding, itemId;
         if (domBinding.currentItemDom) {
           $fly(domBinding.currentItemDom).removeClass(cola.constants.COLLECTION_CURRENT_CLASS);
         }
@@ -8156,11 +8195,15 @@
           if (itemId) {
             currentItemDomBinding = domBinding.itemDomBindingMap[itemId];
             if (currentItemDomBinding) {
-              $fly(currentItemDomBinding.dom).addClass(cola.constants.COLLECTION_CURRENT_CLASS);
+              currentItemDom = currentItemDomBinding.dom;
+              $fly(currentItemDom).addClass(cola.constants.COLLECTION_CURRENT_CLASS);
+            } else {
+              this.onItemsRefresh(domBinding);
+              return;
             }
           }
         }
-        domBinding.currentItemDom = currentItemDomBinding.dom;
+        domBinding.currentItemDom = currentItemDom;
       };
       scope.onItemInsert = (function(_this) {
         return function(arg) {
@@ -9056,31 +9099,31 @@
           documentFragment = document.createDocumentFragment();
           for (l = 0, len1 = template.length; l < len1; l++) {
             node = template[l];
-            if (node.tagName) {
-              child = $.xCreate(node, context);
-            } else {
-              if (node instanceof cola.Widget) {
-                widget = node;
-              } else {
-
-              }
+            widget = null;
+            if (node instanceof cola.Widget) {
+              widget = node;
+            } else if (node.$type) {
               widget = cola.widget(node, context.namespace);
+            }
+            if (widget) {
               child = widget.getDom();
               child.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+            } else {
+              child = $.xCreate(node, context);
             }
             documentFragment.appendChild(child);
           }
         } else {
-          if (template.tagName) {
-            dom = $.xCreate(template, context);
-          } else {
-            if (template instanceof cola.Widget) {
-              widget = template;
-            } else {
-              widget = cola.widget(template, context.namespace);
-            }
+          if (template instanceof cola.Widget) {
+            widget = template;
+          } else if (template.$type) {
+            widget = cola.widget(template, context.namespace);
+          }
+          if (widget) {
             dom = widget.getDom();
             dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+          } else {
+            dom = $.xCreate(template, context);
           }
         }
       } finally {
@@ -9216,8 +9259,8 @@
           } else {
             if (attrName.substring(0, 2) === "on") {
               feature = buildEvent(scope, dom, attrName.substring(2), attrValue);
-            } else if (attrName === "i18n") {
-              feature = buildI18NFeature(scope, dom, attrValue);
+            } else if (attrName === "resource") {
+              feature = buildResourceFeature(scope, dom, attrValue);
             } else if (attrName === "watch") {
               feature = buildWatchFeature(scope, dom, attrValue);
             } else {
@@ -9255,19 +9298,23 @@
         dom.removeAttribute(removeAttr);
       }
     }
-    childContext = {};
-    for (k in context) {
-      v = context[k];
-      childContext[k] = v;
-    }
-    childContext.inRepeatTemplate = context.inRepeatTemplate || bindingType === "repeat";
-    if (defaultPath) {
-      childContext.defaultPath = defaultPath;
-    }
-    child = dom.firstChild;
-    while (child) {
-      child = _doRrenderDomTemplate(child, scope, childContext);
-      child = child.nextSibling;
+    if (!cola.util.userData(dom, cola.constants.DOM_SKIP_CHILDREN)) {
+      childContext = {};
+      for (k in context) {
+        v = context[k];
+        childContext[k] = v;
+      }
+      childContext.inRepeatTemplate = context.inRepeatTemplate || bindingType === "repeat";
+      if (defaultPath) {
+        childContext.defaultPath = defaultPath;
+      }
+      child = dom.firstChild;
+      while (child) {
+        child = _doRrenderDomTemplate(child, scope, childContext);
+        child = child.nextSibling;
+      }
+    } else {
+      cola.util.removeUserData(dom, cola.constants.DOM_SKIP_CHILDREN);
     }
     if (features != null ? features.length : void 0) {
       if (bindingType === "repeat") {
@@ -9419,10 +9466,10 @@
     return feature;
   };
 
-  buildI18NFeature = function(scope, dom, expr) {
+  buildResourceFeature = function(scope, dom, expr) {
     expr = cola.util.trim(expr);
     if (expr) {
-      $fly(dom).text(cola.i18n(expr));
+      $fly(dom).text(cola.resource(expr));
     }
   };
 
@@ -9476,6 +9523,40 @@
   var ACTIVE_PINCH_REG, ACTIVE_ROTATE_REG, ALIAS_REGEXP, BLANK_PATH, Column, ContentColumn, DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DataColumn, DropBox, GroupColumn, LIST_SIZE_PREFIXS, NestedListBind, NestedListNode, PAN_VERTICAL_EVENTS, SAFE_PULL_EFFECT, SAFE_SLIDE_EFFECT, SLIDE_ANIMATION_SPEED, SWIPE_VERTICAL_EVENTS, SelectColumn, TEMP_TEMPLATE, TreeNode, TreeNodeBind, _columnsSetter, _createGroupArray, _destroyRenderableElement, _findWidgetConfig, _getEntityId, _removeTranslateStyle, containerEmptyChildren, currentDate, currentHours, currentMinutes, currentMonth, currentSeconds, currentYear, dateTimeSlotConfigs, dateTypeConfig, dropdownDialogMargin, emptyRadioGroupItems, now, slotAttributeGetter, slotAttributeSetter,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
+
+  (function() {
+    var escape, isStyleFuncSupported;
+    escape = function(text) {
+      return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    };
+    isStyleFuncSupported = !!CSSStyleDeclaration.prototype.getPropertyValue;
+    if (!isStyleFuncSupported) {
+      CSSStyleDeclaration.prototype.getPropertyValue = function(a) {
+        return this.getAttribute(a);
+      };
+      CSSStyleDeclaration.prototype.setProperty = function(styleName, value, priority) {
+        var rule;
+        this.setAttribute(styleName, value);
+        priority = typeof priority !== 'undefined' ? priority : '';
+        if (priority !== '') {
+          rule = new RegExp(escape(styleName) + '\\s*:\\s*' + escape(value)(+'(\\s*;)?', 'gmi'));
+          return this.cssText = this.cssText.replace(rule, styleName + ': ' + value + ' !' + priority + ';');
+        }
+      };
+      CSSStyleDeclaration.prototype.removeProperty = function(a) {
+        return this.removeAttribute(a);
+      };
+      return CSSStyleDeclaration.prototype.getPropertyPriority = function(styleName) {
+        var rule;
+        rule = new RegExp(escape(styleName) + '\\s*:\\s*[^\\s]*\\s*!important(\\s*;)?', 'gmi');
+        if (rule.test(this.cssText)) {
+          return 'important';
+        } else {
+          return '';
+        }
+      };
+    }
+  })();
 
   cola.util.addClass = function(dom, value, continuous) {
     var className;
@@ -9535,6 +9616,21 @@
       }
     }
     return true;
+  };
+
+  cola.util.style = function(dom, styleName, value, priority) {
+    var style;
+    style = dom.style;
+    if (typeof styleName !== 'undefined') {
+      if (typeof value !== 'undefined') {
+        priority = typeof priority !== 'undefined' ? priority : '';
+        return style.setProperty(styleName, value, priority);
+      } else {
+        return style.getPropertyValue(styleName);
+      }
+    } else {
+      return style;
+    }
   };
 
   cola.util.getTextChildData = function(dom) {
@@ -9831,6 +9927,9 @@
     oldParentConstr = context.constr;
     constr = cola.resolveType((oldParentConstr != null ? oldParentConstr.CHILDREN_TYPE_NAMESPACE : void 0) || "widget", config, cola.Widget);
     config.$constr = context.constr = constr;
+    if (cola.util.isCompatibleType(cola.AbstractLayer, constr) && config.lazyRender) {
+      cola.util.userData(dom, cola.constants.DOM_SKIP_CHILDREN, true);
+    }
     return function(scope, dom) {
       var oldScope, widget;
       context.constr = oldParentConstr;
@@ -10450,6 +10549,11 @@
 
     RenderableElement.TAG_NAME = "DIV";
 
+    RenderableElement.EVENTS = {
+      initDom: null,
+      refreshDom: null
+    };
+
     function RenderableElement(config) {
       var dom;
       if (config) {
@@ -10472,6 +10576,7 @@
     RenderableElement.prototype._parseDom = function(dom) {};
 
     RenderableElement.prototype._setDom = function(dom, parseChild) {
+      var arg;
       if (!dom) {
         return;
       }
@@ -10482,6 +10587,11 @@
         this._parseDom(dom);
       }
       this._initDom(dom);
+      arg = {
+        dom: dom,
+        returnValue: null
+      };
+      this.fire("initDom", this, arg);
       this._refreshDom();
       this._rendered = true;
     };
@@ -10535,18 +10645,13 @@
     RenderableElement.prototype._resetDimension = function() {};
 
     RenderableElement.prototype.getDom = function() {
-      var arg, dom;
+      var dom;
       if (this._destroyed) {
         return null;
       }
       if (!this._dom) {
         dom = this._createDom();
         this._setDom(dom);
-        arg = {
-          dom: dom,
-          returnValue: null
-        };
-        this.fire("createDom", this, arg);
       }
       return this._dom;
     };
@@ -10728,8 +10833,6 @@
     };
 
     Widget.EVENTS = {
-      createDom: null,
-      refreshDom: null,
       click: {
         $event: "click"
       },
@@ -10899,7 +11002,7 @@
               event: evt,
               returnValue: null
             };
-            _this.fire(eventName, _this, arg);
+            return _this.fire(eventName, _this, arg);
           };
         })(this));
         this._bindedEvents[eventName] = true;
@@ -12850,14 +12953,14 @@
         content: [
           {
             "class": "ui button",
-            content: "取消",
+            content: cola.resource("cola.message.deny") || "取消",
             click: function() {
               cola.commonDimmer.hide();
               return timerLayer.hide();
             }
           }, {
             "class": "ui positive button",
-            content: "确定",
+            content: cola.resource("cola.message.approve") || "确认",
             click: function() {
               cola.commonDimmer.hide();
               timerLayer.hide();
@@ -13103,11 +13206,9 @@
       };
 
       DateGrid.prototype.getDateCellDom = function(date) {
-        var ddd, value;
+        var value;
         value = new XDate(date).toString("yyyy-M-d");
-        ddd = $(this._dom).find("td[c-date='" + value + "']");
-        console.log(ddd);
-        return ddd;
+        return $(this._dom).find("td[c-date='" + value + "']");
       };
 
       DateGrid.prototype.doRefreshCell = function(cell, row, column) {
@@ -13474,7 +13575,7 @@
 
       Calendar.prototype._createDom = function() {
         var allWeeks, cal, dom, picker, weeks;
-        allWeeks = "日,一,二,三,四,五,六";
+        allWeeks = cola.resource("cola.date.dayNamesShort") || "日,一,二,三,四,五,六";
         weeks = allWeeks.split(",");
         cal = this;
         if (this._doms == null) {
@@ -13866,6 +13967,10 @@
       },
       param: {
         readOnlyAfterCreate: true
+      },
+      showLoadingContent: null,
+      showDimmer: {
+        defaultValue: true
       }
     };
 
@@ -13876,6 +13981,13 @@
     };
 
     SubView.prototype._initDom = function(dom) {
+      var $dom;
+      $dom = $fly(dom);
+      if ($dom.find(">.content").length === 0) {
+        $dom.xAppend({
+          "class": "content"
+        });
+      }
       if (this._url) {
         this.load({
           url: this._url,
@@ -13887,7 +13999,7 @@
     };
 
     SubView.prototype.load = function(options, callback) {
-      var dom, model;
+      var $content, $dimmer, $dom, dom, model;
       dom = this._dom;
       this.unload();
       model = new cola.Model(this._scope);
@@ -13897,7 +14009,25 @@
       this._cssUrl = options.cssUrl;
       this._param = options.param;
       this._loading = true;
-      cola.loadSubView(this._dom, {
+      $dom = $(this._dom);
+      $content = $dom.find(">.content");
+      if (!this._showLoadingContent) {
+        $content.css("visibility", "hidden");
+      }
+      if (this._showDimmer) {
+        $dimmer = $dom.find(">.ui.dimmer");
+        if ($dimmer.length === 0) {
+          $dom.xAppend({
+            "class": "ui inverted dimmer",
+            content: {
+              "class": "ui loader"
+            }
+          });
+          $dimmer = $dom.find(">.ui.dimmer");
+        }
+        $dimmer.addClass("active");
+      }
+      cola.loadSubView($content[0], {
         model: model,
         htmlUrl: this._url,
         jsUrl: this._jsUrl,
@@ -13906,6 +14036,12 @@
         callback: {
           complete: (function(_this) {
             return function(success, result) {
+              if (!_this._showLoadingContent) {
+                $dom.find(">.content").css("visibility", "");
+              }
+              if (_this._showDimmer) {
+                $dom.find(">.ui.dimmer").removeClass("active");
+              }
               _this._loading = false;
               if (success) {
                 _this.fire("load", _this);
@@ -13931,17 +14067,22 @@
 
     SubView.prototype.unload = function() {
       var dom, model;
-      dom = this._dom;
+      if (!this._dom) {
+        return;
+      }
+      cola.unloadSubView($fly(this._dom).find(">.content")[0], {
+        cssUrl: this._cssUrl
+      });
       delete this._url;
       delete this._jsUrl;
       delete this._cssUrl;
       delete this._param;
+      dom = this._dom;
       model = cola.util.userData(dom, "_model");
       if (model != null) {
         model.destroy();
       }
       cola.util.removeUserData(dom, "_model");
-      $fly(dom).empty();
       this.fire("unload", this);
     };
 
@@ -14405,31 +14546,38 @@
       }
     };
     messageBox = {
-      animation: cola.device.phone ? "slide up" : "scale",
       settings: {
         info: {
-          title: "消息",
+          title: cola.resource("cola.messageBox.info.title"),
           icon: "blue info icon"
         },
         warning: {
-          title: "警告",
+          title: cola.resource("cola.messageBox.warning.title"),
           icon: "yellow warning sign icon"
         },
         error: {
-          title: "错误",
+          title: cola.resource("cola.messageBox.error.title"),
           icon: "red warning sign icon"
         },
         question: {
-          title: "确认框",
+          title: cola.resource("cola.messageBox.question.title"),
           icon: "black help circle icon"
         }
       },
       "class": "standard",
+      dialogMode: true,
       level: {
         WARNING: "warning",
         ERROR: "error",
         INFO: "info",
         QUESTION: "question"
+      },
+      _getAnimation: function() {
+        if (messageBox.dialogMode) {
+          return "scale";
+        } else {
+          return "slide up";
+        }
       },
       _executeCallback: function(name) {
         var _eventName;
@@ -14448,12 +14596,12 @@
       },
       _doShow: function() {
         var $dom, animation, css, height, pHeight, pWidth, width;
-        animation = messageBox.animation;
+        animation = messageBox._getAnimation();
         css = {
           zIndex: cola.floatWidget.zIndex()
         };
         $dom = $(messageBox._dom);
-        if (!cola.device.phone) {
+        if (messageBox.dialogMode) {
           width = $dom.width();
           height = $dom.height();
           pWidth = $(window).width();
@@ -14466,17 +14614,17 @@
         return cola.commonDimmer.show();
       },
       _doApprove: function() {
-        messageBox._executeCallback("approve");
+        messageBox._executeCallback("Approve");
         messageBox._doHide();
       },
       _doDeny: function() {
-        messageBox._executeCallback("deny");
+        messageBox._executeCallback("Deny");
         messageBox._doHide();
       },
       _doHide: function() {
-        $(messageBox._dom).transition(messageBox.animation);
+        $(messageBox._dom).transition(messageBox._settings.animation);
         cola.commonDimmer.hide();
-        messageBox._executeCallback("hide");
+        messageBox._executeCallback("Hide");
       },
       getDom: function() {
         if (!messageBox._dom) {
@@ -14485,7 +14633,7 @@
         return messageBox._dom;
       },
       show: function(options) {
-        var $dom, dom, doms, isAlert, level, oldUI, settings, ui;
+        var $dom, className, dom, doms, isAlert, level, oldClassName, settings;
         dom = messageBox.getDom();
         settings = messageBox.settings;
         level = options.level || messageBox.level.INFO;
@@ -14500,13 +14648,13 @@
         messageBox._onApprove = options.onApprove;
         messageBox._onHide = options.onHide;
         $dom.removeClass("warning error info question").addClass(level);
-        oldUI = $dom.attr("_ui");
-        ui = options.ui || messageBox.ui;
-        if (oldUI !== ui) {
-          if (oldUI) {
-            $dom.removeClass(oldUI);
+        oldClassName = $dom.attr("_class");
+        className = options["class"] || messageBox["class"];
+        if (oldClassName !== className) {
+          if (oldClassName) {
+            $dom.removeClass(oldClassName);
           }
-          $dom.addClass(ui).attr("_ui", ui);
+          $dom.addClass(className).attr("_class", className);
         }
         doms = messageBox._doms;
         isAlert = options.mode === "alert";
@@ -14519,12 +14667,26 @@
         return this;
       }
     };
+    ({
+      _getClassName: function() {
+        if (messageBox.dialogMode) {
+          return "desktop";
+        } else {
+          return "mobile layer";
+        }
+      }
+    });
     createMessageBoxDom = function() {
       var actionsDom, bodyNode, dom, doms;
+      messageBox._settings = {
+        dialogMode: messageBox.dialogMode,
+        className: messageBox.dialogMode ? "desktop" : "mobile layer",
+        animation: messageBox.dialogMode ? "scale" : "slide up"
+      };
       doms = {};
       dom = $.xCreate({
         tagName: "Div",
-        "class": "ui " + (cola.device.phone ? "mobile layer" : "desktop") + " message-box transition hidden",
+        "class": "ui " + messageBox._settings.className + " message-box transition hidden",
         contextKey: "messageBox",
         content: {
           "class": "content-container ",
@@ -14577,13 +14739,13 @@
       }, doms);
       actionsDom = $.xCreate({
         tagName: "div",
-        "class": "actions " + (cola.device.phone ? "ui buttons two fluid top attached" : ""),
+        "class": "actions " + (messageBox._settings.dialogMode ? "" : "ui buttons two fluid top attached"),
         contextKey: "actions",
         content: [
           {
             tagName: "div",
             contextKey: "no",
-            content: "取消",
+            content: cola.resource("cola.message.deny"),
             click: messageBox._doDeny,
             "class": "ui button"
           }, {
@@ -14597,17 +14759,17 @@
                 "class": "checkmark icon"
               }, {
                 tagName: "span",
-                content: "确认",
+                content: cola.resource("cola.message.approve"),
                 contextKey: "yesCaption"
               }
             ]
           }
         ]
       }, doms);
-      if (cola.device.phone) {
-        $(doms.content).before(actionsDom);
-      } else {
+      if (messageBox._settings.dialogMode) {
         doms.contentContainer.appendChild(actionsDom);
+      } else {
+        $(doms.content).before(actionsDom);
       }
       bodyNode = window.document.body;
       if (bodyNode) {
@@ -15008,6 +15170,98 @@
     return element.style.transform = "";
   };
 
+  cola.AbstractLayer = (function(superClass) {
+    extend(AbstractLayer, superClass);
+
+    function AbstractLayer() {
+      return AbstractLayer.__super__.constructor.apply(this, arguments);
+    }
+
+    AbstractLayer.ATTRIBUTES = {
+      duration: {
+        defaultValue: 300
+      },
+      visible: {
+        type: "boolean",
+        readOnly: true,
+        getter: function() {
+          return this.isVisible();
+        }
+      },
+      lazyRender: {
+        type: "boolean"
+      }
+    };
+
+    AbstractLayer.EVENTS = {
+      show: null,
+      hide: null,
+      beforeShow: null,
+      beforeHide: null
+    };
+
+    AbstractLayer.prototype._onShow = function() {};
+
+    AbstractLayer.prototype._onHide = function() {};
+
+    AbstractLayer.prototype._transition = function(options, callback) {
+      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
+        return false;
+      }
+      this._doTransition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype._doTransition = function(options, callback) {};
+
+    AbstractLayer.prototype.show = function(options, callback) {
+      if (options == null) {
+        options = {};
+      }
+      if (!this._dom || this.isVisible()) {
+        return this;
+      }
+      if (this._lazyRender && !this._contentRendered) {
+        this._contentRendered = true;
+        cola.xRender(this._dom, this._scope);
+      }
+      if (typeof options === "function") {
+        callback = options;
+        options = {};
+      }
+      options.target = "show";
+      this._transition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype.hide = function(options, callback) {
+      if (options == null) {
+        options = {};
+      }
+      if (!this._dom || !this.isVisible()) {
+        return this;
+      }
+      if (typeof options === "function") {
+        callback = options;
+        options = {};
+      }
+      options.target = "hide";
+      this._transition(options, callback);
+      return this;
+    };
+
+    AbstractLayer.prototype.toggle = function() {
+      return this[this.isVisible() ? "hide" : "show"].apply(this, arguments);
+    };
+
+    AbstractLayer.prototype.isVisible = function() {
+      return this.get$Dom().transition("stop all").transition("is visible");
+    };
+
+    return AbstractLayer;
+
+  })(cola.AbstractContainer);
+
   cola.Layer = (function(superClass) {
     extend(Layer, superClass);
 
@@ -15021,33 +15275,12 @@
       animation: {
         defaultValue: "slide left",
         "enum": ["scale", "drop", "browse right", "browse", "slide left", "slide right", "slide up", "slide down", "fade left", "fade right", "fade up", "fade down", "fly left", "fly right", "fly up", "fly down", "swing left", "swing right", "swing up", "swing down", "horizontal flip", "vertical flip"]
-      },
-      duration: {
-        defaultValue: 300
-      },
-      visible: {
-        type: "boolean",
-        readOnly: true,
-        getter: function() {
-          return this.isVisible();
-        }
       }
-    };
-
-    Layer.EVENTS = {
-      show: null,
-      hide: null,
-      beforeShow: null,
-      beforeHide: null
     };
 
     Layer.SLIDE_ANIMATIONS = ["slide left", "slide right", "slide up", "slide down"];
 
-    Layer.prototype._onShow = function() {};
-
-    Layer.prototype._onHide = function() {};
-
-    Layer.prototype._initDom = function() {};
+    Layer.prototype._transitionStart = function() {};
 
     Layer.prototype._doTransition = function(options, callback) {
       var $dom, animation, configs, duration, height, isHorizontal, isShow, layer, onComplete, width, x, y;
@@ -15076,7 +15309,12 @@
           animation: animation,
           duration: duration,
           onComplete: onComplete,
-          queue: true
+          queue: true,
+          onStart: (function(_this) {
+            return function() {
+              return _this._transitionStart();
+            };
+          })(this)
         });
       } else {
         $dom = this.get$Dom();
@@ -15120,60 +15358,13 @@
           configs.x = 0;
         }
         $dom.removeClass("hidden").addClass("visible").transit(configs);
+        this._transitionStart();
       }
-    };
-
-    Layer.prototype._transition = function(options, callback) {
-      if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
-        return false;
-      }
-      this._doTransition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.show = function(options, callback) {
-      if (options == null) {
-        options = {};
-      }
-      if (!this._dom || this.isVisible()) {
-        return this;
-      }
-      if (typeof options === "function") {
-        callback = options;
-        options = {};
-      }
-      options.target = "show";
-      this._transition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.hide = function(options, callback) {
-      if (options == null) {
-        options = {};
-      }
-      if (!this._dom || !this.isVisible()) {
-        return this;
-      }
-      if (typeof options === "function") {
-        callback = options;
-        options = {};
-      }
-      options.target = "hide";
-      this._transition(options, callback);
-      return this;
-    };
-
-    Layer.prototype.toggle = function() {
-      return this[this.isVisible() ? "hide" : "show"].apply(this, arguments);
-    };
-
-    Layer.prototype.isVisible = function() {
-      return this.get$Dom().transition("stop all").transition("is visible");
     };
 
     return Layer;
 
-  })(cola.AbstractContainer);
+  })(cola.AbstractLayer);
 
   cola.Dialog = (function(superClass) {
     extend(Dialog, superClass);
@@ -15247,6 +15438,22 @@
       }
     };
 
+    Dialog.prototype._transitionStart = function() {
+      var $dom, height, pHeight, pWidth, width;
+      $dom = this.get$Dom();
+      if (this._currentAnimation === "show") {
+        width = $dom.width();
+        height = $dom.height();
+        pWidth = $(window).width();
+        pHeight = $(window).height();
+        return $dom.css({
+          left: (pWidth - width) / 2,
+          top: (pHeight - height) / 2,
+          zIndex: cola.floatWidget.zIndex()
+        });
+      }
+    };
+
     Dialog.prototype._createCloseButton = function() {
       var dom;
       dom = this._closeBtn = $.xCreate({
@@ -15301,30 +15508,22 @@
     };
 
     Dialog.prototype._transition = function(options, callback) {
-      var $dom, height, isShow, pHeight, pWidth, parentNode, width;
+      var isShow;
       if (this.fire("before" + (cola.util.capitalize(options.target)), this, {}) === false) {
         return false;
       }
-      $dom = this.get$Dom();
       isShow = options.target === "show";
+      if (isShow) {
+        this._currentAnimation = "show";
+      } else {
+        this._currentAnimation = "hide";
+      }
       if (this.get("modal")) {
         if (isShow) {
           this._showModalLayer();
         } else {
           this._hideModalLayer();
         }
-      }
-      if (isShow) {
-        width = $dom.width();
-        height = $dom.height();
-        parentNode = this._context || this._dom.parentNode;
-        pWidth = $(parentNode).width();
-        pHeight = $(parentNode).height();
-        $dom.css({
-          left: (pWidth - width) / 2,
-          top: (pHeight - height) / 2,
-          zIndex: cola.floatWidget.zIndex()
-        });
       }
       options.animation = options.animation || this._animation || "scale";
       return this._doTransition(options, callback);
@@ -15404,7 +15603,7 @@
     };
 
     Dialog.prototype._showModalLayer = function() {
-      var _dimmerDom, container;
+      var _dimmerDom;
       if (this._doms == null) {
         this._doms = {};
       }
@@ -15422,8 +15621,7 @@
             };
           })(this));
         }
-        container = this._context || this._dom.parentNode;
-        container.appendChild(_dimmerDom);
+        document.body.appendChild(_dimmerDom);
         this._doms.modalLayer = _dimmerDom;
       }
       $(_dimmerDom).css({
@@ -15457,48 +15655,96 @@
     Sidebar.ATTRIBUTES = {
       direction: {
         defaultValue: "left",
+        refreshDom: true,
         "enum": ["left", "right", "top", "bottom"]
       },
       size: {
-        defaultValue: 100
-      },
-      duration: {
         type: "number",
-        defaultValue: 200
+        defaultValue: 200,
+        refreshDom: true
       },
-      transition: {
-        defaultValue: "overlay",
-        "enum": ["overlay", "push"]
+      modal: {
+        type: "boolean",
+        defaultValue: true
       },
-      mobileTransition: {
-        defaultValue: "overlay",
-        "enum": ["overlay", "push"]
+      modalOpacity: {
+        type: "number",
+        defaultValue: 0.6
       },
-      closable: {
+      dimmerClose: {
         type: "boolean",
         defaultValue: true
       }
     };
 
-    Sidebar.EVENTS = {
-      beforeShow: null,
-      beforeHide: null,
-      show: null,
-      hide: null
-    };
-
-    Sidebar.prototype.isHidden = function() {
-      if (!this._dom) {
-        return false;
+    Sidebar.prototype._doTransition = function(options, callback) {
+      var $dom, configs, direction, duration, height, isHorizontal, isShow, onComplete, sidebar, width, x, y;
+      if (this.get("modal")) {
+        if (options.target === "show") {
+          this._showModalLayer();
+        } else {
+          this._hideModalLayer();
+        }
       }
-      return this.get$Dom().sidebar("is", "hidden");
-    };
-
-    Sidebar.prototype.isVisible = function() {
-      if (!this._dom) {
-        return false;
+      sidebar = this;
+      this.get$Dom().css({
+        zIndex: cola.floatWidget.zIndex()
+      });
+      onComplete = function() {
+        if (typeof callback === "function") {
+          callback.call(sidebar);
+        }
+        if (options.target === "show") {
+          sidebar._onShow();
+        } else {
+          sidebar._onHide();
+        }
+        sidebar.fire(options.target, sidebar, {});
+        return null;
+      };
+      direction = this._direction;
+      duration = options.duration || this._duration || 300;
+      $dom = this.get$Dom();
+      width = $dom.width();
+      height = $dom.height() || $dom.outerHeight();
+      isHorizontal = direction === "left" || direction === "right";
+      if (direction === "left") {
+        x = -width;
+        y = 0;
+      } else if (direction === "right") {
+        x = width;
+        y = 0;
+      } else if (direction === "top") {
+        x = 0;
+        y = -height;
+      } else {
+        x = 0;
+        y = height;
       }
-      return this.get$Dom().sidebar("is", "visible");
+      isShow = options.target === "show";
+      if (isShow) {
+        cola.Fx.translateElement(this._dom, x, y);
+      }
+      configs = {
+        duration: duration,
+        complete: (function(_this) {
+          return function() {
+            if (!isShow) {
+              $dom.removeClass("visible").addClass("hidden");
+            }
+            _removeTranslateStyle(_this._dom);
+            return onComplete();
+          };
+        })(this)
+      };
+      if (isHorizontal) {
+        configs.x = isShow ? 0 : x;
+        configs.y = 0;
+      } else {
+        configs.y = isShow ? 0 : y;
+        configs.x = 0;
+      }
+      $dom.removeClass("hidden").addClass("visible").transit(configs);
     };
 
     Sidebar.prototype._doRefreshDom = function() {
@@ -15506,47 +15752,8 @@
         return;
       }
       Sidebar.__super__._doRefreshDom.call(this);
+      this._setSize();
       return this._classNamePool.add(this._direction || "left");
-    };
-
-    Sidebar.prototype.show = function(callback) {
-      var $dom;
-      if (this.fire("beforeShow", this, {
-        dom: this._dom
-      }) === false) {
-        return;
-      }
-      $dom = this.get$Dom();
-      if (!this._initialized) {
-        this._initialized = true;
-        this._setSize();
-        $dom.sidebar('setting', {
-          duration: this._duration || 200,
-          transition: this._transition,
-          closable: false,
-          mobileTransition: this._mobileTransition,
-          onShow: (function(_this) {
-            return function() {
-              return _this.fire("show", _this, {});
-            };
-          })(this),
-          onHide: (function(_this) {
-            return function() {
-              return _this.fire("hide", _this, {});
-            };
-          })(this)
-        });
-      }
-      return $dom.sidebar("show", callback);
-    };
-
-    Sidebar.prototype.hide = function(callback) {
-      if (this.fire("beforeHide", this, {
-        dom: this._dom
-      }) === false) {
-        return;
-      }
-      return this.get$Dom().sidebar("hide", callback);
     };
 
     Sidebar.prototype._setSize = function() {
@@ -15558,133 +15765,68 @@
       }
       direction = this._direction || "left";
       style = direction === "left" || direction === "right" ? "width" : "height";
-      this.get$Dom().css(style, size);
+      cola.util.style(this._dom, style, size, "important");
+    };
+
+    Sidebar.prototype._showModalLayer = function() {
+      var _dimmerDom, container;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      _dimmerDom = this._doms.modalLayer;
+      if (!_dimmerDom) {
+        _dimmerDom = $.xCreate({
+          tagName: "Div",
+          "class": "ui dimmer",
+          contextKey: "dimmer"
+        });
+        if (this._dimmerClose) {
+          $(_dimmerDom).on("click", (function(_this) {
+            return function() {
+              return _this.hide();
+            };
+          })(this));
+        }
+        $(_dimmerDom).css("position", "fixed");
+        container = this._context || this._dom.parentNode;
+        container.appendChild(_dimmerDom);
+        this._doms.modalLayer = _dimmerDom;
+      }
+      $(_dimmerDom).css({
+        opacity: 0,
+        zIndex: cola.floatWidget.zIndex()
+      }).addClass("active").transit({
+        opacity: this._modalOpacity
+      });
+    };
+
+    Sidebar.prototype._hideModalLayer = function() {
+      var _dimmerDom;
+      if (this._doms == null) {
+        this._doms = {};
+      }
+      _dimmerDom = this._doms.modalLayer;
+      return $(_dimmerDom).transit({
+        opacity: 0,
+        complete: function() {
+          return $(_dimmerDom).removeClass("active").css({
+            zIndex: 0
+          });
+        }
+      });
+    };
+
+    Sidebar.prototype.isVisible = function() {
+      if (this._dom) {
+        return this.get$Dom().hasClass("visible");
+      } else {
+        return false;
+      }
     };
 
     return Sidebar;
 
-  })(cola.AbstractContainer);
-
-  cola.Drawer = (function(superClass) {
-    extend(Drawer, superClass);
-
-    function Drawer() {
-      return Drawer.__super__.constructor.apply(this, arguments);
-    }
-
-    Drawer.CLASS_NAME = "ui drawer pushable";
-
-    Drawer.prototype.getPusherDom = function() {
-      if (!this._dom) {
-        return;
-      }
-      return $(this._dom).find("> .pusher")[0];
-    };
-
-    Drawer.prototype._initDom = function(dom) {
-      var pusher;
-      Drawer.__super__._initDom.call(this, dom);
-      pusher = this.getPusherDom();
-      if (!pusher) {
-        dom.appendChild($.xCreate({
-          tagName: "div",
-          "class": "pusher"
-        }));
-      }
-    };
-
-    Drawer.prototype._initPusher = function() {
-      this._pusher = this.getPusherDom();
-      $(this._pusher).on("click", (function(_this) {
-        return function() {
-          var event;
-          _this._hideSidebar();
-          event = window.event;
-          if (event) {
-            event.stopImmediatePropagation();
-            return event.preventDefault();
-          }
-        };
-      })(this));
-    };
-
-    Drawer.prototype._hideSidebar = function() {
-      var child, results, widget;
-      child = this._dom.firstChild;
-      results = [];
-      while (child) {
-        if (child.nodeType === 1) {
-          widget = cola.widget(child);
-          if (widget && widget instanceof cola.Sidebar && widget.isVisible()) {
-            widget.hide();
-          }
-        }
-        results.push(child = child.nextSibling);
-      }
-      return results;
-    };
-
-    Drawer.prototype._getFirstSidebar = function() {
-      var sideDom;
-      sideDom = $(this._dom).find("> .ui.sidebar")[0];
-      if (!sideDom) {
-        return;
-      }
-      return cola.widget(sideDom);
-    };
-
-    Drawer.prototype.showSidebar = function(id, callback) {
-      var sidebar, sidebarDom;
-      if (id) {
-        if (typeof id === "function") {
-          callback = id;
-          sidebar = this._getFirstSidebar();
-        } else {
-          sidebar = cola.widget(id);
-        }
-      } else {
-        sidebar = this._getFirstSidebar();
-      }
-      if (!sidebar) {
-        return;
-      }
-      sidebarDom = sidebar.getDom();
-      if (sidebarDom.parentNode !== this._dom) {
-        return;
-      }
-      if (!this._pusher) {
-        cola._ignoreNodeRemoved = true;
-        $(this._dom).find("> .ui.sidebar").sidebar({
-          context: this._dom
-        });
-        cola._ignoreNodeRemoved = false;
-        this._initPusher();
-      }
-      return sidebar.show(callback);
-    };
-
-    Drawer.prototype.hideSidebar = function(id, callback) {
-      var sidebar;
-      if (id) {
-        if (typeof id === "function") {
-          callback = id;
-          sidebar = this._getFirstSidebar();
-        } else {
-          sidebar = cola.widget(id);
-        }
-      } else {
-        sidebar = this._getFirstSidebar();
-      }
-      if (!sidebar) {
-        return;
-      }
-      sidebar.hide(callback);
-      return this;
-    };
-
-    return Drawer;
-
-  })(cola.AbstractContainer);
+  })(cola.AbstractLayer);
 
   if (cola.tab == null) {
     cola.tab = {};
@@ -15709,7 +15851,7 @@
           oldValue = this["_icon"];
           this["_icon"] = value;
           if (oldValue && oldValue !== value && this._dom && ((ref = this._doms) != null ? ref.icon : void 0)) {
-            $(this._doms.icon).removeClass(oldValue);
+            $fly(this._doms.icon).removeClass(oldValue);
           }
         }
       },
@@ -15773,13 +15915,13 @@
           base.icon = document.createElement("i");
         }
         dom = this._doms.icon;
-        $(dom).addClass(this._icon + " icon");
+        $fly(dom).addClass(this._icon + " icon");
         if (dom.parentNode !== captionDom) {
           captionDom.appendChild(dom);
         }
       } else {
         if (this._doms.iconDom) {
-          $(this._doms.iconDom).remove();
+          $fly(this._doms.iconDom).remove();
         }
       }
     };
@@ -15914,21 +16056,9 @@
     }
 
     TabButton.ATTRIBUTES = {
-      control: {
-        setter: function(control) {
-          var old, widget;
-          old = this._control;
-          if (old) {
-            if (old.nodeType === 1) {
-              $(old).remove();
-            } else if (old instanceof cola.Widget) {
-              old.destroy();
-            }
-          }
-          if (control.nodeType === 1) {
-            widget = cola.widget(control);
-          }
-          this._control = widget || control;
+      content: {
+        setter: function(value) {
+          return this._content = cola.xRender(value, this._scope);
         }
       },
       contentContainer: null,
@@ -15957,22 +16087,8 @@
       return this;
     };
 
-    TabButton.prototype.getControlDom = function() {
-      var control, dom;
-      control = this._control;
-      if (control.nodeType !== 1) {
-        if (control instanceof cola.Widget) {
-          dom = control.getDom();
-        } else if (control.constructor === Object.prototype.constructor) {
-          if (control.$type) {
-            control = this._control = cola.widget(control);
-            dom = control.getDom();
-          } else {
-            dom = this._control = $.xCreate(control);
-          }
-        }
-      }
-      return dom || control;
+    TabButton.prototype.getContentDom = function() {
+      return this._content;
     };
 
     TabButton.prototype.destroy = function() {
@@ -15980,7 +16096,7 @@
         return;
       }
       TabButton.__super__.destroy.call(this);
-      delete this._control;
+      delete this._content;
       delete this._contentContainer;
       delete this._parent;
       return this;
@@ -16045,11 +16161,11 @@
 
     Tab.EVENTS = {
       beforeChange: null,
-      afterChange: null
+      change: null
     };
 
     Tab.prototype._tabContentRender = function(tab) {
-      var container, contentsContainer, controlDom, tagName;
+      var container, contentDom, contentsContainer, tagName;
       contentsContainer = this.getContentsContainer();
       container = tab.get("contentContainer");
       if (container && container.parentNode === contentsContainer) {
@@ -16062,9 +16178,9 @@
       });
       contentsContainer.appendChild(container);
       tab.set("contentContainer", container);
-      controlDom = tab.getControlDom();
-      if (controlDom) {
-        return container.appendChild(controlDom);
+      contentDom = tab.getContentDom();
+      if (contentDom) {
+        return container.appendChild(contentDom);
       }
     };
 
@@ -16088,8 +16204,7 @@
         oldTab: oldTab,
         newTab: newTab
       };
-      this.fire("beforeChange", this, arg);
-      if (arg.processDefault === false) {
+      if (this.fire("beforeChange", this, arg) === false) {
         return false;
       }
       if (oldTab) {
@@ -16104,13 +16219,13 @@
       }
       $(container).addClass("active");
       this._currentTab = newTab;
-      this.fire("afterChange", this, arg);
+      this.fire("change", this, arg);
       return true;
     };
 
-    Tab.prototype._setDom = function(dom, parseChild) {
+    Tab.prototype._initDom = function(dom) {
       var activeExclusive, l, len1, ref, tab;
-      Tab.__super__._setDom.call(this, dom, parseChild);
+      Tab.__super__._initDom.call(this, dom);
       activeExclusive = (function(_this) {
         return function(targetDom) {
           var tab;
@@ -16175,7 +16290,7 @@
     };
 
     Tab.prototype._parseDom = function(dom) {
-      var _contents, child, control, item, l, len1, name, parseContents, tab, tabs;
+      var _contents, child, content, item, l, len1, name, parseContents, tab, tabs;
       child = dom.firstChild;
       if (this._doms == null) {
         this._doms = {};
@@ -16211,8 +16326,8 @@
         name = tab.get("name");
         if (name && _contents[name]) {
           item = _contents[name];
-          control = item.children[0];
-          tab.set("control", _contents[name]);
+          content = item.children[0];
+          tab.set("content", _contents[name]);
           tab.set("contentContainer", item);
         }
       }
@@ -16230,7 +16345,7 @@
         });
         this._dom.appendChild(dom);
       }
-      return this._doms.tabs;
+      return this._doms.tabBar;
     };
 
     Tab.prototype.getTabsContainer = function() {
@@ -16272,6 +16387,9 @@
     Tab.prototype.addTab = function(tab) {
       if (this._tabs == null) {
         this._tabs = [];
+      }
+      if (tab.constructor === Object.prototype.constructor) {
+        tab = new cola.TabButton(tab);
       }
       if (this._tabs.indexOf(tab) > -1) {
         return this;
@@ -16323,9 +16441,9 @@
           }
         }
         this._tabs.splice(index, 1);
-        obj.remove();
         contentContainer = obj.get("contentContainer");
-        if ((contentContainer != null ? contentContainer.parentNode : void 0) === this._doms.tabs) {
+        obj.remove();
+        if ((contentContainer != null ? contentContainer.parentNode : void 0) === this._doms.contents) {
           $(contentContainer).remove();
         }
       }
@@ -16706,7 +16824,7 @@
 
     Checkbox.prototype._refreshEditorDom = function() {
       if (this._triState && this._value !== this._onValue && this._value !== this._offValue) {
-        this.get$Dom().checkbox("indeterminate");
+        this.get$Dom().checkbox('set indeterminate');
         return;
       }
       return Checkbox.__super__._refreshEditorDom.call(this);
@@ -17147,12 +17265,18 @@
       inputFormat: null,
       inputType: {
         defaultValue: "text"
+      },
+      postOnInput: {
+        type: "boolean",
+        defaultValue: false
       }
     };
 
     Input.EVENTS = {
       focus: null,
-      blur: null
+      blur: null,
+      keyDown: null,
+      keyPress: null
     };
 
     Input.prototype._createEditorDom = function() {
@@ -17174,11 +17298,12 @@
     };
 
     Input.prototype._initDom = function(dom) {
+      var doPost;
       Input.__super__._initDom.call(this, dom);
-      $(this._doms.input).on("change", (function(_this) {
+      doPost = (function(_this) {
         return function() {
           var dataType, inputFormat, readOnly, value;
-          readOnly = !!_this.get("readOnly");
+          readOnly = _this._readOnly;
           if (!readOnly) {
             value = $(_this._doms.input).val();
             dataType = _this._dataType;
@@ -17196,6 +17321,11 @@
             }
             _this.set("value", value);
           }
+        };
+      })(this);
+      $(this._doms.input).on("change", (function(_this) {
+        return function() {
+          doPost();
         };
       })(this)).on("focus", (function(_this) {
         return function() {
@@ -17218,6 +17348,36 @@
               }
             }
           }
+        };
+      })(this)).on("input", (function(_this) {
+        return function() {
+          if (_this._postOnInput) {
+            doPost();
+          }
+        };
+      })(this)).on("keydown", (function(_this) {
+        return function(event) {
+          var arg;
+          arg = {
+            keyCode: event.keyCode,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            altlKey: event.altlKey,
+            event: event
+          };
+          return _this.fire("keyDown", _this, arg);
+        };
+      })(this)).on("keypress", (function(_this) {
+        return function(event) {
+          var arg;
+          arg = {
+            keyCode: event.keyCode,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            altlKey: event.altlKey,
+            event: event
+          };
+          return _this.fire("keyPress", _this, arg);
         };
       })(this));
     };
@@ -17286,7 +17446,8 @@
       },
       showProgress: {
         defaultValue: true,
-        type: "boolean"
+        type: "boolean",
+        refreshDom: true
       },
       progressFormat: {
         "enum": ["percent", "ratio"],
@@ -17349,7 +17510,7 @@
         type: "boolean",
         defaultValue: true,
         setter: function(value) {
-          this._limitValues = !!value;
+          this._limitValues = value;
           if (this._dom) {
             this._setting("limitValues", this._limitValues);
           }
@@ -17359,30 +17520,6 @@
         type: "number",
         refreshDom: true,
         defaultValue: 1
-      },
-      size: {
-        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
-        refreshDom: true,
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_size"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_size"] = value;
-        }
-      },
-      color: {
-        refreshDom: true,
-        "enum": ["black", "yellow", "green", "blue", "orange", "purple", "red", "pink", "teal"],
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_color"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_color"] = value;
-        }
       }
     };
 
@@ -17404,7 +17541,8 @@
           "class": "bar",
           content: {
             tagName: "div",
-            "class": "progress"
+            "class": "progress",
+            contextKey: "progress"
           },
           contextKey: "bar"
         }, {
@@ -17433,7 +17571,7 @@
     };
 
     Progress.prototype._doRefreshDom = function() {
-      var $dom, color, size;
+      var $dom;
       if (!this._dom) {
         return;
       }
@@ -17451,13 +17589,14 @@
           $(this._doms.label).remove();
         }
       }
-      size = this.get("size");
-      if (size) {
-        this._classNamePool.add(size);
-      }
-      color = this.get("color");
-      if (color) {
-        this._classNamePool.add(color);
+      if (this._showProgress) {
+        if (this._doms.progress.parentNode !== this._doms.bar) {
+          this._doms.bar.appendChild(this._doms.progress);
+        }
+      } else {
+        if (this._doms.progress.parentNode) {
+          $(this._doms.progress).remove();
+        }
       }
     };
 
@@ -18033,18 +18172,6 @@
         type: "boolean",
         refreshDom: true,
         defaultValue: false
-      },
-      size: {
-        "enum": ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"],
-        refreshDom: true,
-        setter: function(value) {
-          var oldValue;
-          oldValue = this["_size"];
-          if (oldValue && oldValue !== value && this._dom) {
-            this.get$Dom().removeClass(oldValue);
-          }
-          this["_size"] = value;
-        }
       }
     };
 
@@ -18120,7 +18247,7 @@
       return Select.__super__.constructor.apply(this, arguments);
     }
 
-    Select.CLASS_NAME = "input";
+    Select.CLASS_NAME = "input select";
 
     Select.ATTRIBUTES = {
       options: {
@@ -18171,6 +18298,16 @@
       if (this._options) {
         this._refreshSelectOptions(this._doms.input);
       }
+      $(this._doms.input).on("change", (function(_this) {
+        return function() {
+          var readOnly, value;
+          readOnly = _this._readOnly;
+          if (!readOnly) {
+            value = $(_this._doms.input).val();
+            _this.set("value", value);
+          }
+        };
+      })(this));
     };
 
     Select.prototype._refreshSelectOptions = function(select) {
@@ -18181,17 +18318,37 @@
       } else {
         options.length = this._options.length;
       }
-      cola.each(this._options, function(optionValue, i) {
-        var option;
-        option = options[i];
-        if (cola.util.isSimpleValue(optionValue)) {
-          $fly(option).removeAttr("value").text(optionValue);
-        } else if (optionValue instanceof cola.Entity) {
-          $fly(option).attr("value", optionValue.get("value") || optionValue.get("key")).text(optionValue.get("text") || optionValue.get("name"));
-        } else {
-          $fly(option).attr("value", optionValue.value || optionValue.key).text(optionValue.text || optionValue.name);
-        }
-      });
+      cola.each(this._options, (function(_this) {
+        return function(optionValue, i) {
+          var $option, option, text, value;
+          option = options[i];
+          if (cola.util.isSimpleValue(optionValue)) {
+            value = null;
+            text = optionValue;
+          } else if (optionValue instanceof cola.Entity) {
+            value = optionValue.get("value") || optionValue.get("key") || "";
+            text = optionValue.get("text") || optionValue.get("name");
+          } else {
+            value = optionValue.value || optionValue.key || "";
+            text = optionValue.text || optionValue.name;
+          }
+          $option = $fly(option);
+          if (value == null) {
+            $option.removeAttr("value");
+          } else {
+            $option.attr("value", value);
+            if (value === "" && !text) {
+              text = _this._placeholder;
+            }
+          }
+          $option.text(text || "");
+        };
+      })(this));
+    };
+
+    Select.prototype._refreshInputValue = function(value) {
+      Select.__super__._refreshInputValue.call(this, value);
+      cola.util.toggleClass(this._doms.input, "placeholder", (value == null) || value === "");
     };
 
     return Select;
@@ -18281,6 +18438,7 @@
       opened: {
         readOnly: true
       },
+      dropdownLayer: null,
       dropdownWidth: null,
       dropdownHeight: null
     };
@@ -18293,6 +18451,7 @@
 
     AbstractDropdown.prototype._initDom = function(dom) {
       var valueContent;
+      AbstractDropdown.__super__._initDom.call(this, dom);
       $fly(this._doms.input).xInsertAfter({
         tagName: "div",
         "class": "value-content",
@@ -18386,13 +18545,17 @@
       if ((ref = this.get("actionButton")) != null) {
         ref.set("disabled", this._finalReadOnly);
       }
-      this._setValueContent(this._currentItem);
+      this._setValueContent();
     };
 
-    AbstractDropdown.prototype._setValueContent = function(item) {
-      var alias, ctx, currentItemScope, elementAttrBinding, input, ref, valueContent;
+    AbstractDropdown.prototype._setValueContent = function() {
+      var alias, ctx, currentItemScope, elementAttrBinding, input, item, ref, valueContent;
       input = this._doms.input;
       input.value = "";
+      item = this._currentItem;
+      if ((item == null) && !this._textProperty) {
+        item = this._value;
+      }
       if (item) {
         input.placeholder = "";
         elementAttrBinding = (ref = this._elementAttrBindings) != null ? ref["items"] : void 0;
@@ -18417,6 +18580,7 @@
         $fly(valueContent).show();
       } else {
         input.placeholder = this._placeholder || "";
+        $fly(this._doms.valueContent).hide();
       }
     };
 
@@ -18455,72 +18619,96 @@
     };
 
     AbstractDropdown.prototype._getContainer = function() {
-      var config, container, ctx, openMode, titleContent;
-      if (this._container) {
-        return this._container;
-      }
-      this._finalOpenMode = openMode = this._getFinalOpenMode();
-      config = {
-        "class": "drop-container",
-        dom: $.xCreate({
-          tagName: "div",
-          content: this._getDropdownContent()
-        }),
-        beforeHide: (function(_this) {
-          return function() {
-            $fly(_this._dom).removeClass("opened");
-          };
-        })(this),
-        hide: (function(_this) {
-          return function() {
-            _this._opened = false;
-          };
-        })(this)
-      };
-      if (this._dropdownWidth) {
-        config.width = this._dropdownWidth;
-      }
-      if (this._dropdownHeight) {
-        config.height = this._dropdownHeight;
-      }
-      if (openMode === "drop") {
-        config.duration = 200;
-        config.dropdown = this;
-        config.ui = config.ui + " " + this._ui;
-        container = new DropBox(config);
-      } else if (openMode === "layer") {
-        ctx = {};
-        titleContent = cola.xRender({
-          tagName: "div",
-          "class": "box",
-          content: {
-            tagName: "div",
-            "c-widget": {
-              $type: "titleBar",
-              items: [
-                {
-                  icon: "chevron left",
-                  click: (function(_this) {
-                    return function() {
-                      return _this.close();
-                    };
-                  })(this)
-                }
-              ]
-            }
+      var config, container, ctx, layer, openMode, titleContent;
+      if (this._dropdownLayer) {
+        layer = this._dropdownLayer;
+        if (!(layer instanceof cola.Widget)) {
+          layer = cola.widget(layer);
+          if (layer instanceof cola.Widget) {
+            this.set("dropdownLayer", layer);
+          } else {
+            layer = null;
           }
-        }, this._scope, ctx);
-        $fly(config.dom.firstChild.firstChild).before(titleContent);
-        container = new cola.Layer(config);
-      } else if (openMode === "dialog") {
-        config.modalOpacity = 0.05;
-        config.closeable = false;
-        config.dimmerClose = true;
-        container = new cola.Dialog(config);
+        }
+        if (layer) {
+          layer.on("beforeHide", (function(_this) {
+            return function() {
+              $fly(_this._dom).removeClass("opened");
+            };
+          })(this), true).on("hide", (function(_this) {
+            return function() {
+              _this._opened = false;
+            };
+          })(this), true);
+        }
+        return layer;
+      } else {
+        if (this._container) {
+          return this._container;
+        }
+        this._finalOpenMode = openMode = this._getFinalOpenMode();
+        config = {
+          "class": "drop-container",
+          dom: $.xCreate({
+            tagName: "div",
+            content: this._getDropdownContent()
+          }),
+          beforeHide: (function(_this) {
+            return function() {
+              $fly(_this._dom).removeClass("opened");
+            };
+          })(this),
+          hide: (function(_this) {
+            return function() {
+              _this._opened = false;
+            };
+          })(this)
+        };
+        if (this._dropdownWidth) {
+          config.width = this._dropdownWidth;
+        }
+        if (this._dropdownHeight) {
+          config.height = this._dropdownHeight;
+        }
+        if (openMode === "drop") {
+          config.duration = 200;
+          config.dropdown = this;
+          config.ui = config.ui + " " + this._ui;
+          container = new DropBox(config);
+        } else if (openMode === "layer") {
+          ctx = {};
+          titleContent = cola.xRender({
+            tagName: "div",
+            "class": "box",
+            content: {
+              tagName: "div",
+              "c-widget": {
+                $type: "titleBar",
+                items: [
+                  {
+                    icon: "chevron left",
+                    click: (function(_this) {
+                      return function() {
+                        return _this.close();
+                      };
+                    })(this)
+                  }
+                ]
+              }
+            }
+          }, this._scope, ctx);
+          $fly(config.dom.firstChild.firstChild).before(titleContent);
+          container = new cola.Layer(config);
+        } else if (openMode === "dialog") {
+          config.modalOpacity = 0.05;
+          config.closeable = false;
+          config.dimmerClose = true;
+          container = new cola.Dialog(config);
+        }
+        this._container = container;
+        container.appendTo(document.body);
+        return container;
       }
-      this._container = container;
-      container.appendTo(document.body);
-      return container;
     };
 
     AbstractDropdown.prototype.open = function(callback) {
@@ -18775,7 +18963,7 @@
       var inputDom, list;
       Dropdown.__super__.open.call(this);
       list = this._list;
-      if (this._currentItem !== list.get("currentItem")) {
+      if (list && this._currentItem !== list.get("currentItem")) {
         list.set("currentItem", this._currentItem);
       }
       if (this._opened && this._filterable) {
@@ -19229,6 +19417,7 @@
     };
 
     AbstractItemGroup.prototype.destroy = function() {
+      cola.util.cancelDelay(this, "_refreshItems");
       this.clearItems();
       delete this._items;
       return AbstractItemGroup.__super__.destroy.call(this);
@@ -19757,7 +19946,7 @@
         defaultValue: true
       },
       pause: {
-        defaultValue: 2000
+        defaultValue: 3000
       }
     };
 
@@ -19866,7 +20055,7 @@
       setTimeout(function() {
         return carousel._scroller = new Swipe(carousel._dom, {
           vertical: carousel._orientation === "vertical",
-          disableScroll: true,
+          disableScroll: false,
           continuous: true,
           callback: function(pos) {
             carousel.setCurrentIndex(pos);
@@ -19881,15 +20070,21 @@
             {
               tagName: "A",
               "class": "prev",
-              click: function() {
-                return carousel.previous();
-              }
+              click: (function(_this) {
+                return function() {
+                  _this.replay();
+                  return carousel.previous();
+                };
+              })(this)
             }, {
               tagName: "A",
               "class": "next",
-              click: function() {
-                return carousel.next();
-              }
+              click: (function(_this) {
+                return function() {
+                  _this.replay();
+                  return carousel.next();
+                };
+              })(this)
             }
           ]
         }));
@@ -19925,9 +20120,9 @@
     };
 
     Carousel.prototype.refreshIndicators = function() {
-      var currentIndex, i, indicatorCount, itemsCount, ref, span;
+      var currentIndex, i, indicatorCount, itemsCount, ref, ref1, span;
       itemsCount = (ref = this._items) != null ? ref.length : void 0;
-      if (!this._doms.indicators) {
+      if (!((ref1 = this._doms) != null ? ref1.indicators : void 0)) {
         return;
       }
       indicatorCount = this._doms.indicators.children.length;
@@ -19957,17 +20152,27 @@
     };
 
     Carousel.prototype.next = function() {
-      var ref;
-      if ((ref = this._scroller) != null) {
-        ref.next();
+      var pos;
+      if (this._scroller) {
+        pos = this._scroller.getPos();
+        if (pos === (this._items.length - 1)) {
+          this.goTo(0);
+        } else {
+          this._scroller.next();
+        }
       }
       return this;
     };
 
     Carousel.prototype.previous = function() {
-      var ref;
-      if ((ref = this._scroller) != null) {
-        ref.prev();
+      var pos;
+      if (this._scroller) {
+        pos = this._scroller.getPos();
+        if (pos === 0) {
+          this.goTo(this._items.length - 1);
+        } else {
+          this._scroller.prev();
+        }
       }
       return this;
     };
@@ -20017,12 +20222,20 @@
       if (this._interval) {
         clearInterval(this._interval);
       }
-      this.next();
       carousel = this;
+      if (pause) {
+        this._pause = pause;
+      }
       this._interval = setInterval(function() {
         return carousel.next();
-      }, pause || this._pause);
+      }, this._pause);
       return this;
+    };
+
+    Carousel.prototype.replay = function() {
+      if (this._interval) {
+        return this.play();
+      }
     };
 
     Carousel.prototype.pause = function() {
@@ -20036,6 +20249,7 @@
       if (index == null) {
         index = 0;
       }
+      this.replay();
       return this.setCurrentIndex(index);
     };
 
@@ -20547,6 +20761,11 @@
               menuItem = cola.widget(childNode);
               if (menuItem) {
                 _this.addRightItem(menuItem);
+              } else if (cola.util.hasClass(childNode, "item")) {
+                menuItem = new cola.menu.MenuItem({
+                  dom: childNode
+                });
+                _this.addRightItem(menuItem);
               }
             }
             childNode = childNode.nextSibling;
@@ -20565,6 +20784,11 @@
               } else if (!_this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
                 _this._rightMenuDom = childNode;
                 parseRightMenu(childNode);
+              } else if (cola.util.hasClass(childNode, "item")) {
+                menuItem = new cola.menu.MenuItem({
+                  dom: childNode
+                });
+                _this.addItem(menuItem);
               }
             }
             childNode = childNode.nextSibling;
@@ -20726,7 +20950,7 @@
       if (!parentMenu) {
         return;
       }
-      if (parentMenu instanceof cola.menu.AbstractMenuItem || parentMenu instanceof cola.Menu) {
+      if (parentMenu instanceof cola.menu.AbstractMenuItem || parentMenu instanceof cola.Menu || parentMenu instanceof cola.Button) {
         parentMenu.onItemClick(event, item);
       }
     };
@@ -21065,6 +21289,7 @@
           menu = cola.widget(child);
           if (menu && menu instanceof cola.Menu) {
             this._menu = menu;
+            menu._parent = this;
             break;
           }
         }
@@ -21138,90 +21363,13 @@
 
   })(cola.Button);
 
-  if (cola.shape == null) {
-    cola.shape = {};
-  }
+  cola.registerType("menuButton", "_default", cola.ButtonMenu);
 
-  cola.shape.Side = (function(superClass) {
-    extend(Side, superClass);
+  cola.registerType("menuButton", "menu", cola.ButtonMenu);
 
-    function Side() {
-      return Side.__super__.constructor.apply(this, arguments);
-    }
-
-    Side.ATTRIBUTES = {
-      content: {
-        refreshDom: true,
-        setter: function(value) {
-          var ref;
-          if ((ref = this["_content"]) != null) {
-            if (typeof ref.destroy === "function") {
-              ref.destroy();
-            }
-          }
-          this["_content"] = value;
-          if (this._dom) {
-            this._refreshContent();
-          }
-        }
-      },
-      active: {
-        type: "boolean",
-        defaultValue: false
-      }
-    };
-
-    Side.prototype._createDom = function() {
-      var dom;
-      dom = document.createElement("div");
-      dom.className = "side";
-      return dom;
-    };
-
-    Side.prototype._refreshContent = function() {
-      var content, dom;
-      content = this._content;
-      dom = null;
-      if (content instanceof cola.Widget) {
-        dom = content.getDom();
-      } else if (content.constructor === Object.prototype.constructor) {
-        if (content.$type) {
-          content = this._content = cola.widget(content);
-          content.appendTo(this._dom);
-        } else {
-          this.get$Dom().append($.xCreate(content));
-        }
-      } else if (content.nodeType === 1) {
-        this.get$Dom().append(content);
-      }
-    };
-
-    Side.prototype.getDom = function() {
-      if (this._destroyed) {
-        return;
-      }
-      if (!this._dom) {
-        Side.__super__.getDom.call(this);
-        if (this._content) {
-          this._refreshContent();
-        }
-      }
-      return this._dom;
-    };
-
-    Side.prototype.destroy = function() {
-      if (!this._destroyed) {
-        delete this._dom;
-        delete this._$dom;
-        delete this._content;
-        Side.__super__.destroy.call(this);
-      }
-      this._destroyed = true;
-    };
-
-    return Side;
-
-  })(cola.Widget);
+  cola.registerTypeResolver("menuButton", function(config) {
+    return cola.resolveType("widget", config);
+  });
 
   cola.Shape = (function(superClass) {
     extend(Shape, superClass);
@@ -21230,28 +21378,13 @@
       return Shape.__super__.constructor.apply(this, arguments);
     }
 
-    Shape.CLASS_NAME = "ui shape";
+    Shape.CLASS_NAME = "shape";
 
     Shape.ATTRIBUTES = {
-      sides: {
-        setter: function(sides) {
-          var config, l, len1;
-          this.clear();
-          for (l = 0, len1 = sides.length; l < len1; l++) {
-            config = sides[l];
-            this.addSide(config);
-          }
-        }
-      },
-      currentIndex: {
-        type: "number",
-        setter: function(sides) {
-          var config, l, len1;
-          this.clear();
-          for (l = 0, len1 = sides.length; l < len1; l++) {
-            config = sides[l];
-            this.addSide(config);
-          }
+      bind: {
+        readonlyAfterCreate: true,
+        setter: function(bindStr) {
+          return this._bindSetter(bindStr);
         }
       }
     };
@@ -21261,183 +21394,149 @@
       afterChange: null
     };
 
-    Shape.prototype.addSide = function(config) {
-      var side;
-      if (this._sides == null) {
-        this._sides = [];
+    Shape.directions = ["up", "down", "left", "right", "over", "back"];
+
+    Shape.prototype.getContentContainer = function() {
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
       }
-      side = null;
-      if (config instanceof cola.Widget) {
-        side = new cola.shape.Side({
-          content: config
-        });
-      } else if (config.constructor === Object.prototype.constructor) {
-        if (config.$type || config.tagName) {
-          side = new cola.shape.Side({
-            content: config
-          });
-        } else if (config.tagName) {
-          side = new cola.shape.Side(config);
-        }
-      }
-      if (side) {
-        this._sides.push(side);
-      }
-      if (this._dom && side) {
-        $(this._doms.sides).append(side.getDom());
-      }
-      return this;
+      return this._doms.wrap;
     };
 
-    Shape.prototype.removeSide = function(side) {
-      var index;
-      index = side;
-      if (side instanceof cola.shape.Side) {
-        index = this._sides.indexOf(side);
+    Shape.prototype._createItemsWrap = function(dom) {
+      if (this._doms == null) {
+        this._doms = {};
       }
-      if (index > -1) {
-        this._sides.splice(index, 1);
-        side.remove();
-      }
+      this._doms.wrap = $.xCreate({
+        tagName: "div",
+        "class": "sides"
+      });
+      dom.appendChild(this._doms.wrap);
+      return null;
     };
 
-    Shape.prototype.clear = function() {
-      var l, len1, ref, side;
-      if (!this._sides) {
+    Shape.prototype.setCurrentIndex = function(index) {
+      var currentDom, oldIndex, sides, targetDom;
+      this._currentIndex = index;
+      if (!this._dom) {
         return;
       }
-      ref = this._sides;
-      for (l = 0, len1 = ref.length; l < len1; l++) {
-        side = ref[l];
-        side.destroy();
+      currentDom = this._current;
+      if (this._doms) {
+        sides = $(this._doms.wrap).find(".side");
+        if (currentDom) {
+          oldIndex = sides.index(currentDom);
+          console.log(oldIndex);
+          if (index === oldIndex) {
+            return;
+          }
+        }
+        sides.removeClass("active");
+        targetDom = sides.eq(index).addClass("active");
       }
-      this._sides = [];
-      $(this._doms.sides).empty();
       return this;
     };
 
-    Shape.prototype._createDom = function() {
-      return $.xCreate({
-        tagName: "div",
-        "class": this.constructor.CLASS_NAME,
-        content: [
-          {
-            tagName: "div",
-            "class": "sides",
-            contextKey: "sides"
-          }
-        ]
-      }, this._doms);
-    };
-
-    Shape.prototype.getDom = function() {
-      var $sidesDom, current, l, len1, ref, side;
-      if (this._destroyed) {
-        return null;
-      }
-      if (!this._dom) {
-        if (this._doms == null) {
-          this._doms = {};
-        }
-        Shape.__super__.getDom.call(this);
-        $sidesDom = $(this._doms.sides);
-        if (this._sides) {
-          current = null;
-          ref = this._sides;
-          for (l = 0, len1 = ref.length; l < len1; l++) {
-            side = ref[l];
-            $sidesDom.append(side.getDom());
-            if (!!side.get("active")) {
-              current = side;
+    Shape.prototype._parseDom = function(dom) {
+      var child, doms, parseItem;
+      parseItem = (function(_this) {
+        return function(node) {
+          var childNode;
+          _this._items = [];
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              _this.addItem(childNode);
             }
+            $fly(childNode).addClass("side");
+            childNode = childNode.nextSibling;
           }
-          if (current == null) {
-            current = this._sides[0];
-          }
-          current.get$Dom().addClass("active");
-        }
-        this.get$Dom().shape({
-          beforeChange: (function(_this) {
-            return function() {
-              _this.fire("beforeChange", _this, {
-                current: _this._current
-              });
-            };
-          })(this),
-          onChange: (function(_this) {
-            return function() {
-              var len2, n, ref1;
-              _this._current = null;
-              ref1 = _this._sides;
-              for (n = 0, len2 = ref1.length; n < len2; n++) {
-                side = ref1[n];
-                side.get$Dom().hasClass("active");
-                _this._current = side;
-                break;
-              }
-              _this.fire("afterChange", _this, {
-                current: _this._current
-              });
-            };
-          })(this)
-        });
+        };
+      })(this);
+      if (this._doms == null) {
+        this._doms = {};
       }
-      return this._dom;
+      doms = this._doms;
+      child = dom.firstChild;
+      while (child) {
+        if (child.nodeType === 1) {
+          if (cola.util.hasClass(child, "sides")) {
+            doms.wrap = child;
+            parseItem(child);
+          } else if (child.nodeName === "TEMPLATE") {
+            this._regTemplate(child);
+          }
+        }
+        child = child.nextSibling;
+      }
     };
 
-    Shape.prototype.getSide = function(index) {
-      var ref;
-      return (ref = this._sides) != null ? ref[index] : void 0;
+    Shape.prototype._initDom = function(dom) {
+      var shape, template;
+      if (!this._doms.wrap) {
+        this._createItemsWrap(dom);
+      }
+      template = this._getTemplate();
+      if (template) {
+        if (this._bindStr) {
+          $fly(template).attr("c-repeat", this._bindStr);
+        }
+        this._doms.wrap.appendChild(template);
+        cola.xRender(template, this._scope);
+      }
+      if (this._items) {
+        this._itemsRender();
+      }
+      shape = this;
+      setTimeout(function() {
+        return $(dom).shape({
+          beforeChange: function() {
+            shape.fire("beforeChange", shape, {
+              current: shape._current
+            });
+          },
+          onChange: function(activeDom) {
+            shape._current = activeDom;
+            shape.fire("afterChange", shape, {
+              current: activeDom
+            });
+          }
+        });
+      }, 0);
+      this.setCurrentIndex(0);
     };
 
-    Shape.prototype.getSideDom = function(index) {
-      var ref, ref1;
-      return (ref = this._sides) != null ? (ref1 = ref[index]) != null ? ref1.getDom() : void 0 : void 0;
-    };
-
-    Shape.prototype.flipUp = function() {
-      this.get$Dom().shape("flip up");
-      return this;
-    };
-
-    Shape.prototype.flipDown = function() {
-      this.get$Dom().shape("flip down");
-      return this;
-    };
-
-    Shape.prototype.flipRight = function() {
-      this.get$Dom().shape("flip right");
-      return this;
-    };
-
-    Shape.prototype.flipLeft = function() {
-      this.get$Dom().shape("flip left");
-      return this;
-    };
-
-    Shape.prototype.flipOver = function() {
-      this.get$Dom().shape("flip over");
-      return this;
-    };
-
-    Shape.prototype.flipBack = function() {
-      this.get$Dom().shape("flip back");
-      return this;
-    };
-
-    Shape.prototype.flip = function(flip) {
-      this.get$Dom().shape("flip " + flip);
+    Shape.prototype.flip = function(direction) {
+      var $dom;
+      if (direction == null) {
+        direction = "right";
+      }
+      if (this.constructor.directions.indexOf(direction) >= 0) {
+        cola._ignoreNodeRemoved = true;
+        $dom = this.get$Dom();
+        if (!$dom.shape("is animating")) {
+          $dom.shape("flip " + direction);
+        }
+        cola._ignoreNodeRemoved = false;
+      }
       return this;
     };
 
     Shape.prototype.setNextSide = function(selector) {
+      if (!this._dom) {
+        return;
+      }
       this.get$Dom().shape("set next side", selector);
       return this;
     };
 
     return Shape;
 
-  })(cola.Widget);
+  })(cola.AbstractItemGroup);
+
+  cola.Element.mixin(cola.Shape, cola.TemplateSupport);
+
+  cola.Element.mixin(cola.Shape, cola.DataItemsWidgetMixin);
 
   if (cola.steps == null) {
     cola.steps = {};
@@ -21955,47 +22054,94 @@
     Stack.CLASS_NAME = "stack";
 
     Stack.EVENTS = {
-      change: null
+      change: null,
+      beforeChange: null
     };
 
     Stack.duration = 200;
 
-    Stack.prototype._createDom = function() {
-      var dom;
+    Stack.prototype._initDom = function(dom) {
+      var itemsWrap;
       if (this._doms == null) {
         this._doms = {};
       }
-      dom = $.xCreate({
-        content: [
-          {
-            tagName: "div",
-            "class": "items-wrap",
-            contextKey: "itemsWrap",
-            content: [
-              {
-                tagName: "div",
-                "class": "item black prev",
-                contextKey: "prevItem"
-              }, {
-                tagName: "div",
-                "class": "item blue current",
-                contextKey: "currentItem",
-                style: {
-                  display: "block"
-                }
-              }, {
-                tagName: "div",
-                "class": "item green next",
-                contextKey: "nextItem"
-              }
-            ]
-          }
-        ]
-      }, this._doms);
+      itemsWrap = this.getItemsWrap();
+      if (!this._doms.prevItem) {
+        this._doms.prevItem = $.xCreate({
+          "class": "prev item"
+        });
+        $fly(itemsWrap).prepend(this._doms.prevItem);
+      }
+      if (!this._doms.currentItem) {
+        this._doms.currentItem = $.xCreate({
+          "class": "current item"
+        });
+        $fly(this._doms.prevItem).after(this._doms.currentItem);
+      }
+      if (!this._doms.nextItem) {
+        this._doms.nextItem = $.xCreate({
+          "class": "next item"
+        });
+        $fly(this._doms.currentItem).after(this._doms.nextItem);
+      }
       this._prevItem = this._doms.prevItem;
       this._currentItem = this._doms.currentItem;
       this._nextItem = this._doms.nextItem;
-      return dom;
+      return $fly(this._currentItem).css({
+        display: "block"
+      });
+    };
+
+    Stack.prototype._parseDom = function(dom) {
+      var child, doms, parseItem, results;
+      parseItem = (function(_this) {
+        return function(node) {
+          var childNode;
+          _this._items = [];
+          childNode = node.firstChild;
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              if ($fly(childNode).hasClass("prev")) {
+                _this._doms.prevItem = childNode;
+              } else if ($fly(childNode).hasClass("current")) {
+                _this._doms.currentItem = childNode;
+              } else if ($fly(childNode).hasClass("next")) {
+                _this._doms.nextItem = childNode;
+              }
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      doms = this._doms;
+      child = dom.firstChild;
+      results = [];
+      while (child) {
+        if (child.nodeType === 1) {
+          if (cola.util.hasClass(child, "items-wrap")) {
+            doms.wrap = child;
+            parseItem(child);
+          }
+        }
+        results.push(child = child.nextSibling);
+      }
+      return results;
+    };
+
+    Stack.prototype.getItemContainer = function(key) {
+      return this["_" + key + "Item"];
+    };
+
+    Stack.prototype.getItemsWrap = function() {
+      var wrap;
+      if (!this._doms.itemsWrap) {
+        wrap = $.xCreate({
+          "class": "items-wrap"
+        });
+        this._doms.itemsWrap = wrap;
+        this._dom.appendChild(wrap);
+      }
+      return this._doms.itemsWrap;
     };
 
     Stack.prototype._setDom = function(dom, parseChild) {
@@ -22079,17 +22225,48 @@
     };
 
     Stack.prototype._onTouchEnd = function(evt) {
-      var duration, width;
+      var arg, duration, restore, width;
       if (!this._touchStart) {
         return;
       }
       duration = this.constructor.duration;
       width = this._currentItem.clientWidth;
+      this._touchStart = false;
+      restore = (function(_this) {
+        return function() {
+          $(_this._currentItem).transit({
+            x: 0,
+            duration: duration
+          });
+          if (_this._touchDirection === "left") {
+            $(_this._nextItem).transit({
+              x: width,
+              duration: duration
+            });
+          } else {
+            $(_this._prevItem).transit({
+              x: -1 * width,
+              duration: duration
+            });
+          }
+        };
+      })(this);
       if (this._moveTotal < 8) {
+        restore();
         return;
       }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "over"
+      };
       if (this._distanceX > width / 3) {
         if (this._touchDirection === "left") {
+          if (this.fire("beforeChange", this, arg) === false) {
+            restore();
+            return;
+          }
           $(this._currentItem).transit({
             x: -1 * width,
             duration: duration
@@ -22100,6 +22277,11 @@
           });
           this._doNext();
         } else {
+          arg.action = "back";
+          if (this.fire("beforeChange", this, arg) === false) {
+            restore();
+            return;
+          }
           $(this._currentItem).transit({
             x: width,
             duration: duration
@@ -22111,28 +22293,22 @@
           this._doPrev();
         }
       } else {
-        $(this._currentItem).transit({
-          x: 0,
-          duration: duration
-        });
-        if (this._touchDirection === "left") {
-          $(this._nextItem).transit({
-            x: width,
-            duration: duration
-          });
-        } else {
-          $(this._prevItem).transit({
-            x: -1 * width,
-            duration: duration
-          });
-        }
+        restore();
       }
-      this._touchStart = false;
     };
 
     Stack.prototype.next = function() {
-      var duration, stack, width;
+      var arg, duration, stack, width;
       if (this._animating) {
+        return;
+      }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "over"
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
         return;
       }
       this._animating = true;
@@ -22160,8 +22336,17 @@
     };
 
     Stack.prototype.prev = function() {
-      var duration, stack, width;
+      var arg, duration, stack, width;
       if (this._animating) {
+        return;
+      }
+      arg = {
+        current: this._currentItem,
+        prev: this._prevItem,
+        next: this._nextItem,
+        action: "back"
+      };
+      if (this.fire("beforeChange", this, arg) === false) {
         return;
       }
       this._animating = true;
@@ -22199,7 +22384,8 @@
       this.fire("change", this, {
         current: this._currentItem,
         prev: this._prevItem,
-        next: this._nextItem
+        next: this._nextItem,
+        action: "over"
       });
       return null;
     };
@@ -22215,7 +22401,8 @@
       this.fire("change", this, {
         current: this._currentItem,
         prev: this._prevItem,
-        next: this._nextItem
+        next: this._nextItem,
+        action: "back"
       });
       return null;
     };
@@ -22288,6 +22475,11 @@
       }
     };
 
+    ItemsView.prototype.destroy = function() {
+      ItemsView.__super__.destroy.call(this);
+      delete this._emptyItemDom;
+    };
+
     ItemsView.prototype._doSet = function(attr, attrConfig, value) {
       if (attrConfig != null ? attrConfig.refreshItems : void 0) {
         attrConfig.refreshDom = true;
@@ -22346,11 +22538,11 @@
         this._templateContext = {};
       }
       $itemsWrapper = $fly(this._doms.itemsWrapper);
-      $itemsWrapper.addClass("items").delegate(".item", "click", (function(_this) {
+      $itemsWrapper.addClass("items").delegate(".list.item", "click", (function(_this) {
         return function(evt) {
           return _this._onItemClick(evt);
         };
-      })(this)).delegate(".item", "dblclick", (function(_this) {
+      })(this)).delegate(".list.item", "dblclick", (function(_this) {
         return function(evt) {
           return _this._onItemDoubleClick(evt);
         };
@@ -22399,20 +22591,6 @@
       }
     };
 
-    ItemsView.prototype._createNewItem = function(itemType, item) {
-      var itemDom, template;
-      template = this._getTemplate(itemType);
-      if (template) {
-        itemDom = this._cloneTemplate(template);
-      } else {
-        itemDom = document.createElement("li");
-        itemDom.setAttribute("c-bind", "$default");
-      }
-      $fly(itemDom).addClass("item " + itemType);
-      itemDom._itemType = itemType;
-      return itemDom;
-    };
-
     ItemsView.prototype._getItemType = function(item) {
       var ref;
       if (item != null ? item.isDataWrapper : void 0) {
@@ -22429,6 +22607,7 @@
     ItemsView.prototype._onItemInsert = function(arg) {
       var insertMode, item, itemDom, itemType, itemsWrapper, refDom, refEntityId;
       if (this._realItems === this._realOriginItems) {
+        this._refreshEmptyItemDom();
         item = arg.entity;
         itemType = this._getItemType(item);
         itemsWrapper = this._doms.itemsWrapper;
@@ -22475,6 +22654,7 @@
           }
         }
       }
+      this._refreshEmptyItemDom();
     };
 
     ItemsView.prototype._setCurrentItemDom = function(currentItemDom) {
@@ -22522,6 +22702,25 @@
       return items;
     };
 
+    ItemsView.prototype._refreshEmptyItemDom = function() {
+      var emptyItemDom, items, itemsWrapper;
+      emptyItemDom = this._emptyItemDom = this._getTemplate("empty-item");
+      if (emptyItemDom) {
+        items = this._realItems;
+        if (items instanceof cola.EntityList && items.entityCount === 0 || items instanceof Array && items.length === 0) {
+          $fly(emptyItemDom).show();
+          itemsWrapper = this._doms.itemsWrapper;
+          if (emptyItemDom.parentNode !== itemsWrapper) {
+            $fly(emptyItemDom).addClass("protected");
+            cola.xRender(emptyItemDom, this._scope);
+            itemsWrapper.appendChild(emptyItemDom);
+          }
+        } else {
+          $fly(emptyItemDom).hide();
+        }
+      }
+    };
+
     ItemsView.prototype._refreshItems = function() {
       if (!this._dom) {
         this._refreshItemsScheduled = true;
@@ -22560,6 +22759,7 @@
         if (this._autoLoadPage && !this._realOriginItems && items instanceof cola.EntityList) {
           limit = items.pageNo;
         }
+        this._refreshEmptyItemDom();
         lastItem = null;
         cola.each(items, (function(_this) {
           return function(item) {
@@ -22584,7 +22784,9 @@
                   break;
                 } else {
                   _nextItemDom = nextItemDom.nextSibling;
-                  itemsWrapper.removeChild(nextItemDom);
+                  if (!cola.util.hasClass(nextItemDom, "protected")) {
+                    itemsWrapper.removeChild(nextItemDom);
+                  }
                   nextItemDom = _nextItemDom;
                 }
               }
@@ -22611,7 +22813,7 @@
           itemDom = nextItemDom;
           while (itemDom) {
             nextItemDom = itemDom.nextSibling;
-            if ($fly(itemDom).hasClass("item")) {
+            if (!cola.util.hasClass(itemDom, "protected")) {
               itemsWrapper.removeChild(itemDom);
               if (itemDom._itemId) {
                 delete this._itemDomMap[itemDom._itemId];
@@ -22627,7 +22829,7 @@
         if (documentFragment) {
           itemsWrapper.appendChild(documentFragment);
         }
-        if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList) {
+        if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList && items.pageSize > 0) {
           currentPageNo = lastItem != null ? (ref = lastItem._page) != null ? ref.pageNo : void 0 : void 0;
           if (currentPageNo && (currentPageNo < items.pageCount || !items.pageCountDetermined)) {
             if (itemsWrapper.scrollHeight && (itemsWrapper.scrollTop + itemsWrapper.clientHeight) < itemsWrapper.scrollHeight) {
@@ -23306,7 +23508,9 @@
 
     ListView.prototype._getItems = function() {
       if (this._items) {
-        return this._items;
+        return {
+          items: this._items
+        };
       } else {
         return ListView.__super__._getItems.call(this);
       }
@@ -23446,14 +23650,14 @@
         itemDom.setAttribute("c-bind", "$default");
       }
       if (itemType === "group") {
-        klass = "group";
+        klass = "list group";
       } else if (itemType === "group-header") {
-        klass = "group-header";
+        klass = "list group-header";
         if (this._groupCollapsible) {
           klass += " collapsible";
         }
       } else {
-        klass = "item " + itemType;
+        klass = "list item " + itemType;
       }
       itemDom._itemType = itemType;
       $itemDom = $fly(itemDom);
@@ -23792,6 +23996,9 @@
             return goIndex(evt.target, true);
           },
           mouseup: clearCurrent,
+          touchstart: function(evt) {
+            return goIndex(evt.target, true);
+          },
           touchmove: function(evt) {
             var target, touch;
             touch = evt.originalEvent.touches[0];
@@ -23839,36 +24046,40 @@
     };
 
     ListView.prototype._initItemSlide = function() {
-      var itemScope, itemsWrapper, leftSlidePaneTemplate, list, rightSlidePaneTemplate;
-      if (!(this._itemSlide && this._itemSlide !== "none")) {
-        return;
-      }
-      itemsWrapper = this._doms.itemsWrapper;
-      list = this;
-      $fly(itemsWrapper).on("touchstart", function(evt) {
-        return list._onItemsWrapperTouchStart(evt);
-      }).on("touchmove", function(evt) {
-        return list._onItemsWrapperTouchMove(evt);
-      }).on("touchend", function(evt) {
-        return list._onItemsWrapperTouchEnd(evt);
-      });
+      var itemScope, itemsWrapper, leftSlidePaneTemplate, rightSlidePaneTemplate;
       leftSlidePaneTemplate = this._getTemplate("slide-left-pane");
       rightSlidePaneTemplate = this._getTemplate("slide-right-pane");
       if (!(leftSlidePaneTemplate || rightSlidePaneTemplate)) {
         return;
       }
+      itemsWrapper = this._doms.itemsWrapper;
+      if (this._itemSlide && this._itemSlide !== "none") {
+        $fly(itemsWrapper).on("touchstart", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchStart(evt);
+          };
+        })(this)).on("touchmove", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchMove(evt);
+          };
+        })(this)).on("touchend", (function(_this) {
+          return function(evt) {
+            return _this._onItemsWrapperTouchEnd(evt);
+          };
+        })(this));
+      }
       itemScope = new cola.ItemScope(this._itemsScope, this._alias);
       this._templateContext.defaultPath = this._alias;
-      if (this._leftItemSlide && leftSlidePaneTemplate) {
-        $fly(leftSlidePaneTemplate).addClass("item-slide-pane").css("left", "100%");
+      if (leftSlidePaneTemplate) {
+        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%");
         cola.xRender(leftSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(leftSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
         itemsWrapper.appendChild(leftSlidePaneTemplate);
         cola._ignoreNodeRemoved = false;
       }
-      if (this._rightItemSlide && rightSlidePaneTemplate) {
-        $fly(rightSlidePaneTemplate).addClass("item-slide-pane").css("right", "100%");
+      if (rightSlidePaneTemplate) {
+        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%");
         cola.xRender(rightSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(rightSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -23884,35 +24095,6 @@
         touches = evt.originalEvent.changedTouches;
       }
       return touches[0];
-    };
-
-    ListView.prototype._onTouchStart = function(evt) {
-      var dom, inSlidPane, list, slidePane;
-      if (!this._itemSlidePane) {
-        return;
-      }
-      slidePane = this._itemSlidePane;
-      dom = evt.target;
-      while (dom) {
-        if (dom === slidePane) {
-          inSlidPane = true;
-          break;
-        }
-        dom = dom.parentNode;
-      }
-      this._itemSlideState = "prevent";
-      if (inSlidPane) {
-        list = this;
-        $fly(slidePane).one("touchend", function() {
-          setTimeout(function() {
-            list._hideItemSlidePane(true);
-          }, 50);
-        });
-      } else {
-        this._hideItemSlidePane(true);
-        evt.stopImmediatePropagation();
-        return false;
-      }
     };
 
     ListView.prototype._onItemsWrapperTouchStart = function(evt) {
@@ -23952,8 +24134,56 @@
       this._touchTimestamp = new Date();
     };
 
+    ListView.prototype._initItemSlidePane = function(itemDom, direction) {
+      var indexBar, item, itemScope, oldSlidePane, slidePane;
+      item = cola.util.userData(itemDom, "item");
+      if (direction !== this._itemSlideDirection) {
+        oldSlidePane = this._itemSlidePane;
+        if (oldSlidePane) {
+          $fly(oldSlidePane).hide();
+          if (!SAFE_SLIDE_EFFECT) {
+            $fly(oldSlidePane).css("transform", "");
+          }
+        }
+        this._itemSlideDirection = direction;
+        this._itemSlidePane = slidePane = this._getTemplate("slide-" + direction + "-pane");
+        if (slidePane) {
+          itemScope = cola.util.userData(slidePane, "scope");
+          itemScope.data.setTargetData(item);
+          if (this.getListeners("itemSlidePaneInit")) {
+            this.fire("itemSlidePaneInit", this, {
+              item: item,
+              direction: direction,
+              slidePane: slidePane
+            });
+          }
+          if (direction === "right" && this._maxDistanceAdjust === void 0 && this._indexBar) {
+            indexBar = this._doms.indexBar;
+            if (indexBar) {
+              this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
+            } else {
+              this._maxDistanceAdjust = 0;
+            }
+          }
+          $fly(slidePane).css({
+            top: itemDom.offsetTop,
+            "pointer-events": "none"
+          }).show();
+          this._maxSlideDistance = slidePane.offsetWidth;
+          if (direction === "right") {
+            this._maxSlideDistance += this._maxDistanceAdjust || 0;
+          }
+        } else {
+          this._maxSlideDistance = itemDom.offsetWidth;
+        }
+      } else {
+        slidePane = this._itemSlidePane;
+      }
+      return slidePane;
+    };
+
     ListView.prototype._onItemsWrapperTouchMove = function(evt) {
-      var direction, distanceX, distanceY, factor, indexBar, item, itemDom, itemScope, oldSlidePane, slideDom, slidePane, timestamp, touchPoint, translate;
+      var direction, distanceX, distanceY, factor, item, itemDom, slideDom, slidePane, timestamp, touchPoint, translate;
       if (!this._itemSlide) {
         return;
       }
@@ -23976,7 +24206,7 @@
           this._itemSlideState = "slide";
           this._itemSlideDirection = null;
           if (cola.browser.chrome) {
-            itemDom.style.opacity = 0.9999;
+            itemDom.style.opacity = 0.999;
           }
         } else {
           this._itemSlideState = "ignore";
@@ -23986,61 +24216,18 @@
       this._touchMoveSpeed = distanceX / (timestamp - this._touchLastTimstamp);
       this._touchLastTimstamp = timestamp;
       if (distanceX < 0) {
-        direction = "left";
+        direction = "right";
         factor = -1;
       } else {
-        direction = "right";
+        direction = "left";
         factor = 1;
       }
-      item = cola.util.userData(itemDom, "item");
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
       } else {
         slideDom = itemDom;
       }
-      if (direction !== this._itemSlideDirection) {
-        oldSlidePane = this._itemSlidePane;
-        if (oldSlidePane) {
-          $fly(oldSlidePane).hide();
-          if (!SAFE_SLIDE_EFFECT) {
-            $fly(oldSlidePane).css("transform", "");
-          }
-        }
-        this._itemSlideDirection = direction;
-        this._itemSlidePane = slidePane = this._getTemplate("slide-" + direction + "-pane");
-        if (slidePane) {
-          itemScope = cola.util.userData(slidePane, "scope");
-          itemScope.data.setTargetData(item);
-          if (this.getListeners("itemSlidePaneInit")) {
-            this.fire("itemSlidePaneInit", this, {
-              item: item,
-              direction: direction,
-              slidePane: slidePane
-            });
-          }
-          if (direction === "left" && this._maxDistanceAdjust === void 0 && this._indexBar) {
-            indexBar = this._doms.indexBar;
-            if (indexBar) {
-              this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
-            } else {
-              this._maxDistanceAdjust = 0;
-            }
-          }
-          $fly(slidePane).css({
-            height: itemDom.offsetHeight,
-            top: itemDom.offsetTop,
-            "pointer-events": "none"
-          }).show();
-          this._maxSlideDistance = slidePane.offsetWidth;
-          if (direction === "left") {
-            this._maxSlideDistance += this._maxDistanceAdjust || 0;
-          }
-        } else {
-          this._maxSlideDistance = itemDom.offsetWidth;
-        }
-      } else {
-        slidePane = this._itemSlidePane;
-      }
+      slidePane = this._initItemSlidePane(itemDom, direction);
       if (slidePane) {
         if (Math.abs(distanceX) <= this._maxSlideDistance) {
           this._currentSlideDistance = distanceX;
@@ -24052,21 +24239,22 @@
           $fly(slideDom).css("transform", translate);
           $fly(slidePane).css("transform", translate);
         }
-      }
-      if (this.getListeners("itemSlideStep")) {
-        this.fire("itemSlideStep", this, {
-          event: evt,
-          item: item,
-          distance: distanceX,
-          speed: this._touchMoveSpeed
-        });
+        if (this.getListeners("itemSlideStep")) {
+          item = cola.util.userData(itemDom, "item");
+          this.fire("itemSlideStep", this, {
+            event: evt,
+            item: item,
+            distance: distanceX,
+            speed: this._touchMoveSpeed
+          });
+        }
       }
       evt.stopImmediatePropagation();
       return false;
     };
 
     ListView.prototype._onItemsWrapperTouchEnd = function(evt) {
-      var $slidePane, currentDistance, direction, factor, itemDom, maxDistance, openAnimate, opened, slideDom, slidePane;
+      var currentDistance, direction, itemDom, maxDistance, openAnimate, opened, slideDom, slidePane;
       if (this._itemSlideState !== "slide") {
         return;
       }
@@ -24103,13 +24291,12 @@
         });
       }
       direction = this._itemSlideDirection;
-      factor = direction === "left" ? -1 : 1;
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
       } else {
         slideDom = itemDom;
       }
-      if (direction === "left") {
+      if (direction === "right") {
         if (!SAFE_SLIDE_EFFECT) {
           $(slideDom).transit({
             x: 0,
@@ -24125,27 +24312,7 @@
       if (opened) {
         slidePane = this._itemSlidePane;
         if (slidePane) {
-          this.get$Dom().on("touchstart", (function(_this) {
-            return function(evt) {
-              return _this._onTouchStart(evt);
-            };
-          })(this));
-          $slidePane = $(slidePane);
-          this._currentSlideDistance = maxDistance * factor;
-          if (openAnimate || SAFE_SLIDE_EFFECT) {
-            $slidePane.show().transit({
-              x: maxDistance * factor,
-              duration: SLIDE_ANIMATION_SPEED,
-              complete: (function(_this) {
-                return function() {
-                  $slidePane.css("pointer-events", "");
-                  _this._onItemSlidePaneShow(direction, slidePane, itemDom);
-                };
-              })(this)
-            });
-          } else {
-            this._onItemSlidePaneShow(direction, slidePane, itemDom);
-          }
+          this._showItemSlidePane(itemDom, direction, slidePane, openAnimate);
         } else {
           this._itemSlideState = "closed";
         }
@@ -24154,13 +24321,44 @@
       }
     };
 
-    ListView.prototype._hideItemSlidePane = function(opened) {
+    ListView.prototype._showItemSlidePane = function(itemDom, direction, slidePane, openAnimate) {
+      var $slidePane, factor;
+      $fly(this._doms.itemsWrapper).dimmer({
+        opacity: 0.0001,
+        duration: 0,
+        closable: false
+      }).dimmer("show").find(">.ui.dimmer").on("touchstart", (function(_this) {
+        return function() {
+          if (_this._itemSlideState === "waiting") {
+            _this.hideItemSlidePane();
+          }
+        };
+      })(this));
+      $slidePane = $(slidePane);
+      if (openAnimate || SAFE_SLIDE_EFFECT) {
+        factor = direction === "right" ? -1 : 1;
+        $slidePane.show().transit({
+          x: this._maxSlideDistance * factor,
+          duration: SLIDE_ANIMATION_SPEED,
+          complete: (function(_this) {
+            return function() {
+              $slidePane.css("pointer-events", "");
+              _this._onItemSlidePaneShow(direction, slidePane, itemDom);
+            };
+          })(this)
+        });
+      } else {
+        this._onItemSlidePaneShow(direction, slidePane, itemDom);
+      }
+    };
+
+    ListView.prototype._hideItemSlidePane = function(opened, animation) {
       var direction, itemDom, slideDom, slidePane;
       this._itemSlideState = "closing";
       itemDom = this._slideItemDom;
       slidePane = this._itemSlidePane;
       direction = this._itemSlideDirection;
-      if (direction === "right") {
+      if (direction === "left") {
         if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
           slideDom = itemDom.firstChild;
         } else {
@@ -24171,10 +24369,11 @@
           duration: SLIDE_ANIMATION_SPEED
         });
       }
+      $fly(this._doms.itemsWrapper).dimmer("hide");
       if (slidePane) {
         $(slidePane).transit({
           x: 0,
-          duration: SLIDE_ANIMATION_SPEED,
+          duration: animation ? SLIDE_ANIMATION_SPEED : 0,
           complete: (function(_this) {
             return function() {
               $fly(slidePane).hide();
@@ -24198,9 +24397,9 @@
     };
 
     ListView.prototype._onItemSlidePaneHide = function(opened, direction, slidePane, itemDom) {
+      this._itemSlideDirection = null;
       this._itemSlideState = "closed";
       this._slideItemDom = null;
-      $fly(this._dom).off("touchstart");
       if (opened) {
         this.fire("itemSlidePaneHide", this, {
           item: cola.util.userData(itemDom, "item"),
@@ -24208,6 +24407,21 @@
           slidePane: slidePane
         });
       }
+    };
+
+    ListView.prototype.showItemSlidePane = function(item, direction) {
+      var entityId, itemDom, slidePane;
+      entityId = cola.Entity._getEntityId(item);
+      itemDom = this._itemDomMap[entityId];
+      slidePane = this._initItemSlidePane(itemDom, direction);
+      if (slidePane) {
+        this._slideItemDom = itemDom;
+        this._showItemSlidePane(itemDom, direction, slidePane, true);
+      }
+    };
+
+    ListView.prototype.hideItemSlidePane = function(animation) {
+      this._hideItemSlidePane(true, animation);
     };
 
     return ListView;
@@ -24796,7 +25010,6 @@
         highlightCurrentitem: true,
         allowNoCurrent: !highlightCurrentItem,
         highlightCurrentItem: highlightCurrentItem,
-        width: "100%",
         height: "100%",
         userData: index,
         renderItem: (function(_this) {
@@ -25166,7 +25379,7 @@
         tagName: "ul",
         content: {
           tagName: "div",
-          "class": "node",
+          "class": "tree node",
           content: [
             {
               tagName: "div",
@@ -25179,7 +25392,7 @@
         tagName: "ul",
         content: {
           tagName: "div",
-          "class": "node",
+          "class": "tree node",
           content: [
             {
               tagName: "div",
@@ -25267,9 +25480,12 @@
 
     Tree.prototype._createNewItem = function(itemType, node) {
       var contentDom, itemDom, l, len1, nodeDom, span, templ, template;
-      itemDom = Tree.__super__._createNewItem.call(this, itemType, node);
+      template = this._getTemplate(itemType);
+      itemDom = this._cloneTemplate(template);
+      $fly(itemDom).addClass("tree item " + itemType);
+      itemDom._itemType = itemType;
       nodeDom = itemDom.firstChild;
-      if ((nodeDom != null ? nodeDom.className : void 0) === "node") {
+      if (nodeDom && cola.util.hasClass(nodeDom, "node")) {
         template = this._getTemplate("node-" + itemType, "node-normal");
         if (template) {
           if (template instanceof Array) {
@@ -26005,6 +26221,16 @@
       AbstractTable.__super__.constructor.call(this, config);
     }
 
+    AbstractTable.prototype._getItems = function() {
+      if (this._items) {
+        return {
+          items: this._items
+        };
+      } else {
+        return AbstractTable.__super__._getItems.call(this);
+      }
+    };
+
     AbstractTable.prototype._regColumn = function(column) {
       if (column._name) {
         this._columnMap[column._name] = column;
@@ -26196,6 +26422,15 @@
         child = next;
       }
       this._createInnerDom(dom);
+    };
+
+    AbstractTable.prototype._createNewItem = function(itemType, item) {
+      var itemDom, template;
+      template = this._getTemplate(itemType);
+      itemDom = this._cloneTemplate(template);
+      $fly(itemDom).addClass("table item " + itemType);
+      itemDom._itemType = itemType;
+      return itemDom;
     };
 
     return AbstractTable;

@@ -8,7 +8,7 @@ module.exports =
 		"quick-start":
 			title:"快速入门"
 			file:"quick-start.md"
-		"tutorial-list":
+		"tutorial-todo":
 			title:"实例教程——代办事项"
 			file:"tutorial-todo.md"
 		"faq":
