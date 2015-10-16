@@ -73,6 +73,9 @@ body {
   padding: 0.5em 1em;
   background-color: rgba(0, 0, 0, 0.1);
 }
+#footer .download:not(.icon) {
+  margin: 0 0 0 2em;
+}
 #footer .issue,
 #footer .github {
   margin: 0 0 0 2em;
