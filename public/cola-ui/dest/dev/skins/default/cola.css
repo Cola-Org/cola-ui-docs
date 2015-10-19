@@ -3397,6 +3397,8 @@ template {
   margin: 0 !important;
 }
 .ui.message-box {
+  width: auto;
+  height: auto;
   position: fixed !important;
 }
 .ui.message-box .close-btn.hidden,
@@ -3899,32 +3901,23 @@ template {
   position: relative;
 }
 .ui.carousel > .items-wrap {
-  display: -webkit-box;
-  display: -moz-box;
   position: relative;
   height: 100%;
 }
 .ui.carousel > .items-wrap > * {
-  box-sizing: border-box;
-  width: 100%;
   height: 100%;
   position: relative;
+  float: left;
 }
 .ui.carousel > .indicators {
   position: absolute;
   z-index: 1;
   vertical-align: middle;
   text-align: center;
-  display: -webkit-box;
-  display: -moz-box;
-  -webkit-box-pack: center;
-  -moz-box-pack: center;
-  -webkit-box-align: center;
-  -moz-box-align: center;
 }
 .ui.carousel > .indicators > span {
   cursor: pointer;
-  display: block;
+  display: inline-block;
   box-sizing: border-box;
   width: 0.6em;
   height: 0.6em;
@@ -3963,10 +3956,6 @@ template {
 .ui.carousel .controls a:hover {
   opacity: 1;
 }
-.ui.carousel-horizontal > .items-wrap {
-  -webkit-box-orient: horizontal;
-  -moz-box-orient: horizontal;
-}
 .ui.carousel-horizontal > .indicators {
   left: 0;
   bottom: 0px;
@@ -3974,10 +3963,6 @@ template {
   height: 1.5em;
   -webkit-box-orient: horizontal;
   -moz-box-orient: horizontal;
-}
-.ui.carousel-vertical > .items-wrap {
-  -webkit-box-orient: vertical;
-  -moz-box-orient: vertical;
 }
 .ui.carousel-vertical > .indicators {
   right: 0;

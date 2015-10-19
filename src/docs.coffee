@@ -103,3 +103,6 @@ contentContainer.scroll(()->
 	$("#back-to-top").toggleClass("show", wTop > 0)
 );
 
+$("#homeDemoBtn").click(()->
+	alert("敬请等待！")
+);

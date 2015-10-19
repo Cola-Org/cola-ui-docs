@@ -858,7 +858,7 @@
         if (this._scroller) {
           pos = this._scroller.getPos();
           if (pos !== index) {
-            this._scroller.setPos(index);
+            this._scroller.slide(index);
           }
         }
       }

@@ -132,4 +132,8 @@
     return $("#back-to-top").toggleClass("show", wTop > 0);
   });
 
+  $("#homeDemoBtn").click(function() {
+    return alert("敬请等待！");
+  });
+
 }).call(this);
