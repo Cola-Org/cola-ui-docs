@@ -2508,6 +2508,9 @@ template {
 .ui.nested-list {
   position: relative;
 }
+.ui.nested-list .box.title-box {
+  overflow: hidden;
+}
 .ui.nested-list .detail {
   border-left: 1px solid #dcddde;
 }
@@ -2549,14 +2552,14 @@ template {
   line-height: 2.2em;
   margin-right: 0.25em;
   text-align: center;
-}
-.ui.tree .tree.node > .expand-button:before {
   transition-duration: 0.3s;
   transition-property: transform;
+}
+.ui.tree .tree.node > .expand-button:before {
   font-family: Icons;
   content: "\f105";
 }
-.ui.tree .tree.node.expanded > .expand-button:before {
+.ui.tree .tree.node.expanded > .expand-button {
   transform: rotate(90deg);
 }
 .ui.tree .tree.node.leaf > .expand-button {
@@ -3324,10 +3327,10 @@ template {
 }
 .ui.drop-box {
   position: absolute;
-  display: none;
   overflow: auto;
   border: 1px solid rgba(0, 0, 0, 0.3);
   min-height: 1em;
+  width: auto;
 }
 .ui.drop-box.direction-down {
   border-radius: 0 0 0.28571429rem 0.28571429rem;
@@ -3899,32 +3902,23 @@ template {
   position: relative;
 }
 .ui.carousel > .items-wrap {
-  display: -webkit-box;
-  display: -moz-box;
   position: relative;
   height: 100%;
 }
 .ui.carousel > .items-wrap > * {
-  box-sizing: border-box;
-  width: 100%;
   height: 100%;
   position: relative;
+  float: left;
 }
 .ui.carousel > .indicators {
   position: absolute;
   z-index: 1;
   vertical-align: middle;
   text-align: center;
-  display: -webkit-box;
-  display: -moz-box;
-  -webkit-box-pack: center;
-  -moz-box-pack: center;
-  -webkit-box-align: center;
-  -moz-box-align: center;
 }
 .ui.carousel > .indicators > span {
   cursor: pointer;
-  display: block;
+  display: inline-block;
   box-sizing: border-box;
   width: 0.6em;
   height: 0.6em;
@@ -3963,10 +3957,6 @@ template {
 .ui.carousel .controls a:hover {
   opacity: 1;
 }
-.ui.carousel-horizontal > .items-wrap {
-  -webkit-box-orient: horizontal;
-  -moz-box-orient: horizontal;
-}
 .ui.carousel-horizontal > .indicators {
   left: 0;
   bottom: 0px;
@@ -3974,10 +3964,6 @@ template {
   height: 1.5em;
   -webkit-box-orient: horizontal;
   -moz-box-orient: horizontal;
-}
-.ui.carousel-vertical > .items-wrap {
-  -webkit-box-orient: vertical;
-  -moz-box-orient: vertical;
 }
 .ui.carousel-vertical > .indicators {
   right: 0;

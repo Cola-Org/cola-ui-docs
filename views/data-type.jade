@@ -1,0 +1,74 @@
+extends doc-layout
+
+block content
+
+	style(type="text/css").
+		.ui.input {
+			margin: 0.25em;
+		}
+
+	+addCatalog("type","基本数据类型")
+	.example(name="type")#type
+		h4.ui.header 基本数据类型
+
+		.code
+			div(c-widget="input; bind:name; placeholder:Name(字符型)")
+			div(c-widget="input; bind:age; placeholder:Age(整数型)")
+			div(c-widget="input; bind:married; placeholder:Married(逻辑型)")
+
+		script(type="text/javascript" name="type").
+			cola("type", function (model) {
+				model.describe({
+					name: "string",
+					age: "int",
+					married: "boolean"
+				});
+			});
+
+	+addCatalog("validator","数据校验")
+	.example(name="validator")#validator
+		h4.ui.header 数据校验
+
+		.code
+			div(c-widget="form" style="max-width:400px")
+				.field
+					div(c-widget="input; bind:name; placeholder:Name(非空)")
+				.field
+					div(c-widget="input; bind:nickname; placeholder:Nickname(不能与Name相同)")
+				.field
+					div(c-widget="input; bind:age; placeholder:Age(非空且16到60之间)")
+				.field
+					div(c-widget="input; bind:email; placeholder:Email(电邮格式)")
+				.field
+					div(c-widget="button; caption:校验; click:validate")
+		script(type="text/javascript" name="validator").
+			cola("validator", function (model) {
+				model.describe({
+					name: {
+						validators: "required"
+					},
+					nickname: {
+						validators: function(value) {
+							if (value && value == model.get("name")) {
+								return "Nickname不能与Name相同";
+							}
+						}
+					},
+					age: {
+						dataType: "int",
+						validators: [
+							"required",
+							{ $type: "number", min: 16, max: 60 }
+						]
+					},
+					email: {
+						validators: "email"
+					}
+				});
+
+				model.action({
+					validate: function() {
+						model.get().validate();
+					}
+				});
+			});

@@ -34,14 +34,15 @@
         }
       },
       highlightCurrentItem: {
-        type: "boolean",
-        defaultValue: true
+        type: "boolean"
       },
       autoLoadPage: {
         type: "boolean",
         defaultValue: true
       },
-      changeCurrentitem: null,
+      changeCurrentitem: {
+        type: "boolean"
+      },
       pullDown: {
         readOnlyAfterCreate: true
       },
@@ -2633,7 +2634,7 @@
         hjson.content.content = [
           {
             tagName: "div",
-            "class": "box",
+            "class": "box title-box",
             content: {
               tagName: "div",
               contextKey: "titleBar",
@@ -2645,7 +2646,7 @@
             }
           }, {
             tagName: "div",
-            "class": "flex-box",
+            "class": "flex-box list-box",
             content: {
               tagName: "div",
               contextKey: "list",
@@ -3050,7 +3051,7 @@
       this._currentNode = node;
       if (node) {
         itemDom = this._itemDomMap[node._id];
-        if (itemDom) {
+        if (itemDom && this._highlightCurrentItem) {
           $fly(itemDom).addClass("current");
         }
       }
@@ -3138,7 +3139,7 @@
         nodeDom = itemDom.firstChild;
         $fly(nodeDom).toggleClass("leaf", node.get("hasChild") === false);
       }
-      if (node === this._currentNode) {
+      if (node === this._currentNode && this._highlightCurrentItem) {
         $fly(itemDom).addClass("current");
       }
       return nodeScope;

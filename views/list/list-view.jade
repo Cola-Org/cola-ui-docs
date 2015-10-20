@@ -1,0 +1,80 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("basic","普通列表")
+	.example(name="basic")#basic
+		h4.ui.header 普通列表
+		.code
+			#basicList
+
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.widgetConfig({
+					basicList: {
+						$type: "listView",
+						bind: "country in countries",
+						textProperty: "label",
+						height: 300
+					}
+				});
+			});
+
+	+addCatalog("template", "行模板")
+	.example(name="template")#template
+		h4.ui.header 普通列表
+		.code
+			#templateList
+				template
+					li
+						span(c-bind="country.label")
+						div(c-widget="button; class:red tiny; caption:Remove; click:{{remove(country)}}" style="float:right")
+
+		script(type="text/javascript" name="template").
+			cola("template", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.action({
+					remove: function(country) {
+						country.remove();
+					}
+				});
+				model.widgetConfig({
+					templateList: {
+						$type: "listView",
+						bind: "country in countries",
+						height: 300
+					}
+				});
+			});
+
+	+addCatalog("group", "分组列表")
+	.example(name="group")#group
+		h4.ui.header 普通列表
+		.code
+			#groupList
+
+		script(type="text/javascript" name="group").
+			cola("group", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.widgetConfig({
+					groupList: {
+						$type: "listView",
+						bind: "country in countries",
+						textProperty: "label",
+						group: true,
+						indexBar: true,
+						height: 600,
+						getGroupString: function (arg) {
+							var label = arg.item.get("label");
+							if (label) arg.result = label.charAt(0);
+						}
+					}
+				});
+			});

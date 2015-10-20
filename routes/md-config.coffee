@@ -2,9 +2,6 @@ module.exports =
 	options:
 		cwd:"../views/md"
 	router:
-		"articals":
-			title:"Cola-UI文章"
-			file:"articals.md"
 		"quick-start":
 			title:"快速入门"
 			file:"quick-start.md"

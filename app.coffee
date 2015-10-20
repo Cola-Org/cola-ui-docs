@@ -7,6 +7,7 @@ bodyParser = require 'body-parser'
 
 routes = require './routes/index'
 docs = require './routes/docs'
+services = require './routes/services'
 
 app = express()
 
@@ -25,6 +26,7 @@ app.use express.static path.join __dirname, 'public'
 
 app.use '/', routes
 app.use '/docs', docs
+app.use '/service', services
 # catch 404 and forward to error handler
 app.use (req, res, next) ->
 	err = new Error 'Not Found'

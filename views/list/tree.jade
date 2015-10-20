@@ -1,0 +1,50 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("lazyRecursive","懒装载递归树")
+	.example(name="lazyRecursive")#lazyRecursive
+		h4.ui.header 懒装载递归树
+		.code
+			#fileTree
+				template(name="node-normal")
+					span(c-bind="node.name")
+
+		script(type="text/javascript" name="lazyRecursive").
+			cola("lazyRecursive", function (model) {
+				model.dataType({
+					name: "Node",
+					properties: {
+						nodes: {
+							dataType: "Node",
+							provider: {
+								url: "/service/tree-nodes",
+								parameter: {
+									root: ":path"
+								}
+							}
+						}
+					}
+				});
+
+				model.describe("nodes", {
+					dataType: "Node",
+					provider: "/service/tree-nodes"
+				});
+
+				model.widgetConfig({
+					fileTree: {
+						$type: "tree",
+						bind: {
+							hasChildProperty: "isDir",
+							expression: "node in nodes",
+							child: {
+								recursive: true,
+								hasChildProperty: "isDir",
+								expression: "node in node.nodes"
+							}
+						},
+						height: 400
+					}
+				});
+			});

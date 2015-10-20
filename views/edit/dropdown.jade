@@ -1,9 +1,9 @@
 extends ../doc-layout
 block content
 
-	+addCatalog("standard","标准")
+	+addCatalog("standard","自动适配")
 	.example(name="standard")#standard
-		h4.ui.header 静态选择项
+		h4.ui.header 自动适配
 
 		.code
 			#dropdownStandard
@@ -19,6 +19,52 @@ block content
 					dropdownStandard: {
 						$type: "dropdown",
 						items: "{{country in countries}}"
+					}
+				});
+			});
+
+	+addCatalog("layer","层模式")
+	.example(name="layer")#layer
+		h4.ui.header 层模式
+
+		.code
+			#dropdownLayer
+				template
+					li(c-bind="country.label")
+		script(type="text/javascript" name="layer").
+			cola("layer", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+
+				model.widgetConfig({
+					dropdownLayer: {
+						$type: "dropdown",
+						items: "{{country in countries}}",
+						openMode: "layer"
+					}
+				});
+			});
+
+	+addCatalog("drop","下拉模式")
+	.example(name="drop")#drop
+		h4.ui.header 下拉模式
+
+		.code
+			#dropdownDrop
+				template
+					li(c-bind="country.label")
+		script(type="text/javascript" name="drop").
+			cola("drop", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+
+				model.widgetConfig({
+					dropdownDrop: {
+						$type: "dropdown",
+						items: "{{country in countries}}",
+						openMode: "drop"
 					}
 				});
 			});

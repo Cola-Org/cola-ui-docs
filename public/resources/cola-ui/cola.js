@@ -9155,7 +9155,7 @@
     if (dom.nodeType === 8) {
       return dom;
     }
-    if (dom.nodeType === 1 && dom.hasAttribute(cola.constants.IGNORE_DIRECTIVE)) {
+    if (dom.nodeType === 1 && (dom.hasAttribute(cola.constants.IGNORE_DIRECTIVE) || dom.className.indexOf(cola.constants.IGNORE_DIRECTIVE) >= 0)) {
       return dom;
     }
     if (IGNORE_NODES.indexOf(dom.nodeName) > -1) {
@@ -18738,15 +18738,15 @@
           $flexContent = $(this._doms.flexContent);
           $flexContent.height("");
           $containerDom = container.get$Dom();
-          $containerDom.show();
+          $containerDom.removeClass("hidden");
           containerHeight = $containerDom.height();
           clientHeight = document.body.clientHeight;
           if (containerHeight > (clientHeight - dropdownDialogMargin * 2)) {
             height = $flexContent.height() - (containerHeight - (clientHeight - dropdownDialogMargin * 2));
-            $containerDom.hide();
+            $containerDom.addClass("hidden");
             $flexContent.height(height);
           } else {
-            $containerDom.hide();
+            $containerDom.addClass("hidden");
           }
           container.show(doCallback);
         }
@@ -18797,7 +18797,7 @@
       return DropBox.__super__.constructor.apply(this, arguments);
     }
 
-    DropBox.CLASS_NAME = "drop-box";
+    DropBox.CLASS_NAME = "drop-box transition";
 
     DropBox.ATTRIBUTES = {
       dropdown: null
@@ -18807,12 +18807,12 @@
       var $dom, bottomSpace, boxHeight, boxWidth, clientHeight, clientWidth, direction, dropdownDom, height, left, rect, top, topSpace;
       $dom = this.get$Dom();
       dropdownDom = this._dropdown._doms.input;
-      $dom.css("height", "").show();
+      $dom.css("height", "").removeClass("hidden");
       boxWidth = $dom.width();
       boxHeight = $dom.height();
-      $dom.hide();
+      $dom.addClass("hidden");
       rect = dropdownDom.getBoundingClientRect();
-      clientWidth = document.body.clientWidth;
+      clientWidth = document.body.offsetWidth;
       clientHeight = document.body.clientHeight;
       bottomSpace = clientHeight - rect.top - dropdownDom.clientHeight;
       if (bottomSpace >= boxHeight) {
@@ -18844,8 +18844,8 @@
       if (height) {
         $dom.css("height", height);
       }
-      $dom.removeClass(direction === "down" ? "direction-up" : "direction-down").addClass("direction-" + direction).toggleClass("x-over", boxWidth > dropdownDom.offsetWidth).css("left", left).css("top", top).css("min-width", dropdownDom.offsetWidth);
-      this._animation = "slide " + direction;
+      $dom.removeClass(direction === "down" ? "direction-up" : "direction-down").addClass("direction-" + direction).toggleClass("x-over", boxWidth > dropdownDom.offsetWidth).css("left", left).css("top", top).css("min-width", dropdownDom.offsetWidth).css("max-width", document.body.clientWidth);
+      this._animation = "fade";
       DropBox.__super__.show.call(this, options, callback);
     };
 
@@ -18918,7 +18918,7 @@
           tagName: "div",
           contextKey: "list",
           "c-widget": "listView",
-          style: "height:100%"
+          style: "height:100%;overflow:auto"
         }
       },
       "filterable-list": {
@@ -18941,7 +18941,7 @@
               tagName: "div",
               contextKey: "list",
               "c-widget": "listView",
-              style: "height:100%"
+              style: "height:100%;overflow:auto"
             }
           }
         ]
@@ -20112,7 +20112,7 @@
         if (this._scroller) {
           pos = this._scroller.getPos();
           if (pos !== index) {
-            this._scroller.setPos(index);
+            this._scroller.slide(index);
           }
         }
       }
@@ -22442,14 +22442,15 @@
         }
       },
       highlightCurrentItem: {
-        type: "boolean",
-        defaultValue: true
+        type: "boolean"
       },
       autoLoadPage: {
         type: "boolean",
         defaultValue: true
       },
-      changeCurrentitem: null,
+      changeCurrentitem: {
+        type: "boolean"
+      },
       pullDown: {
         readOnlyAfterCreate: true
       },
@@ -25041,7 +25042,7 @@
         hjson.content.content = [
           {
             tagName: "div",
-            "class": "box",
+            "class": "box title-box",
             content: {
               tagName: "div",
               contextKey: "titleBar",
@@ -25053,7 +25054,7 @@
             }
           }, {
             tagName: "div",
-            "class": "flex-box",
+            "class": "flex-box list-box",
             content: {
               tagName: "div",
               contextKey: "list",
@@ -25458,7 +25459,7 @@
       this._currentNode = node;
       if (node) {
         itemDom = this._itemDomMap[node._id];
-        if (itemDom) {
+        if (itemDom && this._highlightCurrentItem) {
           $fly(itemDom).addClass("current");
         }
       }
@@ -25546,7 +25547,7 @@
         nodeDom = itemDom.firstChild;
         $fly(nodeDom).toggleClass("leaf", node.get("hasChild") === false);
       }
-      if (node === this._currentNode) {
+      if (node === this._currentNode && this._highlightCurrentItem) {
         $fly(itemDom).addClass("current");
       }
       return nodeScope;

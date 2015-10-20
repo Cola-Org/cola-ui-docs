@@ -8,11 +8,10 @@
     if (arguments.length === 2 && typeof arguments[0] === "string" && typeof arguments[1] === "function") {
       name = arguments[0];
       fn = arguments[1];
-      targetDoms = $(".example[name='" + name + "']").attr("c-ignore", "").children().not(".prettyprint");
+      targetDoms = $(".example[name='" + name + "']");
+      targetDoms.find(".prettyprint").attr("c-ignore", "");
       if (targetDoms.length) {
-        targetDoms.each(function() {
-          return oldColaRootFn(name, this, fn);
-        });
+        oldColaRootFn(name, targetDoms[0], fn);
         return;
       } else {
         throw new cola.Exception("\".example[name='" + name + "']\" not exists.");

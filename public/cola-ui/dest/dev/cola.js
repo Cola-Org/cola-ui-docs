@@ -9277,7 +9277,7 @@
     if (dom.nodeType === 8) {
       return dom;
     }
-    if (dom.nodeType === 1 && dom.hasAttribute(cola.constants.IGNORE_DIRECTIVE)) {
+    if (dom.nodeType === 1 && (dom.hasAttribute(cola.constants.IGNORE_DIRECTIVE) || dom.className.indexOf(cola.constants.IGNORE_DIRECTIVE) >= 0)) {
       return dom;
     }
     if (IGNORE_NODES.indexOf(dom.nodeName) > -1) {

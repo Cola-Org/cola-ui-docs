@@ -2454,7 +2454,7 @@
           tagName: "div",
           contextKey: "list",
           "c-widget": "listView",
-          style: "height:100%"
+          style: "height:100%;overflow:auto"
         }
       },
       "filterable-list": {
@@ -2477,7 +2477,7 @@
               tagName: "div",
               contextKey: "list",
               "c-widget": "listView",
-              style: "height:100%"
+              style: "height:100%;overflow:auto"
             }
           }
         ]

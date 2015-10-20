@@ -52,6 +52,10 @@ module.exports = [
 				url: "x-render"
 			}
 			{
+				name: "数据类型"
+				url: "data-type"
+			}
+			{
 				name: "router(路由)"
 				url: "router"
 			}
@@ -182,6 +186,10 @@ module.exports = [
 				url: "edit/dropdown"
 			}
 			{
+				name: "Form(表单)"
+				url: "edit/form"
+			}
+			{
 				name: "Progress(进度条)"
 				url: "edit/progress"
 			}
@@ -214,8 +222,8 @@ module.exports = [
 				url: "list/nested-list"
 			}
 			{
-				name: "Grid(表格)"
-				url: "list/grid"
+				name: "table(表格)"
+				url: "list/table"
 			}
 			{
 				name: "Tree(树)"

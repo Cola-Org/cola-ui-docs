@@ -1,0 +1,106 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("basic","标准模式")
+	.example(name="basic")#basic
+		h4.ui.header 标准模式
+		.code
+			#basicList
+				template
+					li(c-bind="node.name")
+
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {
+				model.dataType({
+					name: "Node",
+					properties: {
+						nodes: {
+							dataType: "Node",
+							provider: {
+								url: "/service/tree-nodes",
+								parameter: {
+									root: ":path"
+								}
+							}
+						}
+					}
+				});
+
+				model.describe("nodes", {
+					dataType: "Node",
+					provider: "/service/tree-nodes"
+				});
+
+				model.widgetConfig({
+					basicList: {
+						$type: "nestedList",
+						title: "Basic List",
+						autoSplit: false,
+						bind: {
+							hasChildProperty: "isDir",
+							expression: "node in nodes",
+							titleProperty: "name",
+							child: {
+								recursive: true,
+								hasChildProperty: "isDir",
+								expression: "node in node.nodes",
+								titleProperty: "name"
+							}
+						},
+						width: 300,
+						height: 400
+					}
+				});
+			});
+
+	+addCatalog("split","分屏模式")
+	.example(name="split")#split
+		h4.ui.header 分屏模式
+		.code
+			#splitList
+				template
+					li(c-bind="node.name")
+
+		script(type="text/javascript" name="split").
+			cola("split", function (model) {
+				model.dataType({
+					name: "Node",
+					properties: {
+						nodes: {
+							dataType: "Node",
+							provider: {
+								url: "/service/tree-nodes",
+								parameter: {
+									root: ":path"
+								}
+							}
+						}
+					}
+				});
+
+				model.describe("nodes", {
+					dataType: "Node",
+					provider: "/service/tree-nodes"
+				});
+
+				model.widgetConfig({
+					splitList: {
+						$type: "nestedList",
+						title: "Auto Split",
+						autoSplit: true,
+						bind: {
+							hasChildProperty: "isDir",
+							expression: "node in nodes",
+							titleProperty: "name",
+							child: {
+								recursive: true,
+								hasChildProperty: "isDir",
+								expression: "node in node.nodes",
+								titleProperty: "name"
+							}
+						},
+						height: 400
+					}
+				});
+			});

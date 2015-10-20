@@ -1,0 +1,129 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("basic","基本布局")
+	.example(name="basic")#basic
+		h4.ui.header 基本布局
+		.code
+			div(c-widget="form" style="max-width:400px")
+				.field
+					div(c-widget="input; bind:email; placeholder:EMail")
+				.field
+					div(c-widget="input; bind:password; placeholder:Password; inputType:password")
+				.field
+					div(c-widget="checkbox; bind:remamber; label:Remamber Me")
+				.field
+					div(c-widget="button; caption:Sign In")
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {});
+
+	+addCatalog("labeled","带标签的布局")
+	.example(name="labeled")#labeled
+		h4.ui.header 带标签的布局
+		.code
+			div(c-widget="form" style="max-width:400px")
+				.field
+					label EMail
+					div(c-widget="input; bind:email; placeholder:EMail")
+				.field
+					label Password
+					div(c-widget="input; bind:password; placeholder:Password; inputType:password")
+				.field
+					div(c-widget="checkbox; bind:remamber; label:Remamber Me")
+				.field
+					div(c-widget="button; caption:Sign In")
+		script(type="text/javascript" name="labeled").
+			cola("labeled", function (model) {});
+
+	+addCatalog("inline","多列")
+	.example(name="inline")#inline
+		h4.ui.header 多列
+		.code
+			div(c-widget="form" style="max-width:600px")
+				.fields.two
+					.field
+						div(c-widget="input; bind:email; placeholder:EMail")
+					.field
+						div(c-widget="input; bind:password; placeholder:Password; inputType:password")
+				.field
+					div(c-widget="checkbox; bind:remamber; label:Remamber Me")
+				.field
+					div(c-widget="button; caption:Sign In")
+		script(type="text/javascript" name="inline").
+			cola("inline", function (model) {});
+
+	+addCatalog("validator","校验信息")
+	.example(name="validator")#validator
+		h4.ui.header 校验信息
+		.code
+			div(c-widget="form" style="max-width:400px")
+				.field
+					div(c-widget="input; bind:name; placeholder:Name(非空)")
+				.field
+					div(c-widget="input; bind:age; placeholder:Age(非空且16到60之间)")
+				.field
+					div(c-widget="input; bind:email; placeholder:Email(电邮格式)")
+				.field
+					div(c-widget="button; caption:校验; click:validate")
+		script(type="text/javascript" name="validator").
+			cola("validator", function (model) {
+				model.describe({
+					name: {
+						validators: "required"
+					},
+					age: {
+						dataType: "int",
+						validators: [
+							"required",
+							{$type: "number", min: 16, max: 60}
+						]
+					},
+					email: {
+						validators: "email"
+					}
+				});
+				model.action({
+					validate: function () {
+						model.get().validate();
+					}
+				});
+			});
+
+	+addCatalog("messages","校验信息汇总")
+	.example(name="messages")#messages
+		h4.ui.header 校验信息汇总
+		.code
+			div(c-widget="form" style="max-width:400px")
+				.ui.message.error
+				.field
+					div(c-widget="input; bind:name; placeholder:Name(非空)")
+				.field
+					div(c-widget="input; bind:age; placeholder:Age(非空且16到60之间)")
+				.field
+					div(c-widget="input; bind:email; placeholder:Email(电邮格式)")
+				.field
+					div(c-widget="button; caption:校验; click:validate")
+		script(type="text/javascript" name="messages").
+			cola("messages", function (model) {
+				model.describe({
+					name: {
+						validators: "required"
+					},
+					age: {
+						dataType: "int",
+						validators: [
+							"required",
+							{$type: "number", min: 16, max: 60}
+						]
+					},
+					email: {
+						validators: "email"
+					}
+				});
+				model.action({
+					validate: function () {
+						model.get().validate();
+					}
+				});
+			});

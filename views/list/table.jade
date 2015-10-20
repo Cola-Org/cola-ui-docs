@@ -1,0 +1,141 @@
+extends ../doc-layout
+
+block content
+
+	+addCatalog("basic","普通表格")
+	.example(name="basic")#basic
+		h4.ui.header 普通表格
+		.code
+			#basicTable
+
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {
+				var items = [];
+				for (var row = 1; row <= 40; row++) {
+					var item = {
+						selected: Math.random() > 0.5,
+						int: Math.round(Math.random() * 1000)
+					};
+					for (var col = 1; col <= 6; col++) {
+						item["col" + col] = "item " + row + "," + col
+					}
+					items.push(item);
+				}
+				model.set("items", items);
+
+				model.widgetConfig({
+					basicTable: {
+						$type: "table",
+						bind: "item in items",
+						showHeader: true,
+						height: 300,
+						columns: [
+							{
+								$type: "select"
+							},
+							{
+								caption: "组合列",
+								columns: [
+									{
+										bind: ".col1",
+										caption: "文本1"
+									},
+									{
+										bind: ".col2",
+										caption: "文本2"
+									}
+								]
+							},
+							{
+								bind: ".col3",
+								caption: "文本3"
+							},
+							{
+								bind: ".col4",
+								caption: "文本4"
+							},
+							{
+								bind: ".int",
+								caption: "整数",
+								align: "right"
+							}
+						]
+					}
+				});
+			});
+
+	+addCatalog("template","模板和编辑器")
+	.example(name="template")#template
+		h4.ui.header 普通表格
+		.code
+			#templateTable
+				template(name="int-template")
+					div(c-widget="input; bind:$default; class:fluid" c-class="error:$default>500")
+				template(name="check-mark")
+					span(c-style="display:$default?'':'none'")
+						i(class="large green checkmark icon")
+				template(name="operations")
+					div(c-widget="button;caption:Del;class:red;size:mini;click:{{remove(item)}}")
+
+		script(type="text/javascript" name="template").
+			cola("template", function (model) {
+				var items = [];
+				for (var row = 1; row <= 40; row++) {
+					var item = {
+						bool: Math.random() > 0.5,
+						int: Math.round(Math.random() * 1000)
+					};
+					for (var col = 1; col <= 6; col++) {
+						item["col" + col] = "item " + row + "," + col
+					}
+					items.push(item);
+				}
+				model.set("items", items);
+
+				model.action({
+					upper: function(s) {
+						return (s) ? s.toUpperCase() : "";
+					},
+					remove: function(item) {
+						item.remove();
+					}
+				});
+
+				model.widgetConfig({
+					templateTable: {
+						$type: "table",
+						bind: "item in items",
+						showHeader: true,
+						height: 300,
+						columns: [
+							{
+								caption: "图标",
+								bind: ".bool",
+								align: "center",
+								template: "check-mark",
+								width: 40
+							},
+							{
+								caption: "转换大写",
+								bind: "upper(item.col1)"
+							},
+							{
+								caption: "文本编辑",
+								bind: ".col2",
+								template: "input-column"
+							},
+							{
+								caption: "控制Style",
+								bind: ".int",
+								align: "right",
+								template: "int-template"
+							},
+							{
+								caption: "操作",
+								align: "center",
+								template: "operations"
+							}
+						]
+					}
+				});
+			});
