@@ -3400,6 +3400,8 @@ template {
   margin: 0 !important;
 }
 .ui.message-box {
+  width: auto;
+  height: auto;
   position: fixed !important;
 }
 .ui.message-box .close-btn.hidden,

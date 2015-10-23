@@ -73,20 +73,26 @@ body {
   padding: 0.5em 1em;
   background-color: rgba(0, 0, 0, 0.1);
 }
+#footer .download:not(.icon) {
+  margin: 0 0 0 2em;
+}
 #footer .issue,
-#footer .github {
+#footer .github,
+#footer .documention {
   margin: 0 0 0 2em;
   min-width: 10em;
   padding: 1em;
 }
 #footer .issue a,
-#footer .github a {
+#footer .github a,
+#footer .documention a {
   color: rgba(255, 255, 255, 0.7);
   display: block;
   line-height: 2em;
 }
 #footer .issue a:hover,
-#footer .github a:hover {
+#footer .github a:hover,
+#footer .documention a:hover {
   color: rgba(255, 255, 255, 0.9);
 }
 #footer .github {
