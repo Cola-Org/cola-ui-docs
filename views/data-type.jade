@@ -72,3 +72,57 @@ block content
 					}
 				});
 			});
+
+	+addCatalog("entityType","声明复杂类型")
+	.example(name="entityType")#entityType
+		h4.ui.header 声明复杂类型
+		.code
+			div(c-widget="input; bind:categories.foods.name; placeholder:Product Name")
+
+		script(type="text/javascript" name="entityType").
+			cola("entityType", function (model) {
+				model.dataType({
+					name: "Food",
+					properties: {
+						name: {
+							validators: "required"
+						}
+					}
+				});
+				model.dataType({
+					name: "Category",
+					properties: {
+						name: {
+							validators: "required"
+						},
+						foods: "Food"
+					}
+				});
+
+				model.describe("categories", "Category");
+				model.set("categories", [
+					{
+						name: "Fruit",
+						foods: [
+							{ name: "Apple", price: 40 },
+							{ name: "Orange", price: 20 },
+							{ name: "Banana", price: 15 }
+						]
+					},
+					{
+						name: "Drink",
+						foods: [
+							{ name: "Beer", price: 12 },
+							{ name: "Water", price: 5 },
+							{ name: "Coffee", price: 25 }
+						]
+					},
+					{
+						name: "Snacks",
+						foods: [
+							{ name: "Potato chips", price: 15 },
+							{ name: "Cake", price: 30 }
+						]
+					}
+				]);
+			});
