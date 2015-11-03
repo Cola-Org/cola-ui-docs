@@ -1,5 +1,5 @@
 (function() {
-  var DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DropBox, dropdownDialogMargin, emptyRadioGroupItems,
+  var DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DropBox, dropdownDialogMargin, emptyRadioGroupItems, isIE11,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
@@ -403,6 +403,8 @@
   DEFAULT_TIME_DISPLAY_FORMAT = "HH:mm:ss";
 
   DEFAULT_TIME_INPUT_FORMAT = "HHmmss";
+
+  isIE11 = /Trident\/7\./.test(navigator.userAgent);
 
   cola.AbstractInput = (function(superClass) {
     extend(AbstractInput, superClass);
@@ -871,11 +873,11 @@
         };
       })(this)).on("blur", (function(_this) {
         return function() {
-          var entity, propertyDef;
+          var entity, propertyDef, ref;
           _this._inputFocused = false;
           _this._refreshInputValue(_this._value);
           _this.fire("blur", _this);
-          if ((_this._value == null) || _this._value === "" && _this._bindInfo.isWriteable) {
+          if ((_this._value == null) || _this._value === "" && ((ref = _this._bindInfo) != null ? ref.isWriteable : void 0)) {
             propertyDef = _this._getBindingProperty();
             if ((propertyDef != null ? propertyDef._required : void 0) && propertyDef._validators) {
               entity = _this._scope.get(_this._bindInfo.entityPath);
@@ -913,7 +915,12 @@
             altlKey: event.altlKey,
             event: event
           };
-          return _this.fire("keyPress", _this, arg);
+          if (_this.fire("keyPress", _this, arg) === false) {
+            return;
+          }
+          if (event.keyCode === 13 && isIE11) {
+            return doPost();
+          }
         };
       })(this));
     };

@@ -101,10 +101,9 @@ body {
 			display: block;
 			line-height: 2em;
 		}
-
 	}
 	.github {
-		width: 16em;
+		//width: 1em;
 	}
 }
 
@@ -231,7 +230,20 @@ body {
 	}
 
 }
-
+@media only screen and (max-width: 978px) {
+	#footer{
+		.qq{
+			width: 12em;
+		}
+	}
+}
+@media only screen and (max-width: 768px) {
+	#footer{
+		.qq{
+			display: none;
+		}
+	}
+}
 .banner {
 
 	background: url("/images/home-bg.jpg") repeat center;

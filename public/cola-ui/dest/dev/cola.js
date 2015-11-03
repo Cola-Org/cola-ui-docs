@@ -1022,7 +1022,7 @@
       if (typeof data === "object") {
         if (data instanceof cola.Entity || data instanceof cola.EntityList) {
           data = data.toJSON();
-        } else {
+        } else if (!(data instanceof FormData)) {
           rawData = data;
           data = {};
           for (p in rawData) {
@@ -7287,6 +7287,18 @@
     }
   };
 
+  cola.model.defaultActions["default"] = function(value, defaultValue) {
+    return value || defaultValue;
+  };
+
+  cola.model.defaultActions["int"] = function(value) {
+    return parseInt(value, 10) || 0;
+  };
+
+  cola.model.defaultActions["float"] = function(value) {
+    return parseFloat(value) || 0;
+  };
+
   cola.model.defaultActions.is = function(value) {
     return !!value;
   };
@@ -7897,6 +7909,8 @@
     if (path && path.charCodeAt(0) === 35) {
       routerMode = "hash";
       path = path.substring(1);
+    } else {
+      routerMode = cola.setting("routerMode") || "hash";
     }
     if (routerMode === "hash") {
       if (path.charCodeAt(0) !== 47) {
@@ -7912,6 +7926,7 @@
       } else {
         realPath = path;
       }
+      realPath += location.search;
       if (replace) {
         window.history.replaceState(null, null, realPath);
       } else {
@@ -8086,6 +8101,9 @@
 
   _onHashChange = function() {
     var path, router;
+    if ((cola.setting("routerMode") || "hash") !== "hash") {
+      return;
+    }
     path = _getHashPath();
     if (path === currentRoutePath) {
       return;
@@ -8099,6 +8117,9 @@
 
   _onStateChange = function(path) {
     var i, router;
+    if (cola.setting("routerMode") !== "state") {
+      return;
+    }
     path = trimPath(path);
     i = path.indexOf("#");
     if (i > -1) {
@@ -8137,10 +8158,18 @@
         }
         return false;
       });
-      path = _getHashPath() || trimPath(cola.setting("defaultRouterPath"));
-      router = _findRouter(path);
-      if (router) {
-        cola.setRoutePath(path, true);
+      path = _getHashPath();
+      if (path) {
+        router = _findRouter(path);
+        if (router) {
+          _switchRouter(router, path);
+        }
+      } else {
+        path = trimPath(cola.setting("defaultRouterPath"));
+        router = _findRouter(path);
+        if (router) {
+          cola.setRoutePath(path, true);
+        }
       }
     }, 0);
   });
@@ -9198,6 +9227,8 @@
     if (!template) {
       return;
     }
+    oldScope = cola.currentScope;
+    model = model || oldScope;
     if (template.nodeType) {
       dom = template;
     } else if (typeof template === "string") {
@@ -9211,7 +9242,6 @@
         child = next;
       }
     } else {
-      oldScope = cola.currentScope;
       cola.currentScope = model;
       try {
         if (context == null) {

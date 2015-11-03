@@ -577,7 +577,6 @@
         "enum": ["left", "right", "top", "bottom"]
       },
       size: {
-        type: "number",
         defaultValue: 200,
         refreshDom: true
       },
@@ -1034,8 +1033,6 @@
     Tab.CLASS_NAME = "c-tab";
 
     Tab.TAG_NAME = "div";
-
-    Tab.CHILDREN_TYPE_NAMESPACE = "tab";
 
     Tab.ATTRIBUTES = {
       direction: {

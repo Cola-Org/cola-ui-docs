@@ -229,6 +229,10 @@ module.exports = [
 				name: "Tree(树)"
 				url: "list/tree"
 			}
+			{
+				name: "抽屉"
+				url: "collection/accordion"
+			}
 		]
 	}
 ]
