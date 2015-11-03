@@ -2,6 +2,11 @@ extends ../doc-layout
 
 block content
 
+	style.
+		.ui.list-view {
+			border: 1px solid #e0e0e0;
+		}
+
 	+addCatalog("basic","普通列表")
 	.example(name="basic")#basic
 		h4.ui.header 普通列表
@@ -18,14 +23,17 @@ block content
 						$type: "listView",
 						bind: "country in countries",
 						textProperty: "label",
-						height: 300
+						width: 260,
+						height: 260
 					}
 				});
 			});
 
 	+addCatalog("template", "行模板")
 	.example(name="template")#template
-		h4.ui.header 普通列表
+		h4.ui.header 行模板
+		p.
+			利用template子节点，我们可以为列表中的行定义模板，在模板里的HTML里可以使用Cola-UI中所有的DOM指令。
 		.code
 			#templateList
 				template
@@ -47,6 +55,7 @@ block content
 					templateList: {
 						$type: "listView",
 						bind: "country in countries",
+						width: 300,
 						height: 300
 					}
 				});
@@ -54,7 +63,7 @@ block content
 
 	+addCatalog("group", "分组列表")
 	.example(name="group")#group
-		h4.ui.header 普通列表
+		h4.ui.header 分组列表
 		.code
 			#groupList
 
@@ -70,11 +79,76 @@ block content
 						textProperty: "label",
 						group: true,
 						indexBar: true,
+						width: 300,
 						height: 600,
 						getGroupString: function (arg) {
 							var label = arg.item.get("label");
 							if (label) arg.result = label.charAt(0);
 						}
+					}
+				});
+			});
+
+	+addCatalog("pullAction", "下拉刷新")
+	.example(name="pullAction")#pullAction
+		h4.ui.header 下拉刷新
+		p 此功能仅在移动设备上有效。
+		.code
+			#pullActionList
+				template(name="pull-down-pane")
+					div(style="height:120px;padding-top:72px")
+						#divPullDown(style="line-height:48px")
+		script(type="text/javascript" name="pullAction").
+			cola("pullAction", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.widgetConfig({
+					pullActionList: {
+						$type: "listView",
+						bind: "country in countries",
+						textProperty: "label",
+						pullDown: true,
+						width: 300,
+						height: 260,
+						pullStep: function (arg) {
+							$("#divPullDown").text((arg.distance < arg.theshold) ? "继续下拉以刷新" : "释放以刷新");
+						},
+						pullComplete: function (arg) {
+							$("#divPullDown").text("正在刷新...");
+							arg.done();
+						}
+					}
+				});
+			});
+
+	+addCatalog("itemSlide", "条目手势")
+	.example(name="itemSlide")#itemSlide
+		h4.ui.header 条目手势
+		p 尝试在某个条目上向左滑动手指（此功能仅在移动设备上有效）。
+		.code
+			#itemSlideList
+				template(name="slide-left-pane")
+					.remove.red-background(c-onclick="onRemoveClick(country)" style="padding:0 0.75em; color:#fff")
+						.text(style="position:relative; top:50%; line-height:1.5em; margin-top:-0.75em") Remove
+		script(type="text/javascript" name="itemSlide").
+			cola("itemSlide", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.action({
+					onRemoveClick: function(country) {
+						country.remove();
+					}
+				});
+				model.widgetConfig({
+					itemSlideList: {
+						$type: "listView",
+						bind: "country in countries",
+						textProperty: "label",
+						itemSlide: "left",
+						width: 300,
+						height: 260
 					}
 				});
 			});

@@ -658,28 +658,27 @@
         pullComplete: (function(_this) {
           return function(evt, pullPane, pullState, done) {
             var collection;
-            if (_this.getListeners("pullComplete")) {
-              return _this.fire("pullComplete", _this, {
-                event: evt,
-                pullPane: pullPane,
-                direction: pullState,
-                done: done
-              });
-            } else {
-              if (pullState === "down") {
-                collection = _this._realOriginItems || _this._realItems;
-                if (collection instanceof cola.EntityList) {
-                  collection.flush(done);
-                } else {
-                  done();
-                }
-              } else if (pullState === "up") {
-                collection = _this._realItems;
-                if (collection instanceof cola.EntityList) {
-                  collection.nextPage(done);
-                } else {
-                  done();
-                }
+            if (_this.fire("pullComplete", _this, {
+              event: evt,
+              pullPane: pullPane,
+              direction: pullState,
+              done: done
+            }) === false) {
+              return;
+            }
+            if (pullState === "down") {
+              collection = _this._realOriginItems || _this._realItems;
+              if (collection instanceof cola.EntityList) {
+                collection.flush(done);
+              } else {
+                done();
+              }
+            } else if (pullState === "up") {
+              collection = _this._realItems;
+              if (collection instanceof cola.EntityList) {
+                collection.nextPage(done);
+              } else {
+                done();
               }
             }
           };
@@ -1664,7 +1663,13 @@
       itemScope = new cola.ItemScope(this._itemsScope, this._alias);
       this._templateContext.defaultPath = this._alias;
       if (leftSlidePaneTemplate) {
-        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%");
+        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%").click((function(_this) {
+          return function() {
+            if (_this._itemSlideState === "waiting") {
+              _this.hideItemSlidePane();
+            }
+          };
+        })(this));
         cola.xRender(leftSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(leftSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -1672,7 +1677,13 @@
         cola._ignoreNodeRemoved = false;
       }
       if (rightSlidePaneTemplate) {
-        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%");
+        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%").click((function(_this) {
+          return function() {
+            if (_this._itemSlideState === "waiting") {
+              _this.hideItemSlidePane();
+            }
+          };
+        })(this));
         cola.xRender(rightSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(rightSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -1750,7 +1761,7 @@
               slidePane: slidePane
             });
           }
-          if (direction === "right" && this._maxDistanceAdjust === void 0 && this._indexBar) {
+          if (direction === "left" && this._maxDistanceAdjust === void 0 && this._indexBar) {
             indexBar = this._doms.indexBar;
             if (indexBar) {
               this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
@@ -1759,11 +1770,12 @@
             }
           }
           $fly(slidePane).css({
+            height: itemDom.offsetHeight,
             top: itemDom.offsetTop,
             "pointer-events": "none"
           }).show();
           this._maxSlideDistance = slidePane.offsetWidth;
-          if (direction === "right") {
+          if (direction === "left") {
             this._maxSlideDistance += this._maxDistanceAdjust || 0;
           }
         } else {
@@ -1808,12 +1820,12 @@
       }
       this._touchMoveSpeed = distanceX / (timestamp - this._touchLastTimstamp);
       this._touchLastTimstamp = timestamp;
-      if (distanceX < 0) {
+      if (distanceX > 0) {
         direction = "right";
-        factor = -1;
+        factor = 1;
       } else {
         direction = "left";
-        factor = 1;
+        factor = -1;
       }
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
@@ -1889,7 +1901,7 @@
       } else {
         slideDom = itemDom;
       }
-      if (direction === "right") {
+      if (direction === "left") {
         if (!SAFE_SLIDE_EFFECT) {
           $(slideDom).transit({
             x: 0,
@@ -1920,7 +1932,7 @@
         opacity: 0.0001,
         duration: 0,
         closable: false
-      }).dimmer("show").find(">.ui.dimmer").on("touchstart", (function(_this) {
+      }).dimmer("show").find(">.ui.dimmer").on("touchstart.hide", (function(_this) {
         return function() {
           if (_this._itemSlideState === "waiting") {
             _this.hideItemSlidePane();
@@ -1929,7 +1941,7 @@
       })(this));
       $slidePane = $(slidePane);
       if (openAnimate || SAFE_SLIDE_EFFECT) {
-        factor = direction === "right" ? -1 : 1;
+        factor = direction === "left" ? -1 : 1;
         $slidePane.show().transit({
           x: this._maxSlideDistance * factor,
           duration: SLIDE_ANIMATION_SPEED,
@@ -1941,6 +1953,7 @@
           })(this)
         });
       } else {
+        $slidePane.css("pointer-events", "");
         this._onItemSlidePaneShow(direction, slidePane, itemDom);
       }
     };
@@ -1951,7 +1964,7 @@
       itemDom = this._slideItemDom;
       slidePane = this._itemSlidePane;
       direction = this._itemSlideDirection;
-      if (direction === "left") {
+      if (direction === "right") {
         if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
           slideDom = itemDom.firstChild;
         } else {

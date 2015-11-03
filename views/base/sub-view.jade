@@ -1,0 +1,55 @@
+extends ../doc-layout
+
+block content
+
+	style.
+		.ui.sub-view {
+			border: 1px solid #e0e0e0;
+			margin: 0.25em;
+		}
+
+	p.
+		SubView的功能有点类似于IFrame，但是它比IFrame更加轻量相应速度更快。
+		SubView内部是利用Ajax从后端获取HTML、js和css并最终直接把他们渲染到当前页面中的。
+
+	+addCatalog("basic","基本用法")
+	.example(name="basic")#basic
+		h4.ui.header 基本用法
+		.code
+			div(c-widget="subView; url:../../examples/sub-view/sub-view1.html" style="width:200px;height:100px")
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {});
+
+	+addCatalog("dyna","动态装载")
+	.example(name="dyna")#dyna
+		h4.ui.header 动态装载
+		p.
+			需要注意的是，SubView对HTML要求与IFrame有些不同。
+			SubView只能装载纯的HTML的片段，其中不应该包含&lt;html&gt;、&lt;head&gt;、&lt;body&gt;、&lt;script&gt;、&lt;style&gt;"这些标记。
+			如果要装载的HTML片段需要由相应的js或css，他们必须被放在一个独立的文件中，并且通过jsUrl和cssUrl这两个参数通知SubView来装载。
+		p.
+			jsUrl和cssUrl都支持定义多个URL，只要使用String数组就可以了。
+			在下面的例子中jsUrl和cssUrl被定义成了“$”，这是一种特殊的简写，表示js和css的URL与HTML片段的url除后缀名不同之外，其他都完全相同。
+			以jsUrl为例，“$”相当于“../../examples/sub-view/sub-view2.js”。
+		.code
+			#dynaSubView(style="width:200px;height:100px")
+			#loadButton
+		script(type="text/javascript" name="dyna").
+			cola("dyna", function (model) {
+				model.widgetConfig({
+					dynaSubView: {
+						$type: "subView"
+					},
+					loadButton: {
+						$type: "button",
+						caption: "装载",
+						click: function() {
+							cola.widget("dynaSubView").load({
+								url: "../../examples/sub-view/sub-view2.html",
+								jsUrl: "$",
+								cssUrl: "$"
+							});
+						}
+					}
+				});
+			});

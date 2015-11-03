@@ -4,6 +4,8 @@ block content
 	+addCatalog("static","标准")
 	.example(name="static")#static
 		h4.ui.header 静态选择项
+		p.
+			Select控件是利用浏览器原生的select标签实现的输入控件。最简单的定义选择项的方式是直接通过String数组。
 		.code
 			#selectStatic
 		script(type="text/javascript" name="static").
@@ -19,6 +21,9 @@ block content
 	+addCatalog("mapping","键值映射")
 	.example(name="mapping")#mapping
 		h4.ui.header 键值映射
+		p.
+			Select控件也支持定义键值对形式的选择项，只需利用JSON对象的数组。
+			每个JSON对象中的value或key属性将被认作是选项的内部值，而text或name属性将被认作是选项的显示值。
 		.code
 			#selectMapping
 		script(type="text/javascript" name="mapping").

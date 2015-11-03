@@ -1,6 +1,10 @@
 extends ../doc-layout
 
 block content
+	style.
+		.ui.nested-list {
+			border: 1px solid #e0e0e0;
+		}
 
 	+addCatalog("basic","标准模式")
 	.example(name="basic")#basic

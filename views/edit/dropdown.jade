@@ -1,24 +1,27 @@
 extends ../doc-layout
 block content
 
-	+addCatalog("standard","自动适配")
-	.example(name="standard")#standard
-		h4.ui.header 自动适配
+	p.
+		Dropdown控件不是利用浏览器原生的select节点实现的，相比Select控件它拥有更加丰富的显示选项。
+		并且Dropdown控件可以根据当前的设备和屏幕尺寸自动选择合适的显示方式。
 
+	+addCatalog("drop","下拉模式")
+	.example(name="drop")#drop
+		h4.ui.header 下拉模式
 		.code
-			#dropdownStandard
+			#dropdownDrop
 				template
 					li(c-bind="country.label")
-		script(type="text/javascript" name="standard").
-			cola("standard", function (model) {
+		script(type="text/javascript" name="drop").
+			cola("drop", function (model) {
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
 				});
-
 				model.widgetConfig({
-					dropdownStandard: {
+					dropdownDrop: {
 						$type: "dropdown",
-						items: "{{country in countries}}"
+						items: "{{country in countries}}",
+						openMode: "drop"
 					}
 				});
 			});
@@ -26,7 +29,6 @@ block content
 	+addCatalog("layer","层模式")
 	.example(name="layer")#layer
 		h4.ui.header 层模式
-
 		.code
 			#dropdownLayer
 				template
@@ -46,25 +48,47 @@ block content
 				});
 			});
 
-	+addCatalog("drop","下拉模式")
-	.example(name="drop")#drop
-		h4.ui.header 下拉模式
-
+	+addCatalog("dialog","对话框模式")
+	.example(name="dialog")#dialog
+		h4.ui.header 对话框
 		.code
-			#dropdownDrop
+			#dropdownDialog
 				template
 					li(c-bind="country.label")
-		script(type="text/javascript" name="drop").
-			cola("drop", function (model) {
+		script(type="text/javascript" name="dialog").
+			cola("dialog", function (model) {
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
 				});
 
 				model.widgetConfig({
-					dropdownDrop: {
+					dropdownDialog: {
 						$type: "dropdown",
 						items: "{{country in countries}}",
-						openMode: "drop"
+						openMode: "dialog",
+						dropdownWidth: "75%",
+						dropdownHeight: "60%"
+					}
+				});
+			});
+
+	+addCatalog("halfLayer", "半层模式")
+	.example(name="halfLayer")#halfLayer
+		h4.ui.header 半层模式
+		.code
+			#dropdownHalfLayer
+				template
+					li(c-bind="country.label")
+		script(type="text/javascript" name="halfLayer").
+			cola("halfLayer", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.widgetConfig({
+					dropdownHalfLayer: {
+						$type: "dropdown",
+						items: "{{country in countries}}",
+						openMode: "sidebar"
 					}
 				});
 			});

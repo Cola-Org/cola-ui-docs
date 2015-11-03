@@ -2,6 +2,9 @@ extends ../doc-layout
 
 block content
 
+	p.
+		Form控件可以为你提供表单元素的布局功能，同时Form控件也能管理和显示其中所有表单元素的校验信息。
+
 	+addCatalog("basic","基本布局")
 	.example(name="basic")#basic
 		h4.ui.header 基本布局
@@ -18,9 +21,9 @@ block content
 		script(type="text/javascript" name="basic").
 			cola("basic", function (model) {});
 
-	+addCatalog("labeled","带标签的布局")
+	+addCatalog("labeled","带标签的表单")
 	.example(name="labeled")#labeled
-		h4.ui.header 带标签的布局
+		h4.ui.header 带标签的表单
 		.code
 			div(c-widget="form" style="max-width:400px")
 				.field
@@ -36,9 +39,9 @@ block content
 		script(type="text/javascript" name="labeled").
 			cola("labeled", function (model) {});
 
-	+addCatalog("inline","多列")
+	+addCatalog("inline","多列布局")
 	.example(name="inline")#inline
-		h4.ui.header 多列
+		h4.ui.header 多列布局
 		.code
 			div(c-widget="form" style="max-width:600px")
 				.fields.two

@@ -122,6 +122,10 @@ module.exports = [
 				url: "base/iframe"
 			}
 			{
+				name: "SubView"
+				url: "base/sub-view"
+			}
+			{
 				name: "Image(图片)"
 				url: "base/image"
 			}
@@ -222,7 +226,7 @@ module.exports = [
 				url: "list/nested-list"
 			}
 			{
-				name: "table(表格)"
+				name: "Table(表格)"
 				url: "list/table"
 			}
 			{

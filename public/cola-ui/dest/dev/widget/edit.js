@@ -1,5 +1,5 @@
 (function() {
-  var DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DropBox, dropdownDialogMargin, emptyRadioGroupItems,
+  var DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DropBox, dropdownDialogMargin, emptyRadioGroupItems, isIE11,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
@@ -403,6 +403,8 @@
   DEFAULT_TIME_DISPLAY_FORMAT = "HH:mm:ss";
 
   DEFAULT_TIME_INPUT_FORMAT = "HHmmss";
+
+  isIE11 = /Trident\/7\./.test(navigator.userAgent);
 
   cola.AbstractInput = (function(superClass) {
     extend(AbstractInput, superClass);
@@ -871,11 +873,11 @@
         };
       })(this)).on("blur", (function(_this) {
         return function() {
-          var entity, propertyDef;
+          var entity, propertyDef, ref;
           _this._inputFocused = false;
           _this._refreshInputValue(_this._value);
           _this.fire("blur", _this);
-          if ((_this._value == null) || _this._value === "" && _this._bindInfo.isWriteable) {
+          if ((_this._value == null) || _this._value === "" && ((ref = _this._bindInfo) != null ? ref.isWriteable : void 0)) {
             propertyDef = _this._getBindingProperty();
             if ((propertyDef != null ? propertyDef._required : void 0) && propertyDef._validators) {
               entity = _this._scope.get(_this._bindInfo.entityPath);
@@ -913,7 +915,12 @@
             altlKey: event.altlKey,
             event: event
           };
-          return _this.fire("keyPress", _this, arg);
+          if (_this.fire("keyPress", _this, arg) === false) {
+            return;
+          }
+          if (event.keyCode === 13 && isIE11) {
+            return doPost();
+          }
         };
       })(this));
     };
@@ -1968,7 +1975,7 @@
         defaultValue: true
       },
       openMode: {
-        "enum": ["auto", "drop", "dialog", "layer", "half-layer"],
+        "enum": ["auto", "drop", "dialog", "layer", "sidebar"],
         defaultValue: "auto"
       },
       opened: {
@@ -2212,6 +2219,10 @@
           config.ui = config.ui + " " + this._ui;
           container = new DropBox(config);
         } else if (openMode === "layer") {
+          if (openMode === "Sidebar") {
+            config.animation = "slide up";
+            config.height = "50%";
+          }
           ctx = {};
           titleContent = cola.xRender({
             tagName: "div",
@@ -2235,6 +2246,11 @@
           }, this._scope, ctx);
           $fly(config.dom.firstChild.firstChild).before(titleContent);
           container = new cola.Layer(config);
+        } else if (openMode === "sidebar") {
+          config.direction = "bottom";
+          config.size = document.body.clientHeight / 2;
+          $fly(config.dom.firstChild.firstChild).before(titleContent);
+          container = new cola.Sidebar(config);
         } else if (openMode === "dialog") {
           config.modalOpacity = 0.05;
           config.closeable = false;
@@ -2269,6 +2285,8 @@
         if (container instanceof DropBox) {
           container.show(this, doCallback);
         } else if (container instanceof cola.Layer) {
+          container.show(doCallback);
+        } else if (container instanceof cola.Sidebar) {
           container.show(doCallback);
         } else if (container instanceof cola.Dialog) {
           $flexContent = $(this._doms.flexContent);
@@ -2459,11 +2477,12 @@
       },
       "filterable-list": {
         tagName: "div",
+        "class": "v-box",
         style: "height:100%",
         content: [
           {
             tagName: "div",
-            "class": "filter-container",
+            "class": "box filter-container",
             content: {
               tagName: "div",
               contextKey: "filterInput",
@@ -2472,12 +2491,12 @@
           }, {
             tagName: "div",
             contextKey: "flexContent",
-            "class": "list-container",
+            "class": "flex-box list-container",
+            style: "min-height:2em",
             content: {
               tagName: "div",
               contextKey: "list",
-              "c-widget": "listView",
-              style: "height:100%;overflow:auto"
+              "c-widget": "listView"
             }
           }
         ]
