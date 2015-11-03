@@ -1,0 +1,78 @@
+extends ../doc-layout
+block content
+	style
+		:less
+			#accordionDemo {
+				padding: 0px;
+				list-style: none;
+				li > .title {
+					background-color: rgba(0, 0, 0, 0.2);
+				}
+				li > .content {
+					padding: 0;
+					.menu-item {
+						background-color: rgba(0, 0, 0, 0.1);
+						line-height: 1.85em;
+						padding-left: 2em;
+						color: #fff;
+						margin-bottom: 1px;
+					}
+				}
+			}
+	ul#accordionDemo.ui.accordion.teal-background.inverted
+		li(c-repeat="menuGroup in menus")
+			div.title
+				i.dropdown.icon
+				span(c-bind="menuGroup.title")
+			div.content
+				div.menu-item(c-repeat="menu in menuGroup.menus")
+					span.caption(c-bind="menu.title")
+
+	script(type="text/javascript").
+		cola(function (model) {
+			model.set("menus", [
+				{
+					title: "系统维护",
+					menus: [
+						{
+							title: "数据字典"
+						},
+						{
+							title: "用户管理"
+						},
+						{
+							title: "权限配置"
+						}
+					]
+				},
+				{
+					title: "产品维护",
+					menus: [
+						{
+							title: "产品录入"
+						},
+						{
+							title: "产品信息查询"
+						},
+						{
+							title: "产品申报"
+						}
+					]
+				},
+				{
+					title: "人员信息管理",
+					menus: [
+						{
+							title: "身份信息录入"
+						},
+						{
+							title: "信息查询"
+						},
+						{
+							title: "在岗人员信息"
+						}
+					]
+				}
+			])
+			$("#accordionDemo").accordion({})
+		});

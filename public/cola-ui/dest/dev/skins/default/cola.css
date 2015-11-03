@@ -2508,9 +2508,6 @@ template {
 .ui.nested-list {
   position: relative;
 }
-.ui.nested-list .box.title-box {
-  overflow: hidden;
-}
 .ui.nested-list .detail {
   border-left: 1px solid #dcddde;
 }
@@ -2552,14 +2549,14 @@ template {
   line-height: 2.2em;
   margin-right: 0.25em;
   text-align: center;
-  transition-duration: 0.3s;
-  transition-property: transform;
 }
 .ui.tree .tree.node > .expand-button:before {
+  transition-duration: 0.3s;
+  transition-property: transform;
   font-family: Icons;
   content: "\f105";
 }
-.ui.tree .tree.node.expanded > .expand-button {
+.ui.tree .tree.node.expanded > .expand-button:before {
   transform: rotate(90deg);
 }
 .ui.tree .tree.node.leaf > .expand-button {

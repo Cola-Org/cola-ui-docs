@@ -1,42 +1,36 @@
 extends ../doc-layout
 block content
-	+addCatalog("horizontal","横向")
-	.example#horizontal
-		h4.ui.header 横向旋转
-		p.
-			可通过属性<code>orientation</code>设定旋转方向;可选值如下<code>horizontal、vertical</code>
-		.code
-			div(c-widget="Carousel; height:200")
-				.items-wrap
-					div
-						img(c-widget="image; src:/images/movies/12years-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/adaptation-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/spiderman-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/totoro-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/watchmen-horizontal.jpg; class:centered fluid;")
+	.markdown-content
+		+addCatalog("box","简介")
+		#box
+		:markdown
+			## 走马灯控件
+			在目前的主流的网页设计风格里，不管桌面界面还是手机界面里Banner的走马灯效果非常常见。
+			### 特性
+			* 可自由控制切换频率等先关参数
+			* 智能适配手机和平板环境支持触摸切换
+			* 支持Cola dom模板机制轻松更改内容
 
-	+addCatalog("vertical","纵向")
-	.example#vertical
-		h4.ui.header 纵向旋转
-		p.
-			可通过属性<code>orientation</code>设定旋转方向;可选值如下<code>horizontal、vertical</code>
-		.code
-			div(c-widget="Carousel; height:200; orientation:vertical")
-				.items-wrap
-					div
-						img(c-widget="image; src:/images/movies/12years-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/adaptation-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/spiderman-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/totoro-horizontal.jpg; class:centered fluid;")
-					div
-						img(c-widget="image; src:/images/movies/watchmen-horizontal.jpg; class:centered fluid;")
+
+		+addCatalog("horizontal","横向")
+		.example#horizontal
+			h4.ui.header 横向旋转
+			p.
+				可通过属性<code>orientation</code>设定旋转方向;可选值如下<code>horizontal、vertical</code>
+			.code
+				div(c-widget="Carousel; height:200")
+					.items-wrap
+						div
+							img(c-widget="image; src:/images/movies/12years-horizontal.jpg; class:centered fluid;")
+						div
+							img(c-widget="image; src:/images/movies/adaptation-horizontal.jpg; class:centered fluid;")
+						div
+							img(c-widget="image; src:/images/movies/spiderman-horizontal.jpg; class:centered fluid;")
+						div
+							img(c-widget="image; src:/images/movies/totoro-horizontal.jpg; class:centered fluid;")
+						div
+							img(c-widget="image; src:/images/movies/watchmen-horizontal.jpg; class:centered fluid;")
+
 
 	script(type="text/javascript").
 		cola(function (model) {

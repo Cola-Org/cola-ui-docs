@@ -95,9 +95,6 @@ body {
 #footer .documention a:hover {
   color: rgba(255, 255, 255, 0.9);
 }
-#footer .github {
-  width: 16em;
-}
 #toc {
   width: 14em;
   overflow: hidden;
@@ -196,6 +193,16 @@ body {
   }
   .github-link,
   .github-link-img {
+    display: none;
+  }
+}
+@media only screen and (max-width: 978px) {
+  #footer .qq {
+    width: 12em;
+  }
+}
+@media only screen and (max-width: 768px) {
+  #footer .qq {
     display: none;
   }
 }
