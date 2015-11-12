@@ -36,10 +36,11 @@ MVVM框架部分的功能比较类似于AngularJS，提供了数据模型、DOM�
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
 	<script src="/resources/jquery-2.1.3.js"></script>
 	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
 	<script src="/resources/cola-ui/cola.js"></script>
 
 	<script type="text/javascript">
@@ -83,10 +84,11 @@ span接受到数据源改变的消息后会立即重新从Model重读取最新�
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
 	<script src="/resources/jquery-2.1.3.js"></script>
 	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
 	<script src="/resources/cola-ui/cola.js"></script>
 
 	<script type="text/javascript">
@@ -124,10 +126,11 @@ Action是Cola中专门用于封装业务逻辑的方法，其详细说明请参�
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
 	<script src="/resources/jquery-2.1.3.js"></script>
 	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
 	<script src="/resources/cola-ui/cola.js"></script>
 
 	<script type="text/javascript">
@@ -176,10 +179,11 @@ model.set({
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
 	<script src="/resources/jquery-2.1.3.js"></script>
 	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
 	<script src="/resources/cola-ui/cola.js"></script>
 	
 	<script type="text/javascript">
@@ -229,10 +233,11 @@ model.set({
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/3rd.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
 	<script src="/resources/jquery-2.1.3.js"></script>
 	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
 	<script src="/resources/cola-ui/cola.js"></script>
 
 	<script type="text/javascript">
@@ -263,7 +268,12 @@ model.set({
 <!DOCTYPE html>
 <html>
 <head>
-	<script src="../include-all.js"></script>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
 	<script type="text/javascript">
 		cola.route("/", {
 			redirectTo: "#/list"

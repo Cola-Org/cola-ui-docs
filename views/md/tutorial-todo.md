@@ -9,11 +9,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="../../resources/cola-ui/3rd.css">
-	<link rel="stylesheet" type="text/css" href="../../resources/cola-ui/cola.css">
-	<script src="../../resources/jquery-2.1.3.js"></script>
-	<script src="../../resources/cola-ui/3rd.js"></script>
-	<script src="../../resources/cola-ui/cola.js"></script>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<script src="/resources/jquery-2.1.3.js"></script>
+	<script src="/resources/cola-ui/3rd.js"></script>
+	<script src="/resources/cola-ui/semantic.js"></script>
+	<script src="/resources/cola-ui/cola.js"></script>
 
 	<script type="text/javascript">
 		cola(function (model) {

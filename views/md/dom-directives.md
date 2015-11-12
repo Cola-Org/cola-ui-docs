@@ -17,7 +17,7 @@ c-bind可以自动识别`<label>`、`<input>`、`<select>`的不同类型的DOM�
 用于为目标数据定义一个别名，该别名的作用范围是此DOM元素及其中的子DOM。此指令并不产生实际的绑定效果。
 基本的形式是： `<目标数据路径> as <别名>`
 
-例如： `father.father as grandpa`
+例如： `father.father as grandFather`
 
 ### c-html
 类似于c-bind，但不会对其中的HTML标记做转义处理。且不能处理`<input>`、`<select>`等元素。
@@ -26,7 +26,7 @@ c-bind可以自动识别`<label>`、`<input>`、`<select>`的不同类型的DOM�
 用于绑定dom的style属性，其中可以支持一组绑定表达式。
 
 例如： 
-`<div c-style="backgound:bgColor;color:fontColor"></div>`
+`<div c-style="backgound:bgColor; color:fontColor"></div>`
 
 ### c-display
 用于控制一个dom是否可见。此指令相当于style.display的快捷方式。
@@ -35,6 +35,9 @@ c-bind可以自动识别`<label>`、`<input>`、`<select>`的不同类型的DOM�
 用于管理一组className是否要被添加到指定的dom节点上。
 
 例如： `<div c-class="hot:product.isHot; new:product.isNew"></div>` 表示如果product.isHot为true则添加hot到class中，如果product.isNew为true则添加new到class中。
+
+### c-classname
+用于直接设置dom的class属性。
 
 ### c-on*
 事件绑定。当一个指令是以c-on开始的，那么DoradoUI会把后面的字符串试做事件名并完成一个DOM事件的绑定
@@ -76,15 +79,12 @@ model.action({
 
 为c-watch定义数据路径时可以使用逗号隔开定义多个路径，也可以使用通配符来监听更多的属性或子对象。例如：`item.*`表示监听item对象中的每一个子属性的值变化；`item.**`表示监听item对象包括其中子对象中的所有属性值的变化。
 
-### c-widget
-TODO
-
 ### {{...}}
 {{...}}是一种嵌入式的绑定表达式，如果你了解AngularJS那么你一定不会陌生。它的用法大致如下：
 `<div>Hello {{name}}</div>`这表示{{name}}这段内容会与Model中的name建立双向的数据绑定，实时的体现数值的变化。
 
-这种用法看起来非常简洁且易于使用，但是Dorado并不推荐这种用法。这也正是我们把它放在最后来介绍的原因。
+这种用法看起来非常简洁且易于使用，但是我们并不推荐这种用法。这也正是我们把它放在最后来介绍的原因。
 
-{{name}}不同于c-开通的DOM指令，他是真正的HTML内容，会被浏览器识别和渲染。这意味着在Dorado开始渲染之前，浏览器会把抢先把{{name}}渲染到视图中，等到Dorado执行渲染时它得内容再被替换成最终的值。这不可能仅仅会影响到页面的渲染性能，更重要的是这可能会导致页面的展现效果变差，用户可能在那一瞬间看到网页的内容由{{name}}切换成最终值。
+{{name}}不同于c-开通的DOM指令，他是真正的HTML内容，会被浏览器识别和渲染。这意味着在Cola-UI开始渲染之前，浏览器会把抢先把{{name}}渲染到视图中，等到Cola-UI执行渲染时它得内容再被替换成最终的值。这不可能仅仅会影响到页面的渲染性能，更重要的是这可能会导致页面的展现效果变差，用户可能在那一瞬间看到网页的内容由{{name}}切换成最终值。
 
 {{...}}这种用法其实是完全可以被其他方法替代，例如上面的例子可以被替换成这种形式：`<div>Hello <span c-bind="name"></span></div>`。

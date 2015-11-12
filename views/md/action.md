@@ -24,7 +24,11 @@ model.action.showMessage = function() {
 
 Cola中包含一些系统级的Action供我们直接使用，我们称这些Action为隐式Action。目前已支持的隐式Action如下:
 
+* default(value): 将传入的值转换成逻辑值。
+* int(value): 将传入的值转换整数，如果转换失败则返回0。
+* float(value): 将传入的值转换浮点数，如果转换失败则返回0。
 * is(value): 将传入的值转换成逻辑值。
+* bool(value): 同is()。
 * not(value): 用于对传入的值进行逻辑非运算。
 * isEmpty(value)： 用于判断传入的值是否为空。此方法对于各种类型的value值有不完全相同的处理逻辑:
  * Array - 如果长度为0则认为是空。
