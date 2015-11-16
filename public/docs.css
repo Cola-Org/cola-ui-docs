@@ -207,7 +207,8 @@ body {
   }
 }
 .banner {
-  background: url("/images/home-bg.jpg") repeat center;
+  overflow: hidden;
+  position: relative;
 }
 .banner .masthead {
   position: absolute;
@@ -217,6 +218,9 @@ body {
   top: 0px;
   bottom: 0px;
   text-align: center;
+}
+.banner .masthead .box {
+  overflow: hidden;
 }
 .banner .masthead h1 {
   line-height: 2em;
@@ -228,4 +232,7 @@ body {
 }
 .banner .masthead h1 .tagline {
   font-size: 0.75em;
+}
+.home .banner {
+  max-height: 80%;
 }

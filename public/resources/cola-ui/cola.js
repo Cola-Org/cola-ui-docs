@@ -1,4 +1,4 @@
-/*! Cola UI - v1.0.0
+/*! Cola UI - 0.8.1
  * Copyright (c) 2002-2016 BSTEK Corp. All rights reserved.
  *
  * This file is dual-licensed under the AGPLv3 (http://www.gnu.org/licenses/agpl-3.0.html)
@@ -6,7 +6,8 @@
  *
  * If you are unsure which license is appropriate for your use, please contact the sales department
  * at http://www.bstek.com/contact.
- */(function() {
+ */
+(function() {
   var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRrenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _sortConvertor, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, compileConvertor, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     slice = [].slice,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -966,6 +967,27 @@
     }
   };
 
+  cola.resource({
+    "cola.date.monthNames": "January,February,March,April,May,June,July,August,September,October,November,December",
+    "cola.date.monthNamesShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sept,Oct,Nov,Dec",
+    "cola.date.dayNames": "Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday",
+    "cola.date.dayNamesShort": "S,M,T,W,T,F,S",
+    "cola.date.amDesignator": "AM",
+    "cola.date.pmDesignator": "PM",
+    "cola.validator.error.required": "不能为空。",
+    "cola.validator.error.length": "长度不在正确的范围内。",
+    "cola.validator.error.number": "数值不在正确的范围内。",
+    "cola.validator.error.email": "Email格式不正确。",
+    "cola.validator.error.url": "Url格式不正确。",
+    "cola.validator.error.regExp": "格式不正确。",
+    "cola.messageBox.info.title": "Information",
+    "cola.messageBox.warning.title": "Warning",
+    "cola.messageBox.error.title": "Error",
+    "cola.messageBox.question.title": "Confirm",
+    "cola.message.approve": "Ok",
+    "cola.message.deny": "Cancel"
+  });
+
   _toJSON = function(data) {
     var p, rawData, v;
     if (data) {
@@ -999,7 +1021,7 @@
       if (typeof data === "object") {
         if (data instanceof cola.Entity || data instanceof cola.EntityList) {
           data = data.toJSON();
-        } else {
+        } else if (!(data instanceof FormData)) {
           rawData = data;
           data = {};
           for (p in rawData) {
@@ -5625,25 +5647,27 @@
   cola.model = function(name, model) {
     if (arguments.length === 2) {
       if (model) {
-        if (cola.model[name]) {
+        if (cola.model.models[name]) {
           throw new cola.Exception("Duplicated model name \"" + name + "\".");
         }
-        cola.model[name] = model;
+        cola.model.models[name] = model;
       } else {
         model = cola.removeModel(name);
       }
       return model;
     } else {
-      return cola.model[name];
+      return cola.model.models[name];
     }
   };
+
+  cola.model.models = {};
 
   cola.model.defaultActions = {};
 
   cola.removeModel = function(name) {
     var model;
-    model = cola.model[name];
-    delete cola.model[name];
+    model = cola.model.models[name];
+    delete cola.model.models[name];
     return model;
   };
 
@@ -7174,6 +7198,18 @@
     }
   };
 
+  cola.model.defaultActions["default"] = function(value, defaultValue) {
+    return value || defaultValue;
+  };
+
+  cola.model.defaultActions["int"] = function(value) {
+    return parseInt(value, 10) || 0;
+  };
+
+  cola.model.defaultActions["float"] = function(value) {
+    return parseFloat(value) || 0;
+  };
+
   cola.model.defaultActions.is = function(value) {
     return !!value;
   };
@@ -7775,6 +7811,8 @@
     if (path && path.charCodeAt(0) === 35) {
       routerMode = "hash";
       path = path.substring(1);
+    } else {
+      routerMode = cola.setting("routerMode") || "hash";
     }
     if (routerMode === "hash") {
       if (path.charCodeAt(0) !== 47) {
@@ -7790,6 +7828,7 @@
       } else {
         realPath = path;
       }
+      realPath += location.search;
       if (replace) {
         window.history.replaceState(null, null, realPath);
       } else {
@@ -7964,6 +8003,9 @@
 
   _onHashChange = function() {
     var path, router;
+    if ((cola.setting("routerMode") || "hash") !== "hash") {
+      return;
+    }
     path = _getHashPath();
     if (path === currentRoutePath) {
       return;
@@ -7977,6 +8019,9 @@
 
   _onStateChange = function(path) {
     var i, router;
+    if (cola.setting("routerMode") !== "state") {
+      return;
+    }
     path = trimPath(path);
     i = path.indexOf("#");
     if (i > -1) {
@@ -8015,10 +8060,18 @@
         }
         return false;
       });
-      path = _getHashPath() || trimPath(cola.setting("defaultRouterPath"));
-      router = _findRouter(path);
-      if (router) {
-        cola.setRoutePath(path, true);
+      path = _getHashPath();
+      if (path) {
+        router = _findRouter(path);
+        if (router) {
+          _switchRouter(router, path);
+        }
+      } else {
+        path = trimPath(cola.setting("defaultRouterPath"));
+        router = _findRouter(path);
+        if (router) {
+          cola.setRoutePath(path, true);
+        }
       }
     }, 0);
   });
@@ -9076,6 +9129,8 @@
     if (!template) {
       return;
     }
+    oldScope = cola.currentScope;
+    model = model || oldScope;
     if (template.nodeType) {
       dom = template;
     } else if (typeof template === "string") {
@@ -9089,7 +9144,6 @@
         child = next;
       }
     } else {
-      oldScope = cola.currentScope;
       cola.currentScope = model;
       try {
         if (context == null) {
@@ -9511,7 +9565,7 @@
 
 }).call(this);
 
-/*! Cola UI - v1.0.0
+/*! Cola UI - 0.8.1
  * Copyright (c) 2002-2016 BSTEK Corp. All rights reserved.
  *
  * This file is dual-licensed under the AGPLv3 (http://www.gnu.org/licenses/agpl-3.0.html)
@@ -9519,8 +9573,9 @@
  *
  * If you are unsure which license is appropriate for your use, please contact the sales department
  * at http://www.bstek.com/contact.
- */(function() {
-  var ACTIVE_PINCH_REG, ACTIVE_ROTATE_REG, ALIAS_REGEXP, BLANK_PATH, Column, ContentColumn, DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DataColumn, DropBox, GroupColumn, LIST_SIZE_PREFIXS, NestedListBind, NestedListNode, PAN_VERTICAL_EVENTS, SAFE_PULL_EFFECT, SAFE_SLIDE_EFFECT, SLIDE_ANIMATION_SPEED, SWIPE_VERTICAL_EVENTS, SelectColumn, TEMP_TEMPLATE, TreeNode, TreeNodeBind, _columnsSetter, _createGroupArray, _destroyRenderableElement, _findWidgetConfig, _getEntityId, _removeTranslateStyle, containerEmptyChildren, currentDate, currentHours, currentMinutes, currentMonth, currentSeconds, currentYear, dateTimeSlotConfigs, dateTypeConfig, dropdownDialogMargin, emptyRadioGroupItems, now, slotAttributeGetter, slotAttributeSetter,
+ */
+(function() {
+  var ACTIVE_PINCH_REG, ACTIVE_ROTATE_REG, ALIAS_REGEXP, BLANK_PATH, Column, ContentColumn, DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DataColumn, DropBox, GroupColumn, LIST_SIZE_PREFIXS, NestedListBind, NestedListNode, PAN_VERTICAL_EVENTS, SAFE_PULL_EFFECT, SAFE_SLIDE_EFFECT, SLIDE_ANIMATION_SPEED, SWIPE_VERTICAL_EVENTS, SelectColumn, TEMP_TEMPLATE, TreeNode, TreeNodeBind, _columnsSetter, _createGroupArray, _destroyRenderableElement, _findWidgetConfig, _getEntityId, _removeTranslateStyle, containerEmptyChildren, currentDate, currentHours, currentMinutes, currentMonth, currentSeconds, currentYear, dateTimeSlotConfigs, dateTypeConfig, dropdownDialogMargin, emptyRadioGroupItems, isIE11, now, slotAttributeGetter, slotAttributeSetter,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
@@ -15659,7 +15714,6 @@
         "enum": ["left", "right", "top", "bottom"]
       },
       size: {
-        type: "number",
         defaultValue: 200,
         refreshDom: true
       },
@@ -16116,8 +16170,6 @@
     Tab.CLASS_NAME = "c-tab";
 
     Tab.TAG_NAME = "div";
-
-    Tab.CHILDREN_TYPE_NAMESPACE = "tab";
 
     Tab.ATTRIBUTES = {
       direction: {
@@ -16868,6 +16920,8 @@
 
   DEFAULT_TIME_INPUT_FORMAT = "HHmmss";
 
+  isIE11 = /Trident\/7\./.test(navigator.userAgent);
+
   cola.AbstractInput = (function(superClass) {
     extend(AbstractInput, superClass);
 
@@ -17335,11 +17389,11 @@
         };
       })(this)).on("blur", (function(_this) {
         return function() {
-          var entity, propertyDef;
+          var entity, propertyDef, ref;
           _this._inputFocused = false;
           _this._refreshInputValue(_this._value);
           _this.fire("blur", _this);
-          if ((_this._value == null) || _this._value === "" && _this._bindInfo.isWriteable) {
+          if ((_this._value == null) || _this._value === "" && ((ref = _this._bindInfo) != null ? ref.isWriteable : void 0)) {
             propertyDef = _this._getBindingProperty();
             if ((propertyDef != null ? propertyDef._required : void 0) && propertyDef._validators) {
               entity = _this._scope.get(_this._bindInfo.entityPath);
@@ -17377,7 +17431,12 @@
             altlKey: event.altlKey,
             event: event
           };
-          return _this.fire("keyPress", _this, arg);
+          if (_this.fire("keyPress", _this, arg) === false) {
+            return;
+          }
+          if (event.keyCode === 13 && isIE11) {
+            return doPost();
+          }
         };
       })(this));
     };
@@ -18432,7 +18491,7 @@
         defaultValue: true
       },
       openMode: {
-        "enum": ["auto", "drop", "dialog", "layer", "half-layer"],
+        "enum": ["auto", "drop", "dialog", "layer", "sidebar"],
         defaultValue: "auto"
       },
       opened: {
@@ -18676,6 +18735,10 @@
           config.ui = config.ui + " " + this._ui;
           container = new DropBox(config);
         } else if (openMode === "layer") {
+          if (openMode === "Sidebar") {
+            config.animation = "slide up";
+            config.height = "50%";
+          }
           ctx = {};
           titleContent = cola.xRender({
             tagName: "div",
@@ -18699,6 +18762,11 @@
           }, this._scope, ctx);
           $fly(config.dom.firstChild.firstChild).before(titleContent);
           container = new cola.Layer(config);
+        } else if (openMode === "sidebar") {
+          config.direction = "bottom";
+          config.size = document.body.clientHeight / 2;
+          $fly(config.dom.firstChild.firstChild).before(titleContent);
+          container = new cola.Sidebar(config);
         } else if (openMode === "dialog") {
           config.modalOpacity = 0.05;
           config.closeable = false;
@@ -18733,6 +18801,8 @@
         if (container instanceof DropBox) {
           container.show(this, doCallback);
         } else if (container instanceof cola.Layer) {
+          container.show(doCallback);
+        } else if (container instanceof cola.Sidebar) {
           container.show(doCallback);
         } else if (container instanceof cola.Dialog) {
           $flexContent = $(this._doms.flexContent);
@@ -18923,11 +18993,12 @@
       },
       "filterable-list": {
         tagName: "div",
+        "class": "v-box",
         style: "height:100%",
         content: [
           {
             tagName: "div",
-            "class": "filter-container",
+            "class": "box filter-container",
             content: {
               tagName: "div",
               contextKey: "filterInput",
@@ -18936,12 +19007,12 @@
           }, {
             tagName: "div",
             contextKey: "flexContent",
-            "class": "list-container",
+            "class": "flex-box list-container",
+            style: "min-height:2em",
             content: {
               tagName: "div",
               contextKey: "list",
-              "c-widget": "listView",
-              style: "height:100%;overflow:auto"
+              "c-widget": "listView"
             }
           }
         ]
@@ -23066,28 +23137,27 @@
         pullComplete: (function(_this) {
           return function(evt, pullPane, pullState, done) {
             var collection;
-            if (_this.getListeners("pullComplete")) {
-              return _this.fire("pullComplete", _this, {
-                event: evt,
-                pullPane: pullPane,
-                direction: pullState,
-                done: done
-              });
-            } else {
-              if (pullState === "down") {
-                collection = _this._realOriginItems || _this._realItems;
-                if (collection instanceof cola.EntityList) {
-                  collection.flush(done);
-                } else {
-                  done();
-                }
-              } else if (pullState === "up") {
-                collection = _this._realItems;
-                if (collection instanceof cola.EntityList) {
-                  collection.nextPage(done);
-                } else {
-                  done();
-                }
+            if (_this.fire("pullComplete", _this, {
+              event: evt,
+              pullPane: pullPane,
+              direction: pullState,
+              done: done
+            }) === false) {
+              return;
+            }
+            if (pullState === "down") {
+              collection = _this._realOriginItems || _this._realItems;
+              if (collection instanceof cola.EntityList) {
+                collection.flush(done);
+              } else {
+                done();
+              }
+            } else if (pullState === "up") {
+              collection = _this._realItems;
+              if (collection instanceof cola.EntityList) {
+                collection.nextPage(done);
+              } else {
+                done();
               }
             }
           };
@@ -24072,7 +24142,13 @@
       itemScope = new cola.ItemScope(this._itemsScope, this._alias);
       this._templateContext.defaultPath = this._alias;
       if (leftSlidePaneTemplate) {
-        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%");
+        $fly(leftSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%").click((function(_this) {
+          return function() {
+            if (_this._itemSlideState === "waiting") {
+              _this.hideItemSlidePane();
+            }
+          };
+        })(this));
         cola.xRender(leftSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(leftSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -24080,7 +24156,13 @@
         cola._ignoreNodeRemoved = false;
       }
       if (rightSlidePaneTemplate) {
-        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("left", "100%");
+        $fly(rightSlidePaneTemplate).addClass("item-slide-pane protected").css("right", "100%").click((function(_this) {
+          return function() {
+            if (_this._itemSlideState === "waiting") {
+              _this.hideItemSlidePane();
+            }
+          };
+        })(this));
         cola.xRender(rightSlidePaneTemplate, itemScope, this._templateContext);
         cola.util.userData(rightSlidePaneTemplate, "scope", itemScope);
         cola._ignoreNodeRemoved = true;
@@ -24158,7 +24240,7 @@
               slidePane: slidePane
             });
           }
-          if (direction === "right" && this._maxDistanceAdjust === void 0 && this._indexBar) {
+          if (direction === "left" && this._maxDistanceAdjust === void 0 && this._indexBar) {
             indexBar = this._doms.indexBar;
             if (indexBar) {
               this._maxDistanceAdjust = indexBar.offsetWidth + parseInt($fly(indexBar).css("right"));
@@ -24167,11 +24249,12 @@
             }
           }
           $fly(slidePane).css({
+            height: itemDom.offsetHeight,
             top: itemDom.offsetTop,
             "pointer-events": "none"
           }).show();
           this._maxSlideDistance = slidePane.offsetWidth;
-          if (direction === "right") {
+          if (direction === "left") {
             this._maxSlideDistance += this._maxDistanceAdjust || 0;
           }
         } else {
@@ -24216,12 +24299,12 @@
       }
       this._touchMoveSpeed = distanceX / (timestamp - this._touchLastTimstamp);
       this._touchLastTimstamp = timestamp;
-      if (distanceX < 0) {
+      if (distanceX > 0) {
         direction = "right";
-        factor = -1;
+        factor = 1;
       } else {
         direction = "left";
-        factor = 1;
+        factor = -1;
       }
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
@@ -24297,7 +24380,7 @@
       } else {
         slideDom = itemDom;
       }
-      if (direction === "right") {
+      if (direction === "left") {
         if (!SAFE_SLIDE_EFFECT) {
           $(slideDom).transit({
             x: 0,
@@ -24328,7 +24411,7 @@
         opacity: 0.0001,
         duration: 0,
         closable: false
-      }).dimmer("show").find(">.ui.dimmer").on("touchstart", (function(_this) {
+      }).dimmer("show").find(">.ui.dimmer").on("touchstart.hide", (function(_this) {
         return function() {
           if (_this._itemSlideState === "waiting") {
             _this.hideItemSlidePane();
@@ -24337,7 +24420,7 @@
       })(this));
       $slidePane = $(slidePane);
       if (openAnimate || SAFE_SLIDE_EFFECT) {
-        factor = direction === "right" ? -1 : 1;
+        factor = direction === "left" ? -1 : 1;
         $slidePane.show().transit({
           x: this._maxSlideDistance * factor,
           duration: SLIDE_ANIMATION_SPEED,
@@ -24349,6 +24432,7 @@
           })(this)
         });
       } else {
+        $slidePane.css("pointer-events", "");
         this._onItemSlidePaneShow(direction, slidePane, itemDom);
       }
     };
@@ -24359,7 +24443,7 @@
       itemDom = this._slideItemDom;
       slidePane = this._itemSlidePane;
       direction = this._itemSlideDirection;
-      if (direction === "left") {
+      if (direction === "right") {
         if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
           slideDom = itemDom.firstChild;
         } else {
@@ -25409,7 +25493,7 @@
           ]
         }
       },
-      "node-normal": {
+      "node": {
         tagName: "span",
         "c-bind": "$default"
       }
@@ -25487,7 +25571,7 @@
       itemDom._itemType = itemType;
       nodeDom = itemDom.firstChild;
       if (nodeDom && cola.util.hasClass(nodeDom, "node")) {
-        template = this._getTemplate("node-" + itemType, "node-normal");
+        template = this._getTemplate("node-" + itemType, "node");
         if (template) {
           if (template instanceof Array) {
             span = document.createElement("span");

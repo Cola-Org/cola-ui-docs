@@ -9,14 +9,14 @@ module.exports = (grunt) ->
 		copy:
 			cola:
 				expand: true
-				cwd: "../cola-ui"
-				src: ["dest/dev/**"]
-				dest: "public/cola-ui"
-			includeJs:
-				expand: true
-				cwd: "../cola-ui/examples"
-				src: ["include-all.js"]
-				dest: "public"
+				cwd: "../cola-ui/dist"
+				src: ["**"]
+				dest: "public/resources/cola-ui"
+#			includeJs:
+#				expand: true
+#				cwd: "../cola-ui/examples"
+#				src: ["include-all.js"]
+#				dest: "public"
 		coffee:
 			docs:
 				options:
@@ -62,6 +62,6 @@ module.exports = (grunt) ->
 	grunt.loadNpmTasks "grunt-contrib-watch"
 	grunt.loadNpmTasks 'grunt-text-replace'
 
-	grunt.registerTask "default", ["clean:build", "copy:cola", "copy:includeJs", "coffee", "less"]
+	grunt.registerTask "default", ["clean:build", "copy:cola", "coffee", "less"]
 	grunt.registerTask "compile", ["coffee", "less"]
 	grunt.registerTask "w", ["watch"]
