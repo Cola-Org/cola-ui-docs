@@ -60,7 +60,7 @@
 	Sort: <select c-bind="sortParam" c-options="sortOptions"></select>
 </p>
 <ul>
-	<li c-repeat="todo in todos | filter:filterParam | sort:sortParam">
+	<li c-repeat="todo in sort(filter(todos,filterParam),sortParam)">
 		<input type="checkbox" c-bind="todo.done">
 		<span c-bind="todo.title"></span>
 		<button c-onclick="delete(todo)">Delete</button>
@@ -77,14 +77,14 @@
 
 本页面最核心的部分是待办事项的列表，这个列表在HTML中是这样定义的：
 ```
-<li c-repeat="todo in todos | filter:filterParam | sort:sortParam">
+<li c-repeat="todo in sort(filter(todos,filterParam),sortParam)">
 	<input type="checkbox" c-bind="todo.done">
 	<span c-bind="todo.title"></span>
 	<button c-onclick="delete(todo)">Delete</button>
 </li>
 ```
 
-c-repeat指令的第一段`todo in todos`我们应该是非常熟悉的，后面的`filter:filterParam | sort:sortParam`是两个转换器，
+c-repeat指令的第一段`todo in sort(filter(todos,filterParam),sortParam)`里包含了对两个内置Action的调用，
 用于完成对代办事项列表的过滤和排序。其中的filterParam和sortParam并不是两个固定的值，而是两个用于引用Model中数据的数据路径。
 一开始我们并没有给Model中的filterParam和sortParam这两个数据项赋值，根据filter和sort这样两种转换器的定义，不传递参数就不会产生效果。
 因此，我们一开始看到的列表是所有待办事项的初始顺序。
@@ -100,7 +100,7 @@ c-repeat指令的第一段`todo in todos`我们应该是非常熟悉的，后面
 这里有一个`<input>`和一个`<select>`分别绑定到了之前提到的filterParam和sortParam这两个数据项。其中`<select>`的备选项的信息由来自于另一个名为sortOptions的数据项,
 通过c-options指令完成绑定。
 
-以绑定到filterParam的`<input>`为例，当用户通过`<input>`改变了filterParam数据项的值时，由于列表中`c-repeat="todo in todos | filter:filterParam | sort:sortParam"`的声明是涉及filterParam数据项的，
+以绑定到filterParam的`<input>`为例，当用户通过`<input>`改变了filterParam数据项的值时，由于列表中`c-repeat="todo in sort(filter(todos,filterParam),sortParam)"`的声明是涉及filterParam数据项的，
 因此Cola会重新计算执行c-repeat指令，刷新列表。此时由于filter的条件已发生改变，因此c-repeat重新计算的结果将是跟filterParam过滤后的结果。
 这一数据变化最终会自动反应到代办事项的列表中。因此，我们在界面中看到的效果就是，当我们在Filter:后的输入框中输入内容时，下面的代办事项的列表会自动根据我们的录入内容进行数据过滤。
 
@@ -123,7 +123,7 @@ model.action({
 
 即直接删除传入的待办事项。
 
-当一个待办事项被删除后，`c-repeat="todo in todos...`会自动感知到数据的变化，并重新执行迭代，刷新列表。因此该待办事项对应的DOM元素也会自动被移除。
+当一个待办事项被删除后，`c-repeat="todo in sort(filter(todos,filterParam),sortParam)"`会自动感知到数据的变化，并重新执行迭代，刷新列表。因此该待办事项对应的DOM元素也会自动被移除。
 
 列表下方的统计是这样的定义的：
 ```
