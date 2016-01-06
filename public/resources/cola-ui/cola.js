@@ -8,7 +8,7 @@
  * at http://www.bstek.com/contact.
  */
 (function() {
-  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRenderDomTemplate, _evalDataPath, _findRouter, _getData, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, getEntityPath, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
+  var ALIAS_REGEXP, IGNORE_NODES, LinkedList, ON_NODE_REMOVED_KEY, Page, TYPE_SEVERITY, USER_DATA_KEY, VALIDATION_ERROR, VALIDATION_INFO, VALIDATION_NONE, VALIDATION_WARN, _$, _DOMNodeRemovedListener, _Entity, _EntityList, _RESERVE_NAMES, _compileResourceUrl, _cssCache, _destroyDomBinding, _doRenderDomTemplate, _evalDataPath, _findRouter, _getData, _getEntityPath, _getHashPath, _jsCache, _loadCss, _loadHtml, _loadJs, _matchValue, _onHashChange, _onStateChange, _removeNodeData, _setValue, _switchRouter, _toJSON, _unloadCss, alertException, appendChild, browser, buildAliasFeature, buildAttrFeature, buildBindFeature, buildClassFeature, buildContent, buildEvent, buildRepeatFeature, buildResourceFeature, buildStyleFeature, buildWatchFeature, cola, colaEventRegistry, createContentPart, createNodeForAppend, currentRoutePath, currentRouter, defaultDataTypes, definedSetting, digestExpression, doMergeDefinitions, doms, exceptionStack, key, oldIE, originalAjax, os, preprocessClass, resourceStore, routerRegistry, setAttrs, setting, splitExpression, sprintf, tagSplitter, trimPath, typeRegistry, uniqueIdSeed, value, xCreate,
     slice = [].slice,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
@@ -1547,8 +1547,9 @@
     Element.prototype.fire = function(eventName, self, arg) {
       var argsMode, l, len1, len2, listener, listenerRegistry, listeners, o, onceListeners, result, retValue;
       if (!this._eventRegistry) {
-        return true;
+        return;
       }
+      result = void 0;
       listenerRegistry = this._eventRegistry[eventName];
       if (listenerRegistry) {
         listeners = listenerRegistry.listeners;
@@ -1643,7 +1644,7 @@
         if (ele._scope && !ele._model) {
           scope = ele._scope;
           while (scope) {
-            if (scope instanceof cola.Model) {
+            if (scope instanceof cola.Scope) {
               ele._model = scope;
               break;
             }
@@ -1673,9 +1674,8 @@
       }
       return this;
     };
-    elements.off = function(arg1) {
-      var element, len2, o, string;
-      string = arg1.eventName;
+    elements.off = function(eventName) {
+      var element, len2, o;
       for (o = 0, len2 = elements.length; o < len2; o++) {
         element = elements[o];
         element.off(eventName);
@@ -3323,7 +3323,7 @@
 
   defaultDataTypes["number"] = defaultDataTypes["float"];
 
-  getEntityPath = function(markNoncurrent) {
+  _getEntityPath = function(markNoncurrent) {
     var lastEntity, parent, part, path, self;
     if (!markNoncurrent && this._pathCache) {
       return this._pathCache;
@@ -3358,6 +3358,261 @@
       this._pathCache = path;
     }
     return path;
+  };
+
+  _matchValue = function(value, propFilter) {
+    if (propFilter.strict) {
+      if (!propFilter.caseSensitive && typeof propFilter.value === "string") {
+        return (value + "").toLowerCase() === propFilter.value;
+      } else {
+        return value === propFilter.value;
+      }
+    } else {
+      if (!propFilter.caseSensitive) {
+        return (value + "").toLowerCase().indexOf(propFilter.value) > -1;
+      } else {
+        return (value + "").indexOf(propFilter.value) > -1;
+      }
+    }
+  };
+
+  cola._filterCollection = function(collection, criteria, caseSensitive, strict) {
+    var filtered, prop, propFilter;
+    if (!(collection && criteria)) {
+      return collection;
+    }
+    if (cola.util.isSimpleValue(criteria)) {
+      if (!caseSensitive) {
+        criteria = (criteria + "").toLowerCase();
+      }
+      criteria = {
+        "$": {
+          value: criteria,
+          caseSensitive: caseSensitive,
+          strict: strict
+        }
+      };
+    }
+    if (typeof criteria === "object") {
+      for (prop in criteria) {
+        propFilter = criteria[prop];
+        if (typeof propFilter === "string") {
+          criteria[prop] = {
+            value: propFilter.toLowerCase(),
+            caseSensitive: caseSensitive,
+            strict: strict
+          };
+        } else {
+          if (propFilter.caseSensitive == null) {
+            propFilter.caseSensitive = caseSensitive;
+          }
+          if (!propFilter.caseSensitive && typeof propFilter.value === "string") {
+            propFilter.value = propFilter.value.toLowerCase();
+          }
+          if (propFilter.strict == null) {
+            propFilter.strict = strict;
+          }
+          if (!propFilter.strict) {
+            propFilter.value = propFilter.value ? propFilter.value + "" : "";
+          }
+        }
+      }
+      filtered = [];
+      filtered.$origin = collection.$origin || collection;
+      cola.each(collection, function(item) {
+        var data, matches, p, v;
+        matches = false;
+        if (cola.util.isSimpleValue(item)) {
+          if (criteria.$) {
+            matches = _matchValue(v, criteria.$);
+          }
+        } else {
+          for (prop in criteria) {
+            propFilter = criteria[prop];
+            if (prop === "$") {
+              if (item instanceof cola.Entity) {
+                data = item._data;
+              } else {
+                data = item;
+              }
+              for (p in data) {
+                v = data[p];
+                if (_matchValue(v, propFilter)) {
+                  matches = true;
+                  break;
+                }
+              }
+              if (matches) {
+                break;
+              }
+            } else if (item instanceof cola.Entity) {
+              if (_matchValue(item.get(prop), propFilter)) {
+                matches = true;
+                break;
+              }
+            } else {
+              if (_matchValue(item[prop], propFilter)) {
+                matches = true;
+                break;
+              }
+            }
+          }
+        }
+        if (matches) {
+          filtered.push(item);
+        }
+      });
+      return filtered;
+    } else if (typeof criteria === "function") {
+      filtered = [];
+      filtered.$origin = collection.$origin || collection;
+      cola.each(collection, function(item) {
+        if (criteria(item, caseSensitive, strict)) {
+          filtered.push(item);
+        }
+      });
+      return filtered;
+    } else {
+      return collection;
+    }
+  };
+
+  cola._sortCollection = function(collection, comparator, caseSensitive) {
+    var c, comparatorFunc, comparatorProps, l, len1, origin, part, prop, propDesc, ref;
+    if (!collection) {
+      return null;
+    }
+    if ((comparator == null) || comparator === "$none") {
+      return collection;
+    }
+    if (collection instanceof cola.EntityList) {
+      origin = collection;
+      collection = collection.toArray();
+      collection.$origin = origin;
+    }
+    if (comparator) {
+      if (comparator === "$reverse") {
+        return collection.reverse();
+      } else if (typeof comparator === "string") {
+        comparatorProps = [];
+        ref = comparator.split(",");
+        for (l = 0, len1 = ref.length; l < len1; l++) {
+          part = ref[l];
+          c = part.charCodeAt(0);
+          propDesc = false;
+          if (c === 43) {
+            prop = part.substring(1);
+          } else if (c === 45) {
+            prop = part.substring(1);
+            propDesc = true;
+          } else {
+            prop = part;
+          }
+          comparatorProps.push({
+            prop: prop,
+            desc: propDesc
+          });
+        }
+        comparator = function(item1, item2) {
+          var comparatorProp, len2, o, result, value1, value2;
+          for (o = 0, len2 = comparatorProps.length; o < len2; o++) {
+            comparatorProp = comparatorProps[o];
+            value1 = null;
+            value2 = null;
+            prop = comparatorProp.prop;
+            if (prop) {
+              if (prop === "$random") {
+                return Math.random() * 2 - 1;
+              } else {
+                if (item1 instanceof cola.Entity) {
+                  value1 = item1.get(prop);
+                } else if (cola.util.isSimpleValue(item1)) {
+                  value1 = item1;
+                } else {
+                  value1 = item1[prop];
+                }
+                if (!caseSensitive && typeof value1 === "string") {
+                  value1 = value1.toLowerCase();
+                }
+                if (item2 instanceof cola.Entity) {
+                  value2 = item2.get(prop);
+                } else if (cola.util.isSimpleValue(item2)) {
+                  value2 = item2;
+                } else {
+                  value2 = item2[prop];
+                }
+                if (!caseSensitive && typeof value2 === "string") {
+                  value2 = value2.toLowerCase();
+                }
+                result = 0;
+                if (value1 == null) {
+                  result = -1;
+                } else if (value2 == null) {
+                  result = 1;
+                } else if (value1 > value2) {
+                  result = 1;
+                } else if (value1 < value2) {
+                  result = -1;
+                }
+                if (result !== 0) {
+                  if (comparatorProp.desc) {
+                    return 0 - result;
+                  } else {
+                    return result;
+                  }
+                }
+              }
+            } else {
+              result = 0;
+              if (item1 == null) {
+                result = -1;
+              } else if (item2 == null) {
+                result = 1;
+              } else if (item1 > item2) {
+                result = 1;
+              } else if (item1 < item2) {
+                result = -1;
+              }
+              if (result !== 0) {
+                if (comparatorProp.desc) {
+                  return 0 - result;
+                } else {
+                  return result;
+                }
+              }
+            }
+          }
+          return 0;
+        };
+      }
+    } else {
+      comparator = function(item1, item2) {
+        var result;
+        result = 0;
+        if (!caseSensitive) {
+          if (typeof item1 === "string") {
+            item1 = item1.toLowerCase();
+          }
+          if (typeof item2 === "string") {
+            item2 = item2.toLowerCase();
+          }
+        }
+        if (item1 == null) {
+          result = -1;
+        } else if (item2 == null) {
+          result = 1;
+        } else if (item1 > item2) {
+          result = 1;
+        } else if (item1 < item2) {
+          result = -1;
+        }
+        return result;
+      };
+    }
+    comparatorFunc = function(item1, item2) {
+      return comparator(item1, item2);
+    };
+    return collection.sort(comparatorFunc);
   };
 
   cola.Entity = (function() {
@@ -3411,7 +3666,7 @@
     Entity.prototype._get = function(prop, loadMode, callback, context) {
       var callbackProcessed, loadData, property, provider, providerInvoker, ref;
       loadData = function(provider) {
-        var providerInvoker, retValue;
+        var notifyArg, providerInvoker, retValue;
         retValue = void 0;
         providerInvoker = provider.getInvoker(this);
         if (loadMode === "sync") {
@@ -3429,9 +3684,19 @@
             context.providerInvokers.push(providerInvoker);
           }
           this._data[prop] = providerInvoker;
+          notifyArg = {
+            data: this,
+            property: prop
+          };
+          if (loadMode === "async") {
+            this._notify(cola.constants.MESSAGE_LOADING_START, notifyArg);
+          }
           providerInvoker.invokeAsync({
             complete: (function(_this) {
               return function(success, result) {
+                if (loadMode === "async") {
+                  _this._notify(cola.constants.MESSAGE_LOADING_END, notifyArg);
+                }
                 if (_this._data[prop] !== providerInvoker) {
                   success = false;
                 }
@@ -3833,10 +4098,10 @@
       return dataType;
     };
 
-    Entity.prototype.getPath = getEntityPath;
+    Entity.prototype.getPath = _getEntityPath;
 
     Entity.prototype.flush = function(property, loadMode) {
-      var callback, notifyArg, propertyDef;
+      var callback, propertyDef;
       if (loadMode == null) {
         loadMode = "async";
       }
@@ -3849,20 +4114,10 @@
         callback = loadMode;
         loadMode = "async";
       }
-      notifyArg = {
-        data: this,
-        property: property
-      };
-      if (loadMode === "async") {
-        this._notify(cola.constants.MESSAGE_LOADING_START, notifyArg);
-      }
       return this._get(property, loadMode, {
         complete: (function(_this) {
           return function(success, result) {
             cola.callback(callback, success, result);
-            if (loadMode === "async") {
-              return _this._notify(cola.constants.MESSAGE_LOADING_END, notifyArg);
-            }
           };
         })(this)
       });
@@ -4917,7 +5172,7 @@
       return this;
     };
 
-    EntityList.prototype.getPath = getEntityPath;
+    EntityList.prototype.getPath = _getEntityPath;
 
     EntityList.prototype.toJSON = function(options) {
       var array, deleted, next, page;
@@ -4960,6 +5215,102 @@
         }
       }
       return array;
+    };
+
+    EntityList.prototype.filter = function(criteria) {
+      return cola._filterCollection(this, criteria);
+    };
+
+    EntityList.prototype.where = function(criteria) {
+      return cola._filterCollection(this, criteria, true, true);
+    };
+
+    EntityList.prototype.find = function(criteria) {
+      var filtered, prop, propFilter, result;
+      if (!criteria) {
+        return null;
+      }
+      if (cola.util.isSimpleValue(criteria)) {
+        criteria = {
+          "$": {
+            value: criteria,
+            caseSensitive: true,
+            strict: true
+          }
+        };
+      }
+      result = null;
+      if (typeof criteria === "object") {
+        for (prop in criteria) {
+          propFilter = criteria[prop];
+          if (typeof propFilter === "string") {
+            criteria[prop] = {
+              value: propFilter.toLowerCase(),
+              caseSensitive: true,
+              strict: true
+            };
+          } else {
+            if (propFilter.caseSensitive == null) {
+              propFilter.caseSensitive = true;
+            }
+            if (propFilter.strict == null) {
+              propFilter.strict = true;
+            }
+          }
+        }
+        cola.each(this, function(item) {
+          var data, matches, p, v;
+          matches = false;
+          if (cola.util.isSimpleValue(item)) {
+            if (criteria.$) {
+              matches = _matchValue(v, criteria.$);
+            }
+          } else {
+            for (prop in criteria) {
+              propFilter = criteria[prop];
+              if (prop === "$") {
+                if (item instanceof cola.Entity) {
+                  data = item._data;
+                } else {
+                  data = item;
+                }
+                for (p in data) {
+                  v = data[p];
+                  if (_matchValue(v, propFilter)) {
+                    matches = true;
+                    break;
+                  }
+                }
+                if (matches) {
+                  break;
+                }
+              } else if (item instanceof cola.Entity) {
+                if (_matchValue(item.get(prop), propFilter)) {
+                  matches = true;
+                  break;
+                }
+              } else {
+                if (_matchValue(item[prop], propFilter)) {
+                  matches = true;
+                  break;
+                }
+              }
+            }
+          }
+          if (matches) {
+            result = item;
+          }
+        });
+      } else if (typeof criteria === "function") {
+        filtered = [];
+        filtered.$origin = collection.$origin || collection;
+        cola.each(collection, function(item) {
+          if (criteria(item)) {
+            result = item;
+          }
+        });
+      }
+      return result;
     };
 
     return EntityList;
@@ -5249,23 +5600,23 @@
     return model;
   };
 
-  cola.AbstractModel = (function() {
-    function AbstractModel() {}
+  cola.Scope = (function() {
+    function Scope() {}
 
-    AbstractModel.prototype.get = function(path, loadMode, context) {
+    Scope.prototype.get = function(path, loadMode, context) {
       return this.data.get(path, loadMode, context);
     };
 
-    AbstractModel.prototype.set = function(path, data, context) {
+    Scope.prototype.set = function(path, data, context) {
       this.data.set(path, data, context);
       return this;
     };
 
-    AbstractModel.prototype.describe = function(property, config) {
+    Scope.prototype.describe = function(property, config) {
       return this.data.describe(property, config);
     };
 
-    AbstractModel.prototype.dataType = function(name) {
+    Scope.prototype.dataType = function(name) {
       var dataType, l, len1;
       if (typeof name === "string") {
         dataType = this.data.definition(name);
@@ -5291,31 +5642,31 @@
       }
     };
 
-    AbstractModel.prototype.definition = function(name) {
+    Scope.prototype.definition = function(name) {
       return this.data.definition(name);
     };
 
-    AbstractModel.prototype.flush = function(name, loadMode) {
+    Scope.prototype.flush = function(name, loadMode) {
       this.data.flush(name, loadMode);
       return this;
     };
 
-    AbstractModel.prototype.disableObservers = function() {
+    Scope.prototype.disableObservers = function() {
       this.data.disableObservers();
       return this;
     };
 
-    AbstractModel.prototype.enableObservers = function() {
+    Scope.prototype.enableObservers = function() {
       this.data.enableObservers();
       return this;
     };
 
-    AbstractModel.prototype.notifyObservers = function() {
+    Scope.prototype.notifyObservers = function() {
       this.data.notifyObservers();
       return this;
     };
 
-    AbstractModel.prototype.watch = function(path, fn) {
+    Scope.prototype.watch = function(path, fn) {
       var l, len1, p, processor;
       processor = {
         _processMessage: function(bindingPath, path, type, arg) {
@@ -5333,7 +5684,7 @@
       return this;
     };
 
-    return AbstractModel;
+    return Scope;
 
   })();
 
@@ -5342,7 +5693,7 @@
 
     function Model(name, parent) {
       var parentName;
-      if (name instanceof cola.Model) {
+      if (name instanceof cola.Scope) {
         parent = name;
         name = void 0;
       }
@@ -5410,7 +5761,7 @@
 
     return Model;
 
-  })(cola.AbstractModel);
+  })(cola.Scope);
 
   cola.SubScope = (function(superClass) {
     extend(SubScope, superClass);
@@ -5497,7 +5848,7 @@
 
     return SubScope;
 
-  })(cola.AbstractModel);
+  })(cola.Scope);
 
   cola.AliasScope = (function(superClass) {
     extend(AliasScope, superClass);
@@ -5703,6 +6054,16 @@
       }
     };
 
+    ItemsScope.prototype.itemsLoadingStart = function(arg) {
+      arg.itemsScope = this;
+      return typeof this.onItemsLoadingStart === "function" ? this.onItemsLoadingStart(arg) : void 0;
+    };
+
+    ItemsScope.prototype.itemsLoadingEnd = function(arg) {
+      arg.itemsScope = this;
+      return typeof this.onItemsLoadingEnd === "function" ? this.onItemsLoadingEnd(arg) : void 0;
+    };
+
     ItemsScope.prototype.changeCurrentItem = function(arg) {
       arg.itemsScope = this;
       if (typeof this.onCurrentItemChange === "function") {
@@ -5893,6 +6254,14 @@
           }
           this.removeItem(arg);
           allProcessed = true;
+        }
+      } else if (type === cola.constants.MESSAGE_LOADING_START) {
+        if (this.isRootOfTarget(path, targetPath)) {
+          this.itemsLoadingStart(arg);
+        }
+      } else if (type === cola.constants.MESSAGE_LOADING_END) {
+        if (this.isRootOfTarget(path, targetPath)) {
+          this.itemsLoadingEnd(arg);
         }
       }
       return allProcessed;
@@ -6795,13 +7164,13 @@
     return parseFloat(value) || 0;
   };
 
-  cola.defaultAction.is = function(value) {
+  cola.defaultAction["is"] = function(value) {
     return !!value;
   };
 
-  cola.defaultAction.bool = cola.defaultAction.is;
+  cola.defaultAction["bool"] = cola.defaultAction.is;
 
-  cola.defaultAction.not = function(value) {
+  cola.defaultAction["not"] = function(value) {
     return !value;
   };
 
@@ -6834,11 +7203,11 @@
     return 0;
   };
 
-  cola.defaultAction["upper"] = function(value) {
+  cola.defaultAction["upperCase"] = function(value) {
     return value != null ? value.toUpperCase() : void 0;
   };
 
-  cola.defaultAction["lower"] = function(value) {
+  cola.defaultAction["lowerCase"] = function(value) {
     return value != null ? value.toLowerCase() : void 0;
   };
 
@@ -6864,245 +7233,11 @@
     }
   };
 
-  cola.defaultAction.filter = function() {
-    var caseSensitive, collection, criteria, filtered, params, prop, propFilter;
-    collection = arguments[0], criteria = arguments[1], params = 3 <= arguments.length ? slice.call(arguments, 2) : [];
-    if (!(collection && criteria)) {
-      return collection;
-    }
-    if (cola.util.isSimpleValue(criteria)) {
-      caseSensitive = params[0];
-      if (!caseSensitive) {
-        criteria = (criteria + "").toLowerCase();
-      }
-      criteria = {
-        "$": {
-          value: criteria,
-          caseSensitive: caseSensitive,
-          strict: params[1]
-        }
-      };
-    }
-    if (typeof criteria === "object") {
-      for (prop in criteria) {
-        propFilter = criteria[prop];
-        if (typeof propFilter === "string") {
-          criteria[prop] = {
-            value: propFilter.toLowerCase()
-          };
-        } else {
-          if (cola.util.isSimpleValue(propFilter)) {
-            criteria[prop] = {
-              value: propFilter
-            };
-          }
-          if (!propFilter.strict) {
-            propFilter.value = propFilter.value ? propFilter.value + "" : "";
-          }
-          if (!propFilter.caseSensitive && typeof propFilter.value === "string") {
-            propFilter.value = propFilter.value.toLowerCase();
-          }
-        }
-      }
-      filtered = [];
-      filtered.$origin = collection.$origin || collection;
-      cola.each(collection, function(item) {
-        var data, matches, p, v;
-        matches = false;
-        if (cola.util.isSimpleValue(item)) {
-          if (criteria.$) {
-            matches = _matchValue(v, criteria.$);
-          }
-        } else {
-          for (prop in criteria) {
-            propFilter = criteria[prop];
-            if (prop === "$") {
-              if (item instanceof cola.Entity) {
-                data = item._data;
-              } else {
-                data = item;
-              }
-              for (p in data) {
-                v = data[p];
-                if (_matchValue(v, propFilter)) {
-                  matches = true;
-                  break;
-                }
-              }
-              if (matches) {
-                break;
-              }
-            } else if (item instanceof cola.Entity) {
-              if (_matchValue(item.get(prop), propFilter)) {
-                matches = true;
-                break;
-              }
-            } else {
-              if (_matchValue(item[prop], propFilter)) {
-                matches = true;
-                break;
-              }
-            }
-          }
-        }
-        if (matches) {
-          filtered.push(item);
-        }
-      });
-      return filtered;
-    } else if (typeof criteria === "function") {
-      filtered = [];
-      filtered.$origin = collection.$origin || collection;
-      cola.each(collection, function(item) {
-        if (criteria.apply(null, [item].concat(slice.call(params)))) {
-          filtered.push(item);
-        }
-      });
-      return filtered;
-    } else {
-      return collection;
-    }
-  };
+  cola.defaultAction.filter = cola._filterCollection;
 
-  cola.defaultAction.sort = function(collection, comparator, caseSensitive) {
-    var c, comparatorFunc, comparatorProps, l, len1, origin, part, prop, propDesc, ref;
-    if (!collection) {
-      return null;
-    }
-    if ((comparator == null) || comparator === "$none") {
-      return collection;
-    }
-    if (collection instanceof cola.EntityList) {
-      origin = collection;
-      collection = collection.toArray();
-      collection.$origin = origin;
-    }
-    if (comparator) {
-      if (comparator === "$reverse") {
-        return collection.reverse();
-      } else if (typeof comparator === "string") {
-        comparatorProps = [];
-        ref = comparator.split(",");
-        for (l = 0, len1 = ref.length; l < len1; l++) {
-          part = ref[l];
-          c = part.charCodeAt(0);
-          propDesc = false;
-          if (c === 43) {
-            prop = part.substring(1);
-          } else if (c === 45) {
-            prop = part.substring(1);
-            propDesc = true;
-          } else {
-            prop = part;
-          }
-          comparatorProps.push({
-            prop: prop,
-            desc: propDesc
-          });
-        }
-        comparator = function(item1, item2) {
-          var comparatorProp, len2, o, result, value1, value2;
-          for (o = 0, len2 = comparatorProps.length; o < len2; o++) {
-            comparatorProp = comparatorProps[o];
-            value1 = null;
-            value2 = null;
-            prop = comparatorProp.prop;
-            if (prop) {
-              if (prop === "$random") {
-                return Math.random() * 2 - 1;
-              } else {
-                if (item1 instanceof cola.Entity) {
-                  value1 = item1.get(prop);
-                } else if (cola.util.isSimpleValue(item1)) {
-                  value1 = item1;
-                } else {
-                  value1 = item1[prop];
-                }
-                if (!caseSensitive && typeof value1 === "string") {
-                  value1 = value1.toLowerCase();
-                }
-                if (item2 instanceof cola.Entity) {
-                  value2 = item2.get(prop);
-                } else if (cola.util.isSimpleValue(item2)) {
-                  value2 = item2;
-                } else {
-                  value2 = item2[prop];
-                }
-                if (!caseSensitive && typeof value2 === "string") {
-                  value2 = value2.toLowerCase();
-                }
-                result = 0;
-                if (value1 == null) {
-                  result = -1;
-                } else if (value2 == null) {
-                  result = 1;
-                } else if (value1 > value2) {
-                  result = 1;
-                } else if (value1 < value2) {
-                  result = -1;
-                }
-                if (result !== 0) {
-                  if (comparatorProp.desc) {
-                    return 0 - result;
-                  } else {
-                    return result;
-                  }
-                }
-              }
-            } else {
-              result = 0;
-              if (item1 == null) {
-                result = -1;
-              } else if (item2 == null) {
-                result = 1;
-              } else if (item1 > item2) {
-                result = 1;
-              } else if (item1 < item2) {
-                result = -1;
-              }
-              if (result !== 0) {
-                if (comparatorProp.desc) {
-                  return 0 - result;
-                } else {
-                  return result;
-                }
-              }
-            }
-          }
-          return 0;
-        };
-      }
-    } else {
-      comparator = function(item1, item2) {
-        var result;
-        result = 0;
-        if (!caseSensitive) {
-          if (typeof item1 === "string") {
-            item1 = item1.toLowerCase();
-          }
-          if (typeof item2 === "string") {
-            item2 = item2.toLowerCase();
-          }
-        }
-        if (item1 == null) {
-          result = -1;
-        } else if (item2 == null) {
-          result = 1;
-        } else if (item1 > item2) {
-          result = 1;
-        } else if (item1 < item2) {
-          result = -1;
-        }
-        return result;
-      };
-    }
-    comparatorFunc = function(item1, item2) {
-      return comparator(item1, item2);
-    };
-    return collection.sort(comparatorFunc);
-  };
+  cola.defaultAction.sort = cola._sortCollection;
 
-  cola.defaultAction.top = function(collection, top) {
+  cola.defaultAction["top"] = function(collection, top) {
     var i, items;
     if (top == null) {
       top = 1;
@@ -7243,9 +7378,11 @@
     if (id) {
       store = cola.util.userDataStore[id];
       if (store) {
+        value = store[key];
         delete store[key];
       }
     }
+    return value;
   };
 
   ON_NODE_REMOVED_KEY = "__onNodeRemoved";
@@ -7608,14 +7745,25 @@
         charset: cola.setting("defaultCharset"),
         href: url
       });
-      $(linkElement).on("load", function() {
-        cola.callback(callback, true);
-      }).on("error", function() {
-        cola.callback(callback, false);
-      });
+      if (!(cola.os.android && cola.os.version < 4.4)) {
+        $(linkElement).one("load", function() {
+          cola.callback(callback, true);
+        }).on("readystatechange", function(evt) {
+          var ref;
+          if (((ref = evt.target) != null ? ref.readyState : void 0) === "complete") {
+            cola.callback(callback, true);
+            $fly(this).off("readystatechange");
+          }
+        }).one("error", function() {
+          cola.callback(callback, false);
+        });
+      }
       head = document.querySelector("head") || document.documentElement;
       head.appendChild(linkElement);
       _cssCache[url] = linkElement;
+      if (cola.os.android && cola.os.version < 4.4) {
+        cola.callback(callback, true);
+      }
     } else {
       cola.callback(callback, true);
     }
@@ -7647,7 +7795,7 @@
   };
 
   cola.route = function(path, router) {
-    var hasVariable, l, len1, optional, part, pathParts, ref, variable;
+    var hasVariable, i, l, len1, len2, name, nameParts, o, optional, part, parts, pathParts, ref, variable;
     if (routerRegistry == null) {
       routerRegistry = new cola.util.KeyedArray();
     }
@@ -7658,15 +7806,25 @@
     }
     path = trimPath(path);
     router.path = path;
-    if (router.model == null) {
-      router.model = path || cola.constants.DEFAULT_PATH;
+    if (!router.name) {
+      name = path || cola.constants.DEFAULT_PATH;
+      parts = name.split("/");
+      nameParts = [];
+      for (i = l = 0, len1 = parts.length; l < len1; i = ++l) {
+        part = parts[i];
+        if (part.charCodeAt(0) === 58) {
+          continue;
+        }
+        nameParts.push(nameParts.length > 0 ? cola.util.capitalize(part) : part);
+      }
+      router.name = nameParts.join("");
     }
     router.pathParts = pathParts = [];
     if (path) {
       hasVariable = false;
       ref = path.split("/");
-      for (l = 0, len1 = ref.length; l < len1; l++) {
-        part = ref[l];
+      for (o = 0, len2 = ref.length; o < len2; o++) {
+        part = ref[o];
         if (part.charCodeAt(0) === 58) {
           optional = part.charCodeAt(part.length - 1) === 63;
           if (optional) {
@@ -7781,8 +7939,22 @@
     }
   };
 
+  cola.createRouterModel = function(router) {
+    var parentModel, parentModelName;
+    if (router.parentModel instanceof cola.Scope) {
+      parentModel = router.parentModel;
+    } else {
+      parentModelName = router.parentModel || cola.constants.DEFAULT_PATH;
+      parentModel = cola.model(parentModelName);
+    }
+    if (!parentModel) {
+      throw new cola.Exception("Parent Model \"" + parentModelName + "\" is undefined.");
+    }
+    return new cola.Model(router.name, parentModel);
+  };
+
   _switchRouter = function(router, path) {
-    var eventArg, model, oldModel, parentModel, parentModelName, target;
+    var eventArg, model, oldModel, target;
     if (router.redirectTo) {
       cola.setRoutePath(router.redirectTo);
       return;
@@ -7796,17 +7968,14 @@
       return;
     }
     if (currentRouter) {
-      oldModel = currentRouter.realModel;
       if (typeof currentRouter.leave === "function") {
-        currentRouter.leave(currentRouter, oldModel);
+        currentRouter.leave(currentRouter);
       }
       if (currentRouter.targetDom) {
         cola.unloadSubView(currentRouter.targetDom, {
           cssUrl: currentRouter.cssUrl
         });
-      }
-      delete currentRouter.realModel;
-      if (currentRouter.destroyModel) {
+        oldModel = cola.util.removeUserData(currentRouter.targetDom, "_model");
         if (oldModel != null) {
           oldModel.destroy();
         }
@@ -7833,24 +8002,9 @@
       $fly(target).empty();
     }
     currentRouter = router;
-    if (typeof router.model === "string") {
-      model = cola.model(router.model);
-    } else if (router.model instanceof cola.Model) {
-      model = router.model;
-    }
-    if (!model) {
-      parentModelName = router.parentModel || cola.constants.DEFAULT_PATH;
-      parentModel = cola.model(parentModelName);
-      if (!parentModel) {
-        throw new cola.Exception("Parent Model \"" + parentModelName + "\" is undefined.");
-      }
-      model = new cola.Model(router.model, parentModel);
-      router.destroyModel = true;
-    } else {
-      router.destroyModel = false;
-    }
-    router.realModel = model;
     if (router.templateUrl) {
+      model = cola.createRouterModel(router);
+      cola.util.userData(router.targetDom, "_model", model);
       cola.loadSubView(router.targetDom, {
         model: model,
         htmlUrl: router.templateUrl,
@@ -7869,12 +8023,13 @@
       });
     } else {
       if (typeof router.enter === "function") {
-        router.enter(router, model);
+        router.enter(router, null);
       }
       if (router.title) {
         document.title = router.title;
       }
     }
+    eventArg.nextModel = model;
     cola.fire("routerSwitch", cola, eventArg);
   };
 
@@ -8912,6 +9067,8 @@
         fn = arg;
       } else if (typeof arg === "string") {
         modelName = arg;
+      } else if (arg instanceof cola.Scope) {
+        model = arg;
       } else if ((arg != null ? arg.nodeType : void 0) || typeof arg === "object" && arg.length > 0) {
         targetDom = arg;
       }
@@ -8949,12 +9106,14 @@
     if (cola._suspendedInitFuncs) {
       cola._suspendedInitFuncs.push(init);
     } else {
-      if (modelName == null) {
-        modelName = cola.constants.DEFAULT_PATH;
-      }
-      model = cola.model(modelName);
-      if (model == null) {
-        model = new cola.Model(modelName);
+      if (!model) {
+        if (modelName == null) {
+          modelName = cola.constants.DEFAULT_PATH;
+        }
+        model = cola.model(modelName);
+        if (model == null) {
+          model = new cola.Model(modelName);
+        }
       }
       if (cola._mainInitFuncs) {
         cola._mainInitFuncs.push({
@@ -10354,6 +10513,16 @@
           return _this._onItemRemove(arg);
         };
       })(this);
+      itemsScope.onItemsLoadingStart = (function(_this) {
+        return function(arg) {
+          return _this._onItemsLoadingStart(arg);
+        };
+      })(this);
+      itemsScope.onItemsLoadingEnd = (function(_this) {
+        return function(arg) {
+          return _this._onItemsLoadingEnd(arg);
+        };
+      })(this);
       if (this._onCurrentItemChange) {
         return itemsScope.onCurrentItemChange = (function(_this) {
           return function(arg) {
@@ -10893,17 +11062,17 @@
     Widget.prototype.fire = function(eventName, self, arg) {
       var eventConfig;
       if (!this._eventRegistry) {
-        return true;
+        return;
       }
       eventConfig = this.constructor.EVENTS[eventName];
       if (this.constructor.ATTRIBUTES.hasOwnProperty("disabled") && this.get("disabled") && eventConfig && (eventConfig.$event || eventConfig.hammerEvent)) {
-        return true;
+        return;
       }
       if (!this["_hasFireTapEvent"]) {
         this["_hasFireTapEvent"] = eventName === "tap";
       }
       if (eventName === "click" && this["_hasFireTapEvent"]) {
-        return true;
+        return;
       }
       return Widget.__super__.fire.call(this, eventName, self, arg);
     };
@@ -12900,14 +13069,14 @@
         content: [
           {
             "class": "ui button",
-            content: cola.resource("cola.message.deny") || "取消",
+            content: cola.resource("cola.message.deny"),
             click: function() {
               cola.commonDimmer.hide();
               return timerLayer.hide();
             }
           }, {
             "class": "ui positive button",
-            content: cola.resource("cola.message.approve") || "确认",
+            content: cola.resource("cola.message.approve"),
             click: function() {
               cola.commonDimmer.hide();
               timerLayer.hide();
@@ -13522,7 +13691,7 @@
 
       Calendar.prototype._createDom = function() {
         var allWeeks, cal, dom, picker, weeks;
-        allWeeks = cola.resource("cola.date.dayNamesShort") || "日,一,二,三,四,五,六";
+        allWeeks = cola.resource("cola.date.dayNamesShort");
         weeks = allWeeks.split(",");
         cal = this;
         if (this._doms == null) {
@@ -13902,6 +14071,8 @@
       cssUrl: {
         readOnlyAfterCreate: true
       },
+      parentModel: null,
+      modelName: null,
       model: {
         readOnly: true,
         getter: function() {
@@ -13917,7 +14088,7 @@
       },
       showLoadingContent: null,
       showDimmer: {
-        defaultValue: true
+        defaultValue: false
       }
     };
 
@@ -13946,15 +14117,27 @@
     };
 
     SubView.prototype.load = function(options, callback) {
-      var $content, $dimmer, $dom, dom, model;
+      var $content, $dimmer, $dom, dom, model, parentModel, parentModelName;
       dom = this._dom;
       this.unload();
-      model = new cola.Model(this._scope);
-      cola.util.userData(dom, "_model", model);
+      this._parentModel = options.parentModel;
+      this._modelName = options.modelName;
       this._url = options.url;
       this._jsUrl = options.jsUrl;
       this._cssUrl = options.cssUrl;
       this._param = options.param;
+      if (this._parentModel instanceof cola.Scope) {
+        parentModel = this._parentModel;
+      } else {
+        parentModelName = this._parentModel || cola.constants.DEFAULT_PATH;
+        parentModel = cola.model(parentModelName);
+      }
+      if (this._modelName) {
+        model = new cola.Model(this._modelName, parentModel || this._scope);
+      } else {
+        model = new cola.Model(parentModel || this._scope);
+      }
+      cola.util.userData(dom, "_model", model);
       this._loading = true;
       $dom = $(this._dom);
       $content = $dom.find(">.content");
@@ -14495,20 +14678,24 @@
     messageBox = {
       settings: {
         info: {
-          title: cola.resource("cola.messageBox.info.title"),
+          title: "Information",
+          i18n: "cola.messageBox.info.title",
           icon: "blue info icon"
         },
         warning: {
-          title: cola.resource("cola.messageBox.warning.title"),
-          icon: "yellow warning sign icon"
+          title: "Warning",
+          icon: "yellow warning sign icon",
+          i18n: "cola.messageBox.warning.title"
         },
         error: {
-          title: cola.resource("cola.messageBox.error.title"),
-          icon: "red warning sign icon"
+          title: "Error",
+          icon: "red warning sign icon",
+          i18n: "cola.messageBox.error.title"
         },
         question: {
-          title: cola.resource("cola.messageBox.question.title"),
-          icon: "black help circle icon"
+          title: "Question",
+          icon: "black help circle icon",
+          i18n: "cola.messageBox.question.title"
         }
       },
       "class": "standard",
@@ -14586,7 +14773,7 @@
         level = options.level || messageBox.level.INFO;
         $dom = $(dom);
         if (options.title == null) {
-          options.title = settings[level].title;
+          options.title = cola.resource(settings[level].i18n);
         }
         if (options.icon == null) {
           options.icon = settings[level].icon;
@@ -16837,7 +17024,6 @@
       },
       dataType: {
         setter: function(dataType) {
-          this._dataTypeDefined = !!dataType;
           return cola.DataType.dataTypeSetter.call(this, dataType);
         }
       },
@@ -16959,8 +17145,12 @@
     };
 
     AbstractInput.prototype._bindSetter = function(bindStr) {
+      var dataType;
       AbstractInput.__super__._bindSetter.call(this, bindStr);
-      cola.DataType.dataTypeSetter.call(this, this._getBindingDataType());
+      dataType = this._getBindingDataType();
+      if (dataType) {
+        cola.DataType.dataTypeSetter.call(this, dataType);
+      }
     };
 
     AbstractInput.prototype._parseDom = function(dom) {
@@ -18347,35 +18537,6 @@
       currentItem: {
         readOnly: true
       },
-      value: {
-        refreshDom: true,
-        setter: function(value) {
-          var currentItem, index, valueProperty;
-          cola.AbstractInput.ATTRIBUTES.value.setter.apply(this, arguments);
-          if (this._skipFindCurrentItem) {
-            return;
-          }
-          if (!this._itemsIndex) {
-            if (this._items && value && this._valueProperty) {
-              this._itemsIndex = index = {};
-              valueProperty = this._valueProperty;
-              cola.each(this._items, function(item) {
-                var key;
-                if (item instanceof cola.Entity) {
-                  key = item.get(valueProperty);
-                } else {
-                  key = item[valueProperty];
-                }
-                index[key + ""] = item;
-              });
-              currentItem = index[value + ""];
-            }
-          } else {
-            currentItem = this._itemsIndex[value + ""];
-          }
-          this._currentItem = currentItem;
-        }
-      },
       valueProperty: null,
       textProperty: null,
       openOnActive: {
@@ -18497,6 +18658,32 @@
         ref.set("disabled", this._finalReadOnly);
       }
       this._setValueContent();
+    };
+
+    AbstractDropdown.prototype._setValue = function(value) {
+      var currentItem, index, valueProperty;
+      if (!this._skipFindCurrentItem) {
+        if (!this._itemsIndex) {
+          if (this._items && value && this._valueProperty) {
+            this._itemsIndex = index = {};
+            valueProperty = this._valueProperty;
+            cola.each(this._items, function(item) {
+              var key;
+              if (item instanceof cola.Entity) {
+                key = item.get(valueProperty);
+              } else {
+                key = item[valueProperty];
+              }
+              index[key + ""] = item;
+            });
+            currentItem = index[value + ""];
+          }
+        } else {
+          currentItem = this._itemsIndex[value + ""];
+        }
+        this._currentItem = currentItem;
+      }
+      return AbstractDropdown.__super__._setValue.call(this, value);
     };
 
     AbstractDropdown.prototype._setValueContent = function() {
@@ -18931,7 +19118,7 @@
       }
       if (this._opened && this._filterable) {
         inputDom = this._doms.input;
-        $fly(inputDom).on("input.filter", (function(_this) {
+        $fly(inputDom).on("input.filterItem", (function(_this) {
           return function() {
             return _this._onInput(inputDom.value);
           };
@@ -18941,7 +19128,7 @@
 
     Dropdown.prototype.close = function(selectedValue) {
       if (this._filterable) {
-        $fly(this._doms.input).off("input.filter");
+        $fly(this._doms.input).off("input.filterItem");
       }
       return Dropdown.__super__.close.call(this, selectedValue);
     };
@@ -19158,7 +19345,10 @@
         }
         this._$dom.form("add errors", errors);
         if (errors.length > 0) {
+          this._$dom.form("add errors", errors);
           state = type;
+        } else {
+          this._$dom.find(".error.message").empty();
         }
       }
       this.set("state", state);
@@ -22409,7 +22599,7 @@
         type: "boolean",
         defaultValue: true
       },
-      changeCurrentitem: {
+      changeCurrentItem: {
         type: "boolean"
       },
       pullDown: {
@@ -22424,6 +22614,7 @@
     };
 
     ItemsView.EVENTS = {
+      getItemTemplate: null,
       renderItem: null,
       itemClick: null,
       itemDoubleClick: null,
@@ -22520,17 +22711,46 @@
       this._$dom = $(dom);
     };
 
+    ItemsView.prototype._showLoadingTip = function() {
+      var $itemsWrapper, $loaderContainer;
+      $loaderContainer = this._$loaderContainer;
+      if (!$loaderContainer) {
+        $itemsWrapper = $fly(this._doms.itemsWrapper);
+        $itemsWrapper.xAppend({
+          "class": "loader-container protected",
+          content: {
+            "class": "ui loader"
+          }
+        });
+        this._$loaderContainer = $loaderContainer = $itemsWrapper.find(">.loader-container");
+      } else {
+        $loaderContainer.remove();
+        $loaderContainer.appendTo(this._doms.itemsWrapper);
+      }
+      $loaderContainer.addClass("active");
+    };
+
+    ItemsView.prototype._hideLoadingTip = function() {
+      var ref;
+      if ((ref = this._$loaderContainer) != null) {
+        ref.removeClass("active");
+      }
+    };
+
     ItemsView.prototype._onItemsWrapperScroll = function() {
       var itemsWrapper, realItems;
       realItems = this._realItems;
       if (this._autoLoadPage && !this._loadingNextPage && (realItems === this._realOriginItems || !this._realOriginItems)) {
-        if (realItems instanceof cola.EntityList && (realItems.pageNo < realItems.pageCount || !realItems.pageCountDetermined)) {
+        if (realItems instanceof cola.EntityList && realItems.pageSize > 0 && (realItems.pageNo < realItems.pageCount || !realItems.pageCountDetermined)) {
           itemsWrapper = this._doms.itemsWrapper;
           if (itemsWrapper.scrollTop + itemsWrapper.clientHeight === itemsWrapper.scrollHeight) {
             this._loadingNextPage = true;
+            this._showLoadingTip();
+            $fly(itemsWrapper).find(">.tail-padding").remove();
             realItems.loadPage(realItems.pageNo + 1, (function(_this) {
               return function() {
                 _this._loadingNextPage = false;
+                _this._hideLoadingTip();
               };
             })(this));
           }
@@ -22554,7 +22774,13 @@
     };
 
     ItemsView.prototype._getItemType = function(item) {
-      var ref;
+      var ref, type;
+      type = this.fire("getItemTemplate", this, {
+        item: item
+      });
+      if (type) {
+        return type;
+      }
       if (item != null ? item.isDataWrapper : void 0) {
         return ((ref = item._data) != null ? ref._itemType : void 0) || "default";
       } else {
@@ -22617,6 +22843,14 @@
         }
       }
       this._refreshEmptyItemDom();
+    };
+
+    ItemsView.prototype._onItemsLoadingStart = function(arg) {
+      this._showLoadingTip();
+    };
+
+    ItemsView.prototype._onItemsLoadingEnd = function(arg) {
+      this._hideLoadingTip();
     };
 
     ItemsView.prototype._setCurrentItemDom = function(currentItemDom) {
@@ -22692,7 +22926,7 @@
     };
 
     ItemsView.prototype._doRefreshItems = function(itemsWrapper) {
-      var counter, currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, limit, nextItemDom, pullDownPane, pullUpPane, ref, ret;
+      var counter, currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, nextItemDom, pullDownPane, pullUpPane, ref, ret;
       if (this._itemDomMap == null) {
         this._itemDomMap = {};
       }
@@ -22717,27 +22951,11 @@
         this._currentItem = currentItem;
         this._itemsScope.resetItemScopeMap();
         counter = 0;
-        limit = 0;
-        if (this._autoLoadPage && !this._realOriginItems && items instanceof cola.EntityList) {
-          limit = items.pageNo;
-        }
         this._refreshEmptyItemDom();
         lastItem = null;
         cola.each(items, (function(_this) {
           return function(item) {
-            var _nextItemDom, itemDom, itemType, ref;
-            if (limit) {
-              if (items instanceof cola.EntityList) {
-                if (((ref = item._page) != null ? ref.pageNo : void 0) > limit) {
-                  return false;
-                }
-              } else {
-                counter++;
-                if (counter > limit) {
-                  return false;
-                }
-              }
-            }
+            var _nextItemDom, itemDom, itemType;
             lastItem = item;
             itemType = _this._getItemType(item);
             if (nextItemDom) {
@@ -22794,11 +23012,18 @@
         if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList && items.pageSize > 0) {
           currentPageNo = lastItem != null ? (ref = lastItem._page) != null ? ref.pageNo : void 0 : void 0;
           if (currentPageNo && (currentPageNo < items.pageCount || !items.pageCountDetermined)) {
-            if (itemsWrapper.scrollHeight && (itemsWrapper.scrollTop + itemsWrapper.clientHeight) < itemsWrapper.scrollHeight) {
-              setTimeout(function() {
-                items.loadPage(currentPageNo + 1, cola._EMPTY_FUNC);
-              }, 0);
+            if (itemsWrapper.scrollHeight === itemsWrapper.clientHeight && (itemsWrapper.scrollTop = 0)) {
+              this._showLoadingTip();
+              items.loadPage(currentPageNo + 1, (function(_this) {
+                return function() {
+                  _this._hideLoadingTip();
+                };
+              })(this));
             }
+          } else {
+            $fly(itemsWrapper).xAppend({
+              "class": "tail-padding"
+            });
           }
         }
       }
@@ -22946,7 +23171,7 @@
       item = cola.util.userData(itemDom, "item");
       if (itemDom._itemType === "default") {
         if (item) {
-          if (this._changeCurrentitem && item._parent instanceof cola.EntityList) {
+          if (this._changeCurrentItem && item._parent instanceof cola.EntityList) {
             item._parent.setCurrent(item);
           } else {
             this._setCurrentItemDom(itemDom);
@@ -23365,6 +23590,9 @@
           }
           this._set("bind", void 0);
           this._items = items;
+        },
+        getter: function() {
+          return this._realItems || this._items;
         }
       },
       bind: {
@@ -24879,6 +25107,7 @@
     };
 
     NestedList.EVENTS = {
+      getItemTemplate: null,
       itemClick: null,
       renderItem: null,
       initLayer: null,
@@ -24987,6 +25216,11 @@
         highlightCurrentItem: highlightCurrentItem,
         height: "100%",
         userData: index,
+        getItemTemplate: (function(_this) {
+          return function(self, arg) {
+            return _this._onGetItemTemplate(self, arg);
+          };
+        })(this),
         renderItem: (function(_this) {
           return function(self, arg) {
             return _this._onRenderItem(self, arg);
@@ -25088,6 +25322,19 @@
       });
     };
 
+    NestedList.prototype._getLayerInfo = function(layer) {
+      var ref, ref1;
+      return {
+        index: layer.index,
+        parentNode: layer.parentNode,
+        parentItem: (ref = layer.parentNode) != null ? ref._data : void 0,
+        title: (ref1 = layer.parentNode) != null ? ref1.get("title") : void 0,
+        titleBar: layer.titleBar,
+        list: layer.list,
+        nodes: layer.list.get("items")
+      };
+    };
+
     NestedList.prototype._showLayer = function(index, parentNode, callback) {
       var i, itemsScope, layer, list;
       if (index <= this._layerIndex) {
@@ -25117,12 +25364,7 @@
             }
             _this._layerIndex = index;
             layer.parentNode = parentNode;
-            _this.fire("topLayerChange", _this, {
-              parentNode: parentNode,
-              parentItem: parentNode != null ? parentNode._data : void 0,
-              index: index,
-              list: layer.list
-            });
+            _this.fire("topLayerChange", _this, _this._getLayerInfo(layer));
           }
           if (typeof callback === "function") {
             callback(typeof wrapper !== "undefined" && wrapper !== null);
@@ -25135,7 +25377,7 @@
     };
 
     NestedList.prototype._hideLayer = function(animation) {
-      var layer, options, parentNode, previousLayer, ref;
+      var layer, options, previousLayer, ref;
       layer = this._layers[this._layerIndex];
       delete layer.list._itemsScope._retrieveItems;
       options = {};
@@ -25157,13 +25399,7 @@
       delete layer.parentNode;
       this._layerIndex--;
       previousLayer = this._layers[this._layerIndex];
-      parentNode = previousLayer.parentNode;
-      this.fire("topLayerChange", this, {
-        parentNode: parentNode,
-        parentItem: parentNode != null ? parentNode._data : void 0,
-        index: previousLayer,
-        list: previousLayer.list
-      });
+      this.fire("topLayerChange", this, this._getLayerInfo(previousLayer));
     };
 
     NestedList.prototype.back = function() {
@@ -25173,6 +25409,14 @@
       } else {
         return false;
       }
+    };
+
+    NestedList.prototype._onGetItemTemplate = function(self, arg) {
+      var node;
+      node = arg.item;
+      return this.fire("getItemTemplate", this, {
+        item: node._data
+      });
     };
 
     NestedList.prototype._onItemClick = function(self, arg) {
@@ -25212,6 +25456,20 @@
           dom: arg.dom
         });
       }
+    };
+
+    NestedList.prototype.getLayer = function(index) {
+      var layer;
+      layer = this._layers[index];
+      if (layer) {
+        return this._getLayerInfo(layer);
+      } else {
+        return null;
+      }
+    };
+
+    NestedList.prototype.getTopLayer = function() {
+      return this.getLayer(this._layerIndex);
     };
 
     return NestedList;
@@ -25341,7 +25599,9 @@
             this._scope.set(alias, (ref = this._currentNode) != null ? ref._data : void 0);
           }
         }
-      }
+      },
+      autoCollapse: null,
+      autoExpand: null
     };
 
     Tree.EVENTS = {
@@ -25395,6 +25655,25 @@
       $fly(this._doms.itemsWrapper).delegate(".expand-button", "click", (function(_this) {
         return function(evt) {
           return _this._expandButtonClick(evt);
+        };
+      })(this)).delegate(".tree.item", "click", (function(_this) {
+        return function(evt) {
+          var itemDom, node;
+          if (_this._autoExpand) {
+            itemDom = _this._findItemDom(evt.currentTarget);
+            if (!itemDom) {
+              return;
+            }
+            node = cola.util.userData(itemDom, "item");
+            if (!node) {
+              return;
+            }
+            if (node.get("expanded")) {
+              _this.collapse(node);
+            } else if (node.get("hasChild") !== false) {
+              _this.expand(node);
+            }
+          }
         };
       })(this));
       itemsScope = this._itemsScope;
@@ -25656,7 +25935,7 @@
       nodeDom = itemDom.firstChild;
       $fly(nodeDom).addClass("expanding");
       node._bind.retrieveChildNodes(node, function() {
-        var $nodesWrapper;
+        var $nodesWrapper, brotherNode, l, len1, ref, ref1;
         $fly(nodeDom).removeClass("expanding");
         if (node._children) {
           tree._refreshChildNodes(itemDom, node, true);
@@ -25668,7 +25947,17 @@
         } else {
           $fly(nodeDom).addClass("leaf");
         }
+        node._expanded = true;
         node._hasExpanded = true;
+        if (tree._autoCollapse && ((ref = node._parent) != null ? ref._children : void 0)) {
+          ref1 = node._parent._children;
+          for (l = 0, len1 = ref1.length; l < len1; l++) {
+            brotherNode = ref1[l];
+            if (brotherNode !== node && brotherNode.get("expanded")) {
+              tree.collapse(brotherNode);
+            }
+          }
+        }
       });
     };
 
@@ -25693,6 +25982,7 @@
       if ($nodesWrapper.hasClass("child-nodes")) {
         $nodesWrapper.slideUp(150);
       }
+      node._expanded = false;
     };
 
     Tree.prototype._onItemRemove = function(arg) {

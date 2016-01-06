@@ -61,6 +61,40 @@ block content
 				});
 			});
 
+	+addCatalog("chooseTemplate", "选择模板")
+	.example(name="chooseTemplate")#chooseTemplate
+		h4.ui.header 选择模板
+		p.
+			可以为列表定义多套行模板，每一个行模板有自己的名字。然后再利用getItemTemplate事件来为每一行确定具体要使用的模板。
+		.code
+			#chooseTemplateList
+				template(name="odd")
+					li
+						span(c-bind="country.label")
+						span(style="float:right") 名称长度为奇数
+				template(name="even")
+					li(style="background:lightyellow")
+						span(c-bind="country.label")
+						span(style="float:right") 名称长度为偶数
+
+		script(type="text/javascript" name="chooseTemplate").
+			cola("chooseTemplate", function (model) {
+				model.describe("countries", {
+					provider: "/examples/data/countries.json"
+				});
+				model.widgetConfig({
+					chooseTemplateList: {
+						$type: "listView",
+						bind: "country in countries",
+						width: 300,
+						height: 300,
+						getItemTemplate: function(arg) {
+							return (arg.item.get("label").length % 2) ? "even" : "odd";
+						}
+					}
+				});
+			});
+
 	+addCatalog("group", "分组列表")
 	.example(name="group")#group
 		h4.ui.header 分组列表

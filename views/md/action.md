@@ -94,7 +94,7 @@ Cola中包含一些系统级的Action供我们直接使用，我们称这些Acti
 
  如果criteria是字符串，表示用该值匹配对象中的每一个属性（如果集合中的对象本身就是一个值而非对象，那么则直接匹配该值）。
 
- 如果criteria是一个JSON对象，那么上面的caseSensitive和strict将是失效，同时它的格式应该是这样的：
+ 如果criteria是一个JSON对象或JSON对象的数组，那么上面的caseSensitive和strict将是失效，同时它的格式应该是这样的：
 ```
 {
 	name: { //属性名，如果属性名为"$"表示要匹配每一个属性

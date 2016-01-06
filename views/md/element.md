@@ -12,7 +12,8 @@ Element的属性在Cola-UI中被称为Attribute。我们知道JSON对象的属�
 
 读写Element的Attribute的方法是通过get和set方法。get和set方法都支持迭代式的属性名使用方式。例如Input控件中有一个button子属性，其中存放的是一个Button的实例，我们可以通过下面的代码修改Button的标题...
 ```
-input.set("button.caption"， "xxxx");
+input.set("button.caption", "xxxx");
+var disabled = input.set("button.disabled");
 ```
 
 set方法也支持批量的属性设置。例如:
