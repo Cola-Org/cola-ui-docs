@@ -169,17 +169,10 @@ block content
 						caption: "xRender",
 						click: function() {
 							var fragment = cola.xRender(
-								"<div c-repeat='num in [1, 2, 3, 4, 5]' c-bind='num' c-widget='#newButton'></div><br>",
+								"<div c-repeat='num in [1, 2, 3, 4, 5]' c-bind='num' c-widget='button; class:red mini'></div> <br>",
 								model
 							);
 							document.getElementById("container3").appendChild(fragment);
-						}
-					},
-					newButton: {
-						$type: "button",
-						class: "red mini",
-						click: function(self) {
-							alert("您点击了 " + self.get("caption"));
 						}
 					}
 				});
@@ -228,11 +221,11 @@ block content
 			});
 
 	+addCatalog("event_scope", "事件上下文数据")
-	.example.c-ignore(name="event_scope")#event_scope
+	.example(name="event_scope")#event_scope
 		h4.ui.header 事件上下文数据
 		p.
 			对于那些通过c-repeat或者类似的其他方式生成的控件，要在其事件中获得相应的上下文数据是需要一些额外的技巧的。
-			例如下面的例子，我们通过c-repeat产生了5个按钮，如何在按钮在的事件获得与当前的按钮对应的skill呢？
+			例如下面的例子，我们通过c-repeat产生了5个按钮，如何在按钮的事件获得与当前的按钮对应的skill呢？
 			直接通过model.get()肯定是不行的，因为skill只存在于迭代循环中。
 		p.
 			在下面的例子中，我们利用了click事件的arg传入参数。在所有的Cola事件中都会提供一个arg参数，通过arg.model我们就可以得到这个控件真正对应的上下文Model。

@@ -2,13 +2,14 @@ extends ../doc-layout
 
 block content
 
-	+addCatalog("lazyRecursive","懒装载递归树")
+	+addCatalog("lazyRecursive", "懒装载递归树")
 	.example(name="lazyRecursive")#lazyRecursive
 		h4.ui.header 懒装载递归树
 		.code
 			#fileTree
-				template(name="node-normal")
-					span(c-bind="node.name")
+				template(name="node-default")
+					i(c-classname="node.isDir ? 'icon folder outline' : 'icon file'")
+					span(c-bind="node.isDir")
 
 		script(type="text/javascript" name="lazyRecursive").
 			cola("lazyRecursive", function (model) {
