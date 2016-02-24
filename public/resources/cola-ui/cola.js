@@ -10068,8 +10068,8 @@
     if (widget) {
       dom = widget.getDom();
       dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
-      return dom;
     }
+    return dom;
   });
 
   cola.Model.prototype.widgetConfig = function(id, config) {
@@ -27554,7 +27554,7 @@
           click: function() {
             var data;
             data = pager._getBindItems();
-            return data.previousPage();
+            return data != null ? data.previousPage() : void 0;
           }
         },
         goto: {
@@ -27616,7 +27616,7 @@
           click: function() {
             var data;
             data = pager._getBindItems();
-            return data.nextPage();
+            return data != null ? data.nextPage() : void 0;
           }
         },
         lastPage: {
@@ -27634,80 +27634,81 @@
     Pager.prototype._parsePageItem = function(childNode, right) {
       var beforeChild, itemConfig, itemDom, l, len1, menuItem, pageCode, pageItem, pageItemKey, propName, results;
       pageCode = $fly(childNode).attr("page-code");
-      if (pageCode) {
-        if (pageCode === "pages") {
-          results = [];
-          for (l = 0, len1 = _pagesItems.length; l < len1; l++) {
-            pageItemKey = _pagesItems[l];
-            pageItem = this._pagerItemConfig[pageItemKey];
-            if (pageItemKey === "firstPage") {
-              pageItem.dom = childNode;
+      if (!pageCode) {
+        return;
+      }
+      if (pageCode === "pages") {
+        results = [];
+        for (l = 0, len1 = _pagesItems.length; l < len1; l++) {
+          pageItemKey = _pagesItems[l];
+          pageItem = this._pagerItemConfig[pageItemKey];
+          if (pageItemKey === "firstPage") {
+            pageItem.dom = childNode;
+            menuItem = new cola.menu.MenuItem(pageItem);
+            if (right) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+            beforeChild = childNode;
+          } else {
+            if (pageItemKey === "info") {
+              menuItem = new cola.menu.MenuItem();
+            } else {
               menuItem = new cola.menu.MenuItem(pageItem);
-              if (right) {
-                this.addRightItem(menuItem);
-              } else {
-                this.addItem(menuItem);
-              }
-              beforeChild = childNode;
-            } else {
-              if (pageItemKey === "info") {
-                menuItem = new cola.menu.ControlMenuItem();
-              } else {
-                menuItem = new cola.menu.MenuItem(pageItem);
-              }
-              itemDom = menuItem.getDom();
-              $fly(beforeChild).after(itemDom);
-              itemDom._eachIgnore = true;
-              if (right) {
-                this.addRightItem(menuItem);
-              } else {
-                this.addItem(menuItem);
-              }
-              beforeChild = itemDom;
             }
-            results.push(this._pagerItemMap[pageItemKey] = menuItem);
+            itemDom = menuItem.getDom();
+            $fly(beforeChild).after(itemDom);
+            itemDom._eachIgnore = true;
+            if (right) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+            beforeChild = itemDom;
           }
-          return results;
-        } else {
-          propName = _pageCodeMap[pageCode];
-          if (propName) {
-            itemConfig = this._pagerItemConfig[propName];
-            itemConfig.dom = childNode;
-            if (cola.util.hasContent(childNode)) {
-              delete itemConfig["icon"];
-            }
-            menuItem = new cola.menu.MenuItem(itemConfig);
-            if (right) {
-              this.addRightItem(menuItem);
-            } else {
-              this.addItem(menuItem);
-            }
-          } else if (pageCode === "goto") {
-            propName = "goto";
-            itemConfig = {
-              dom: childNode,
-              control: this._pagerItemConfig[pageCode]
-            };
-            menuItem = new cola.menu.ControlMenuItem(itemConfig);
-            if (right) {
-              this.addRightItem(menuItem);
-            } else {
-              this.addItem(menuItem);
-            }
-          } else if (pageCode === "info") {
-            propName = "info";
-            itemConfig = {
-              dom: childNode
-            };
-            menuItem = new cola.menu.ControlMenuItem(itemConfig);
-            if (right) {
-              this.addRightItem(menuItem);
-            } else {
-              this.addItem(menuItem);
-            }
-          }
-          return this._pagerItemMap[propName] = menuItem;
+          results.push(this._pagerItemMap[pageItemKey] = menuItem);
         }
+        return results;
+      } else {
+        propName = _pageCodeMap[pageCode];
+        if (propName) {
+          itemConfig = this._pagerItemConfig[propName];
+          itemConfig.dom = childNode;
+          if (cola.util.hasContent(childNode)) {
+            delete itemConfig["icon"];
+          }
+          menuItem = new cola.menu.MenuItem(itemConfig);
+          if (right) {
+            this.addRightItem(menuItem);
+          } else {
+            this.addItem(menuItem);
+          }
+        } else if (pageCode === "goto") {
+          propName = "goto";
+          itemConfig = {
+            dom: childNode,
+            control: this._pagerItemConfig[pageCode]
+          };
+          menuItem = new cola.menu.ControlMenuItem(itemConfig);
+          if (right) {
+            this.addRightItem(menuItem);
+          } else {
+            this.addItem(menuItem);
+          }
+        } else if (pageCode === "info") {
+          propName = "info";
+          itemConfig = {
+            dom: childNode
+          };
+          menuItem = new cola.menu.MenuItem(itemConfig);
+          if (right) {
+            this.addRightItem(menuItem);
+          } else {
+            this.addItem(menuItem);
+          }
+        }
+        return this._pagerItemMap[propName] = menuItem;
       }
     };
 
@@ -27797,11 +27798,14 @@
             itemConfig = this._pagerItemConfig[propName];
             menuItem = new cola.menu.MenuItem(itemConfig);
           } else if (config === "goto") {
-            propName = "goto";
+            propName = config;
             itemConfig = {
               control: this._pagerItemConfig[config]
             };
             menuItem = new cola.menu.ControlMenuItem(itemConfig);
+          } else if (config === "info") {
+            propName = config;
+            menuItem = new cola.menu.MenuItem();
           }
           if (floatRight) {
             this.addRightItem(menuItem);
@@ -27833,41 +27837,52 @@
       return menuItem;
     };
 
-    Pager.prototype.pagerItemsRefresh = function(pager) {};
+    Pager.prototype._initDom = function(dom) {
+      Pager.__super__._initDom.call(this, dom);
+      return this.pagerItemsRefresh();
+    };
 
-    Pager.prototype._onItemsRefresh = function() {
-      var data, gotoInput, infoItem, infoItemDom, pageCount, pager, ref, ref1, ref2, ref3, ref4, ref5;
+    Pager.prototype.pagerItemsRefresh = function() {
+      var data, gotoInput, hasNext, hasPrev, infoItem, infoItemDom, pageCount, pageNo, pager, ref, ref1, ref2, ref3, ref4, ref5;
       pager = this;
       data = pager._getBindItems();
+      hasPrev = true;
+      hasNext = true;
+      pageNo = 0;
+      pageCount = 0;
       if (data) {
-        this._pageNo = data.pageNo;
-        if ((ref = pager._pagerItemMap["firstPage"]) != null) {
-          ref.get$Dom().toggleClass("disabled", data.pageNo === 1);
-        }
-        if ((ref1 = pager._pagerItemMap["prevPage"]) != null) {
-          ref1.get$Dom().toggleClass("disabled", data.pageNo === 1);
-        }
         pageCount = parseInt((data.totalEntityCount + data.pageSize - 1) / data.pageSize);
-        if ((ref2 = pager._pagerItemMap["nextPage"]) != null) {
-          ref2.get$Dom().toggleClass("disabled", pageCount === data.pageNo);
-        }
-        if ((ref3 = pager._pagerItemMap["lastPage"]) != null) {
-          ref3.get$Dom().toggleClass("disabled", pageCount === data.pageNo);
-        }
-        infoItem = pager._pagerItemMap["info"];
-        if (infoItem && data.pageCountDetermined) {
-          if (infoItem.nodeType === 1) {
-            infoItemDom = infoItem;
-          } else {
-            infoItemDom = infoItem.getDom();
-          }
-          $(infoItemDom).text("第" + data.pageNo + "页/共" + data.pageCount + "页");
-        }
-        gotoInput = (ref4 = pager._pagerItemMap["goto"]) != null ? ref4.get("control") : void 0;
-        if (gotoInput) {
-          return (ref5 = cola.widget(gotoInput)) != null ? ref5.set("value", data.pageNo) : void 0;
-        }
+        hasPrev = data.pageNo === 1;
+        hasNext = pageCount === data.pageNo;
+        pageNo = data.pageNo;
+        pageCount = data.pageCount;
       }
+      this._pageNo = pageNo;
+      if ((ref = pager._pagerItemMap["firstPage"]) != null) {
+        ref.get$Dom().toggleClass("disabled", hasPrev);
+      }
+      if ((ref1 = pager._pagerItemMap["prevPage"]) != null) {
+        ref1.get$Dom().toggleClass("disabled", hasPrev);
+      }
+      if ((ref2 = pager._pagerItemMap["nextPage"]) != null) {
+        ref2.get$Dom().toggleClass("disabled", hasNext);
+      }
+      if ((ref3 = pager._pagerItemMap["lastPage"]) != null) {
+        ref3.get$Dom().toggleClass("disabled", hasNext);
+      }
+      infoItem = pager._pagerItemMap["info"];
+      if (infoItem) {
+        infoItemDom = infoItem.nodeType === 1 ? infoItem : infoItem.getDom();
+        $(infoItemDom).text("第" + pageNo + "页/共" + pageCount + "页");
+      }
+      gotoInput = (ref4 = pager._pagerItemMap["goto"]) != null ? ref4.get("control") : void 0;
+      if (gotoInput) {
+        return (ref5 = cola.widget(gotoInput)) != null ? ref5.set("value", pageNo) : void 0;
+      }
+    };
+
+    Pager.prototype._onItemsRefresh = function() {
+      return this.pagerItemsRefresh();
     };
 
     Pager.prototype._onItemRefresh = function(arg) {};
