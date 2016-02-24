@@ -165,6 +165,11 @@
               context[attrValue] = el;
             }
             break;
+          case "data":
+            if (context instanceof Object && attrValue && typeof attrValue === "string") {
+              context[attrValue] = el;
+            }
+            break;
           default:
             if (typeof attrValue === "function") {
               $el.bind(attrName, attrValue);
@@ -2278,6 +2283,9 @@
           return;
         }
       }
+      if (this._beforeSend) {
+        this._beforeSend(options);
+      }
       jQuery.ajax(options).done((function(_this) {
         return function(result) {
           result = ajaxService.translateResult(result, options);
@@ -2397,6 +2405,85 @@
 
   })(cola.Definition);
 
+  cola.ProviderInvoker = (function(superClass) {
+    extend(ProviderInvoker, superClass);
+
+    function ProviderInvoker() {
+      return ProviderInvoker.__super__.constructor.apply(this, arguments);
+    }
+
+    ProviderInvoker.prototype._replaceSysParams = function(options) {
+      var changed, data, l, len1, match, matches, name, p, url, v;
+      url = options.originUrl || options.url;
+      matches = url.match(/{:\$[\w-]+}/g);
+      if (matches) {
+        if (!options.originUrl) {
+          options.originUrl = url;
+        }
+        for (l = 0, len1 = matches.length; l < len1; l++) {
+          match = matches[l];
+          name = match.substring(3, match.length - 1);
+          if (name) {
+            url = url.replace(match, this[name] || "");
+            options.url = url;
+            changed = true;
+          }
+        }
+      }
+      data = options.originData || options.data;
+      if (data) {
+        for (p in data) {
+          v = data[p];
+          if (typeof v === "string") {
+            if (v.charCodeAt(0) === 58 && v.charCodeAt(1) === 36) {
+              if (!options.originData) {
+                options.originData = $.extend(data, null);
+              }
+              data[p] = this[v.substring(2)];
+              changed = true;
+            } else if (v.match(/^{:\$[\w-]+}$/)) {
+              if (!options.originData) {
+                options.originData = $.extend(data, null);
+              }
+              data[p] = this[v.substring(3, v.length - 1)];
+              changed = true;
+            }
+          }
+        }
+      }
+      return changed;
+    };
+
+    ProviderInvoker.prototype.applyPagingParameters = function(options) {
+      if (!this._replaceSysParams(options)) {
+        if (options.data == null) {
+          options.data = {};
+        }
+        if (cola.setting("pagingParamStyle") === "from") {
+          options.data.from = this.from;
+          options.data.limit = this.limit;
+        } else {
+          options.data.pageSize = this.pageSize;
+          options.data.pageNo = this.pageNo;
+        }
+      }
+    };
+
+    ProviderInvoker.prototype._beforeSend = function(options) {
+      if (!this.pageNo >= 1) {
+        this.pageNo = 1;
+      }
+      if (this.pageSize > 1 && this.pageNo > 1) {
+        this.from = this.pageSize * (this.pageNo - 1);
+      }
+      this.limit = this.pageSize + (this.detectEnd ? 1 : 0);
+      this.applyPagingParameters(options);
+    };
+
+    return ProviderInvoker;
+
+  })(cola.AjaxServiceInvoker);
+
   cola.Provider = (function(superClass) {
     extend(Provider, superClass);
 
@@ -2409,31 +2496,47 @@
       detectEnd: null
     };
 
+    Provider.prototype.getUrl = function(context) {
+      var expr, l, len1, match, matches, url;
+      url = this._url;
+      matches = url.match(/{:[\w-]+}/g);
+      if (matches) {
+        for (l = 0, len1 = matches.length; l < len1; l++) {
+          match = matches[l];
+          expr = match.substring(2, match.length - 1);
+          if (expr) {
+            url = url.replace(match, cola.Entity._evalDataPath(context, expr, true, "never") || "");
+          }
+        }
+      }
+      return url;
+    };
+
+    Provider.prototype.getInvoker = function(context) {
+      var provider;
+      provider = new cola.ProviderInvoker(this, this.getInvokerOptions(context));
+      provider.pageSize = this._pageSize;
+      provider.detectEnd = this._detectEnd;
+      return provider;
+    };
+
     Provider.prototype._evalParamValue = function(expr, context) {
-      if (expr.charCodeAt(0) === 58) {
+      if (expr.charCodeAt(0) === 58 && expr.charCodeAt(1) !== 36) {
         if (context) {
           return cola.Entity._evalDataPath(context, expr.substring(1), true, "never");
         } else {
           return null;
         }
-      } else {
-        return expr;
-      }
-    };
-
-    Provider.prototype.getUrl = function(context) {
-      var l, len1, part, parts, ref, url;
-      url = this._url;
-      if (url.indexOf(":") > -1) {
-        parts = [];
-        ref = url.split("/");
-        for (l = 0, len1 = ref.length; l < len1; l++) {
-          part = ref[l];
-          parts.push(this._evalParamValue(part, context));
+      } else if (context && expr.charCodeAt(0) === 123) {
+        if (expr.match(/^{:[\w-]+}$/)) {
+          if (context) {
+            return cola.Entity._evalDataPath(context, expr.substring(2, expr.length - 1), true, "never");
+          } else {
+            return null;
+          }
         }
-        url = parts.join("/");
       }
-      return url;
+      return expr;
     };
 
     Provider.prototype.getInvokerOptions = function(context) {
@@ -2460,16 +2563,12 @@
           }
         }
       }
-      if (this._pageSize > 1) {
-        if (parameter == null) {
-          parameter = {};
-        } else if (!(parameter instanceof Object)) {
-          parameter = {
-            parameter: parameter
-          };
-        }
-        parameter.from = 0;
-        parameter.limit = this._pageSize + (this._detectEnd ? 1 : 0);
+      if (parameter == null) {
+        parameter = {};
+      } else if (!(parameter instanceof Object)) {
+        parameter = {
+          parameter: parameter
+        };
       }
       options.data = parameter;
       return options;
@@ -3259,7 +3358,7 @@
 
   })(cola.Definition);
 
-  cola.DataType.jsonToEntity = function(json, dataType, aggregated) {
+  cola.DataType.jsonToEntity = function(json, dataType, aggregated, pageSize) {
     var entityList;
     if (aggregated === void 0) {
       if (json instanceof Array) {
@@ -3272,6 +3371,9 @@
     }
     if (aggregated) {
       entityList = new cola.EntityList(null, dataType);
+      if (pageSize) {
+        entityList.pageSize = pageSize;
+      }
       entityList.fillData(json);
       return entityList;
     } else {
@@ -3282,12 +3384,12 @@
     }
   };
 
-  cola.DataType.jsonToData = function(json, dataType, aggregated) {
+  cola.DataType.jsonToData = function(json, dataType, aggregated, pageSize) {
     var result;
     if (dataType instanceof cola.StringDataType && typeof json !== "string" || dataType instanceof cola.BooleanDataType && typeof json !== "boolean" || dataType instanceof cola.NumberDataType && typeof json !== "number" || dataType instanceof cola.DateDataType && !(json instanceof Date)) {
       result = dataType.parse(json);
     } else if (dataType instanceof cola.EntityDataType) {
-      result = cola.DataType.jsonToEntity(json, dataType, aggregated);
+      result = cola.DataType.jsonToEntity(json, dataType, aggregated, pageSize);
     } else if (dataType && typeof json === "object") {
       result = dataType.parse(json);
     } else {
@@ -3782,9 +3884,8 @@
 
     Entity.prototype._jsonToEntity = function(value, dataType, aggregated, provider) {
       var result;
-      result = cola.DataType.jsonToEntity(value, dataType, aggregated);
+      result = cola.DataType.jsonToEntity(value, dataType, aggregated, provider != null ? provider._pageSize : void 0);
       if (result && provider) {
-        result.pageSize = provider._pageSize;
         result._providerInvoker = provider.getInvoker(this);
       }
       return result;
@@ -4490,7 +4591,9 @@
         entityList.totalEntityCount = rawJson.$entityCount;
       }
       if (entityList.totalEntityCount != null) {
-        entityList.pageCount = parseInt((entityList.totalEntityCount + entityList.pageSize - 1) / entityList.pageSize);
+        if (entityList.pageSize) {
+          entityList.pageCount = parseInt((entityList.totalEntityCount + entityList.pageSize - 1) / entityList.pageSize);
+        }
         entityList.pageCountDetermined = true;
       }
       entityList.entityCount += json.length;
@@ -4546,13 +4649,11 @@
     };
 
     Page.prototype.loadData = function(callback) {
-      var pageSize, providerInvoker, result;
+      var providerInvoker, result;
       providerInvoker = this.entityList._providerInvoker;
       if (providerInvoker) {
-        pageSize = this.entityList.pageSize;
-        if (pageSize > 1 && this.pageNo > 1) {
-          providerInvoker.invokerOptions.data.from = pageSize * (this.pageNo - 1);
-        }
+        providerInvoker.pageSize = this.entityList.pageSize;
+        providerInvoker.pageNo = this.pageNo;
         if (callback) {
           providerInvoker.invokeAsync({
             complete: (function(_this) {
@@ -5164,9 +5265,11 @@
             }
           }
           next = next._next;
-        } else if (!pageNo) {
+        } else if (page && !pageNo) {
           page = page._next;
           next = page != null ? page._first : void 0;
+        } else {
+          break;
         }
       }
       return this;
@@ -5553,9 +5656,9 @@
   Functions
    */
 
-  cola.each = function(collection, fn) {
+  cola.each = function(collection, fn, options) {
     if (collection instanceof cola.EntityList) {
-      collection.each(fn);
+      collection.each(fn, options);
     } else if (collection instanceof Array) {
       if (typeof collection.each === "function") {
         collection.each(fn);
@@ -6635,13 +6738,17 @@
       return DataModel.__super__.constructor.apply(this, arguments);
     }
 
+    DataModel.prototype._createRootData = function(rootDataType) {
+      return new cola.Entity(null, rootDataType);
+    };
+
     DataModel.prototype._getRootData = function() {
       var dataModel, rootData;
       if (this._rootData == null) {
         if (this._rootDataType == null) {
           this._rootDataType = new cola.EntityDataType();
         }
-        this._rootData = rootData = new cola.Entity(null, this._rootDataType);
+        this._rootData = rootData = this._createRootData(this._rootDataType);
         rootData.state = cola.Entity.STATE_NEW;
         dataModel = this;
         rootData._setListener({
@@ -7286,6 +7393,17 @@
   this.$fly = function(dom) {
     _$[0] = dom;
     return _$;
+  };
+
+  cola.util.setText = function(dom, text) {
+    if (text == null) {
+      text = "";
+    }
+    if (cola.browser.mozilla) {
+      dom.innerHTML = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+    } else {
+      dom.innerText = text;
+    }
   };
 
   doms = {};
@@ -8551,7 +8669,7 @@
     }
 
     _TextNodeFeature.prototype._doRender = function(domBinding, value) {
-      $fly(domBinding.dom).text(value == null ? "" : value);
+      cola.util.setText(domBinding.dom, value != null ? value : "");
     };
 
     return _TextNodeFeature;
@@ -8571,13 +8689,13 @@
       var attr;
       attr = this.attr;
       if (attr === "text") {
-        domBinding.$dom.text(value == null ? "" : value);
+        cola.util.setText(domBinding.dom, value != null ? value : "");
       } else if (attr === "html") {
-        domBinding.$dom.html(value == null ? "" : value);
+        domBinding.$dom.html(value != null ? value : "");
       } else if (this.isStyle) {
         domBinding.$dom.css(attr, value);
       } else {
-        domBinding.$dom.attr(attr, value == null ? "" : value);
+        domBinding.$dom.attr(attr, value != null ? value : "");
       }
     };
 
@@ -9146,35 +9264,8 @@
     $: []
   };
 
-  $.xCreate.templateProcessors.push(function(template) {
-    var dom;
-    if (template instanceof cola.Widget) {
-      dom = template.getDom();
-      dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
-      return dom;
-    }
-  });
-
-  $.xCreate.attributeProcessor["c-widget"] = function($dom, attrName, attrValue, context) {
-    var configKey, widgetConfigs;
-    if (!attrValue) {
-      return;
-    }
-    if (typeof attrValue === "string") {
-      $dom.attr(attrName, attrValue);
-    } else if (context) {
-      configKey = cola.uniqueId();
-      $dom.attr("widget-config", configKey);
-      widgetConfigs = context.widgetConfigs;
-      if (!widgetConfigs) {
-        context.widgetConfigs = widgetConfigs = {};
-      }
-      widgetConfigs[configKey] = attrValue;
-    }
-  };
-
   cola.xRender = function(template, model, context) {
-    var child, div, documentFragment, dom, l, len1, next, node, oldScope, widget;
+    var child, div, documentFragment, dom, l, len1, len2, len3, next, node, o, oldScope, processor, q, ref, ref1;
     if (!template) {
       return;
     }
@@ -9202,30 +9293,32 @@
           documentFragment = document.createDocumentFragment();
           for (l = 0, len1 = template.length; l < len1; l++) {
             node = template[l];
-            widget = null;
-            if (node instanceof cola.Widget) {
-              widget = node;
-            } else if (node.$type) {
-              widget = cola.widget(node, context.namespace);
+            child = null;
+            ref = cola.xRender.nodeProcessors;
+            for (o = 0, len2 = ref.length; o < len2; o++) {
+              processor = ref[o];
+              child = processor(node, context);
+              if (child) {
+                break;
+              }
             }
-            if (widget) {
-              child = widget.getDom();
-              child.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
-            } else {
+            if (child) {
               child = $.xCreate(node, context);
             }
-            documentFragment.appendChild(child);
+            if (child) {
+              documentFragment.appendChild(child);
+            }
           }
         } else {
-          if (template instanceof cola.Widget) {
-            widget = template;
-          } else if (template.$type) {
-            widget = cola.widget(template, context.namespace);
+          ref1 = cola.xRender.nodeProcessors;
+          for (q = 0, len3 = ref1.length; q < len3; q++) {
+            processor = ref1[q];
+            dom = processor(template, context);
+            if (dom) {
+              break;
+            }
           }
-          if (widget) {
-            dom = widget.getDom();
-            dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
-          } else {
+          if (!dom) {
             dom = $.xCreate(template, context);
           }
         }
@@ -9245,6 +9338,8 @@
     }
     return dom;
   };
+
+  cola.xRender.nodeProcessors = [];
 
   cola._renderDomTemplate = function(dom, scope, context) {
     if (context == null) {
@@ -9626,7 +9721,7 @@
  * at http://www.bstek.com/contact.
  */
 (function() {
-  var ACTIVE_PINCH_REG, ACTIVE_ROTATE_REG, ALIAS_REGEXP, BLANK_PATH, Column, ContentColumn, DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DataColumn, DropBox, GroupColumn, LIST_SIZE_PREFIXS, NestedListBind, NestedListNode, PAN_VERTICAL_EVENTS, SAFE_PULL_EFFECT, SAFE_SLIDE_EFFECT, SLIDE_ANIMATION_SPEED, SWIPE_VERTICAL_EVENTS, SelectColumn, TEMP_TEMPLATE, TreeNode, TreeNodeBind, _columnsSetter, _createGroupArray, _destroyRenderableElement, _findWidgetConfig, _getEntityId, _removeTranslateStyle, containerEmptyChildren, currentDate, currentHours, currentMinutes, currentMonth, currentSeconds, currentYear, dateTimeSlotConfigs, dateTypeConfig, dropdownDialogMargin, emptyRadioGroupItems, isIE11, now, slotAttributeGetter, slotAttributeSetter,
+  var ACTIVE_PINCH_REG, ACTIVE_ROTATE_REG, ALIAS_REGEXP, BLANK_PATH, DEFAULT_DATE_DISPLAY_FORMAT, DEFAULT_DATE_INPUT_FORMAT, DEFAULT_TIME_DISPLAY_FORMAT, DEFAULT_TIME_INPUT_FORMAT, DropBox, LIST_SIZE_PREFIXS, PAN_VERTICAL_EVENTS, SAFE_PULL_EFFECT, SAFE_SLIDE_EFFECT, SLIDE_ANIMATION_SPEED, SWIPE_VERTICAL_EVENTS, TEMP_TEMPLATE, _columnsSetter, _createGroupArray, _destroyRenderableElement, _findWidgetConfig, _getEntityId, _pageCodeMap, _pagesItems, _removeTranslateStyle, containerEmptyChildren, currentDate, currentHours, currentMinutes, currentMonth, currentSeconds, currentYear, dateTimeSlotConfigs, dateTypeConfig, dropdownDialogMargin, emptyRadioGroupItems, isIE11, now, slotAttributeGetter, slotAttributeSetter,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
@@ -9764,6 +9859,18 @@
       child = child.nextSibling;
     }
     return cola.util;
+  };
+
+  cola.util.hasContent = function(dom) {
+    var child;
+    child = dom.firstChild;
+    while (child) {
+      if (child.nodeType === 3 || child.nodeType === 1) {
+        return true;
+      }
+      child = child.nextSibling;
+    }
+    return false;
   };
 
   cola.util.getScrollerRender = function(element) {
@@ -9923,6 +10030,47 @@
       cancelTranslateElement: cancelTranslateElement
     };
   })();
+
+  $.xCreate.templateProcessors.push(function(template) {
+    var dom;
+    if (template instanceof cola.Widget) {
+      dom = template.getDom();
+      dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+      return dom;
+    }
+  });
+
+  $.xCreate.attributeProcessor["c-widget"] = function($dom, attrName, attrValue, context) {
+    var configKey, widgetConfigs;
+    if (!attrValue) {
+      return;
+    }
+    if (typeof attrValue === "string") {
+      $dom.attr(attrName, attrValue);
+    } else if (context) {
+      configKey = cola.uniqueId();
+      $dom.attr("widget-config", configKey);
+      widgetConfigs = context.widgetConfigs;
+      if (!widgetConfigs) {
+        context.widgetConfigs = widgetConfigs = {};
+      }
+      widgetConfigs[configKey] = attrValue;
+    }
+  };
+
+  cola.xRender.nodeProcessors.push(function(node, context) {
+    var dom, widget;
+    if (node instanceof cola.Widget) {
+      widget = node;
+    } else if (node.$type) {
+      widget = cola.widget(node, context.namespace);
+    }
+    if (widget) {
+      dom = widget.getDom();
+      dom.setAttribute(cola.constants.IGNORE_DIRECTIVE, "");
+      return dom;
+    }
+  });
 
   cola.Model.prototype.widgetConfig = function(id, config) {
     var k, ref, v;
@@ -20790,7 +20938,9 @@
         return;
       }
       if (control instanceof cola.RenderableElement) {
+        cola._ignoreNodeRemoved = true;
         dom.appendChild(control.getDom());
+        cola._ignoreNodeRemoved = false;
       } else if (control.nodeType === 1) {
         dom.appendChild(control);
       }
@@ -20895,11 +21045,8 @@
       itemClick: null
     };
 
-    Menu.prototype._parseDom = function(dom) {
-      var container, parseItems, parseRightMenu;
-      if (this._items == null) {
-        this._items = [];
-      }
+    Menu.prototype._parseItems = function(node) {
+      var childNode, menuItem, parseRightMenu, results;
       parseRightMenu = (function(_this) {
         return function(node) {
           var childNode, menuItem;
@@ -20923,36 +21070,40 @@
           }
         };
       })(this);
-      parseItems = (function(_this) {
-        return function(node) {
-          var childNode, menuItem;
-          childNode = node.firstChild;
-          while (childNode) {
-            if (childNode.nodeType === 1) {
-              menuItem = cola.widget(childNode);
-              if (menuItem) {
-                _this.addItem(menuItem);
-              } else if (!_this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
-                _this._rightMenuDom = childNode;
-                parseRightMenu(childNode);
-              } else if (cola.util.hasClass(childNode, "item")) {
-                menuItem = new cola.menu.MenuItem({
-                  dom: childNode
-                });
-                _this.addItem(menuItem);
-              }
-            }
-            childNode = childNode.nextSibling;
+      childNode = node.firstChild;
+      results = [];
+      while (childNode) {
+        if (childNode.nodeType === 1) {
+          menuItem = cola.widget(childNode);
+          if (menuItem) {
+            this.addItem(menuItem);
+          } else if (!this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
+            this._rightMenuDom = childNode;
+            parseRightMenu(childNode);
+          } else if (cola.util.hasClass(childNode, "item")) {
+            menuItem = new cola.menu.MenuItem({
+              dom: childNode
+            });
+            this.addItem(menuItem);
           }
-        };
-      })(this);
+        }
+        results.push(childNode = childNode.nextSibling);
+      }
+      return results;
+    };
+
+    Menu.prototype._parseDom = function(dom) {
+      var container;
+      if (this._items == null) {
+        this._items = [];
+      }
       container = $(dom).find(">.container");
       if (container.length) {
         this._centered = true;
         this._containerDom = container[0];
-        parseItems(this._containerDom);
+        this._parseItems(this._containerDom);
       } else {
-        parseItems(dom);
+        this._parseItems(dom);
       }
     };
 
@@ -21106,7 +21257,7 @@
       }
     };
 
-    Menu.prototype._createItem = function(config) {
+    Menu.prototype._createItem = function(config, floatRight) {
       var menuItem;
       menuItem = null;
       if (config.constructor === Object.prototype.constructor) {
@@ -21160,7 +21311,7 @@
 
     Menu.prototype.addRightItem = function(config) {
       var active, container, itemDom, menuItem;
-      menuItem = this._createItem(config);
+      menuItem = this._createItem(config, true);
       if (!menuItem) {
         return this;
       }
@@ -22595,6 +22746,9 @@
       highlightCurrentItem: {
         type: "boolean"
       },
+      currentPageOnly: {
+        type: "boolean"
+      },
       autoLoadPage: {
         type: "boolean",
         defaultValue: true
@@ -22740,7 +22894,7 @@
     ItemsView.prototype._onItemsWrapperScroll = function() {
       var itemsWrapper, realItems;
       realItems = this._realItems;
-      if (this._autoLoadPage && !this._loadingNextPage && (realItems === this._realOriginItems || !this._realOriginItems)) {
+      if (!this._currentPageOnly && this._autoLoadPage && !this._loadingNextPage && (realItems === this._realOriginItems || !this._realOriginItems)) {
         if (realItems instanceof cola.EntityList && realItems.pageSize > 0 && (realItems.pageNo < realItems.pageCount || !realItems.pageCountDetermined)) {
           itemsWrapper = this._doms.itemsWrapper;
           if (itemsWrapper.scrollTop + itemsWrapper.clientHeight === itemsWrapper.scrollHeight) {
@@ -22926,7 +23080,7 @@
     };
 
     ItemsView.prototype._doRefreshItems = function(itemsWrapper) {
-      var counter, currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, nextItemDom, pullDownPane, pullUpPane, ref, ret;
+      var currentItem, currentPageNo, documentFragment, hasPullAction, itemDom, items, lastItem, nextItemDom, pullDownPane, pullUpPane, ref, ret;
       if (this._itemDomMap == null) {
         this._itemDomMap = {};
       }
@@ -22950,7 +23104,6 @@
         }
         this._currentItem = currentItem;
         this._itemsScope.resetItemScopeMap();
-        counter = 0;
         this._refreshEmptyItemDom();
         lastItem = null;
         cola.each(items, (function(_this) {
@@ -22988,7 +23141,9 @@
               documentFragment.appendChild(itemDom);
             }
           };
-        })(this));
+        })(this), {
+          currentPage: this._currentPageOnly
+        });
         if (nextItemDom) {
           itemDom = nextItemDom;
           while (itemDom) {
@@ -23009,7 +23164,7 @@
         if (documentFragment) {
           itemsWrapper.appendChild(documentFragment);
         }
-        if (this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList && items.pageSize > 0) {
+        if (!this._currentPageOnly && this._autoLoadPage && !this._loadingNextPage && (items === this._realOriginItems || !this._realOriginItems) && items instanceof cola.EntityList && items.pageSize > 0) {
           currentPageNo = lastItem != null ? (ref = lastItem._page) != null ? ref.pageNo : void 0 : void 0;
           if (currentPageNo && (currentPageNo < items.pageCount || !items.pageCountDetermined)) {
             if (itemsWrapper.scrollHeight === itemsWrapper.clientHeight && (itemsWrapper.scrollTop = 0)) {
@@ -24446,6 +24601,7 @@
           this.fire("itemSlideStep", this, {
             event: evt,
             item: item,
+            direction: direction,
             distance: distanceX,
             speed: this._touchMoveSpeed
           });
@@ -24479,20 +24635,22 @@
       if (cola.browser.chrome) {
         itemDom.style.opacity = "";
       }
+      direction = this._itemSlideDirection;
       if (opened) {
         this.fire("itemSlideComplete", this, {
           event: evt,
           item: cola.util.userData(itemDom, "item"),
+          direction: direction,
           distance: this._currentSlideDistance,
           speed: this._touchMoveSpeed
         });
       } else {
         this.fire("itemSlideCancel", this, {
+          direction: direction,
           event: evt,
           item: cola.util.userData(itemDom, "item")
         });
       }
-      direction = this._itemSlideDirection;
       if (itemDom.firstChild && itemDom.firstChild === itemDom.lastChild) {
         slideDom = itemDom.firstChild;
       } else {
@@ -24637,7 +24795,6 @@
     extend(CascadeBind, superClass);
 
     CascadeBind.ATTRIBUTES = {
-      name: null,
       expression: {
         setter: function(expression) {
           expression = cola._compileExpression(expression, "repeat");
@@ -25013,7 +25170,7 @@
     }
   };
 
-  NestedListNode = (function(superClass) {
+  cola.NestedListNode = (function(superClass) {
     extend(NestedListNode, superClass);
 
     function NestedListNode() {
@@ -25042,14 +25199,14 @@
 
   })(cola.Node);
 
-  NestedListBind = (function(superClass) {
+  cola.NestedListBind = (function(superClass) {
     extend(NestedListBind, superClass);
 
     function NestedListBind() {
       return NestedListBind.__super__.constructor.apply(this, arguments);
     }
 
-    NestedListBind.NODE_TYPE = NestedListNode;
+    NestedListBind.NODE_TYPE = cola.NestedListNode;
 
     NestedListBind.ATTRIBUTES = {
       titleProperty: null
@@ -25071,8 +25228,8 @@
     NestedList.ATTRIBUTES = {
       bind: {
         setter: function(bind) {
-          if (bind && !(bind instanceof NestedListBind)) {
-            bind = new NestedListBind(this, bind);
+          if (bind && !(bind instanceof cola.NestedListBind)) {
+            bind = new cola.NestedListBind(this, bind);
           }
           this._bind = bind;
           if (this._rootNode) {
@@ -25085,7 +25242,7 @@
         defaultValue: true
       },
       navBarWidth: {
-        defaultValue: 280
+        defaultValue: "280px"
       },
       showTitleBar: {
         type: "boolean",
@@ -25135,12 +25292,22 @@
           {
             tagName: "div",
             "class": "nav",
-            style: "width:" + this._navBarWidth + "px;float:left;height:100%;overflow:hidden",
+            style: {
+              width: this._navBarWidth,
+              height: "100%",
+              float: "left",
+              overflow: "hidden"
+            },
             content: layer.container
           }, {
             tagName: "div",
             "class": "detail",
-            style: "margin-left:" + this._navBarWidth + "px;height:100%;position:relative;overflow:hidden",
+            style: {
+              marginLeft: this._navBarWidth,
+              height: "100%",
+              position: "relative",
+              overflow: "hidden"
+            },
             contextKey: "detailContainer"
           }
         ], this._doms);
@@ -25149,7 +25316,7 @@
         layer.container.appendTo(dom);
       }
       itemsScope = layer.list._itemsScope;
-      this._rootNode = new NestedListNode(this._bind);
+      this._rootNode = new cola.NestedListNode(this._bind);
       this._rootNode._scope = this._scope;
       this._rootNode._itemsScope = itemsScope;
       if (this._bind) {
@@ -25170,8 +25337,7 @@
         };
       }
       this.fire("topLayerChange", this, {
-        index: 0,
-        list: layer
+        index: 0
       });
     };
 
@@ -25478,7 +25644,7 @@
 
   cola.Element.mixin(cola.NestedList, cola.TemplateSupport);
 
-  TreeNode = (function(superClass) {
+  cola.TreeNode = (function(superClass) {
     extend(TreeNode, superClass);
 
     function TreeNode() {
@@ -25541,14 +25707,14 @@
 
   })(cola.Node);
 
-  TreeNodeBind = (function(superClass) {
+  cola.TreeNodeBind = (function(superClass) {
     extend(TreeNodeBind, superClass);
 
     function TreeNodeBind() {
       return TreeNodeBind.__super__.constructor.apply(this, arguments);
     }
 
-    TreeNodeBind.NODE_TYPE = TreeNode;
+    TreeNodeBind.NODE_TYPE = cola.TreeNode;
 
     TreeNodeBind.ATTRIBUTES = {
       textProperty: null,
@@ -25576,8 +25742,8 @@
       bind: {
         refreshItems: true,
         setter: function(bind) {
-          if (bind && !(bind instanceof TreeNodeBind)) {
-            bind = new TreeNodeBind(this, bind);
+          if (bind && !(bind instanceof cola.TreeNodeBind)) {
+            bind = new cola.TreeNodeBind(this, bind);
           }
           this._bind = bind;
           if (bind) {
@@ -25677,7 +25843,7 @@
         };
       })(this));
       itemsScope = this._itemsScope;
-      this._rootNode = new TreeNode(this._bind);
+      this._rootNode = new cola.TreeNode(this._bind);
       this._rootNode._scope = this._scope;
       this._rootNode._itemsScope = itemsScope;
       if (this._bind) {
@@ -26131,22 +26297,22 @@
     }
     type = config.$type.toLowerCase();
     if (type === "select") {
-      return SelectColumn;
+      return cola.TableSelectColumn;
     }
   });
 
   cola.registerTypeResolver("table.column", function(config) {
     var ref;
     if ((ref = config.columns) != null ? ref.length : void 0) {
-      return GroupColumn;
+      return cola.TableGroupColumn;
     }
-    return DataColumn;
+    return cola.TableDataColumn;
   });
 
-  Column = (function(superClass) {
-    extend(Column, superClass);
+  cola.TableColumn = (function(superClass) {
+    extend(TableColumn, superClass);
 
-    Column.ATTRIBUTES = {
+    TableColumn.ATTRIBUTES = {
       name: {
         reaonlyAfterCreate: true
       },
@@ -26158,18 +26324,18 @@
       headerTemplate: null
     };
 
-    Column.EVENTS = {
+    TableColumn.EVENTS = {
       renderHeader: null
     };
 
-    function Column(config) {
-      Column.__super__.constructor.call(this, config);
+    function TableColumn(config) {
+      TableColumn.__super__.constructor.call(this, config);
       if (!this._name) {
         this._name = cola.uniqueId();
       }
     }
 
-    Column.prototype._setTable = function(table) {
+    TableColumn.prototype._setTable = function(table) {
       if (this._table) {
         this._table._unregColumn(this);
       }
@@ -26179,18 +26345,18 @@
       }
     };
 
-    return Column;
+    return TableColumn;
 
   })(cola.Element);
 
-  GroupColumn = (function(superClass) {
-    extend(GroupColumn, superClass);
+  cola.TableGroupColumn = (function(superClass) {
+    extend(TableGroupColumn, superClass);
 
-    function GroupColumn() {
-      return GroupColumn.__super__.constructor.apply(this, arguments);
+    function TableGroupColumn() {
+      return TableGroupColumn.__super__.constructor.apply(this, arguments);
     }
 
-    GroupColumn.ATTRIBUTES = {
+    TableGroupColumn.ATTRIBUTES = {
       columns: {
         setter: function(columnConfigs) {
           _columnsSetter.call(this, this._table, columnConfigs);
@@ -26198,9 +26364,9 @@
       }
     };
 
-    GroupColumn.prototype._setTable = function(table) {
+    TableGroupColumn.prototype._setTable = function(table) {
       var column, l, len1, ref;
-      GroupColumn.__super__._setTable.call(this, table);
+      TableGroupColumn.__super__._setTable.call(this, table);
       if (this._columns) {
         ref = this._columns;
         for (l = 0, len1 = ref.length; l < len1; l++) {
@@ -26210,18 +26376,18 @@
       }
     };
 
-    return GroupColumn;
+    return TableGroupColumn;
 
-  })(Column);
+  })(cola.TableColumn);
 
-  ContentColumn = (function(superClass) {
-    extend(ContentColumn, superClass);
+  cola.TableContentColumn = (function(superClass) {
+    extend(TableContentColumn, superClass);
 
-    function ContentColumn() {
-      return ContentColumn.__super__.constructor.apply(this, arguments);
+    function TableContentColumn() {
+      return TableContentColumn.__super__.constructor.apply(this, arguments);
     }
 
-    ContentColumn.ATTRIBUTES = {
+    TableContentColumn.ATTRIBUTES = {
       width: {
         defaultValue: 80
       },
@@ -26234,23 +26400,23 @@
       footerTemplate: null
     };
 
-    ContentColumn.EVENTS = {
+    TableContentColumn.EVENTS = {
       renderCell: null,
       renderFooter: null
     };
 
-    return ContentColumn;
+    return TableContentColumn;
 
-  })(Column);
+  })(cola.TableColumn);
 
-  DataColumn = (function(superClass) {
-    extend(DataColumn, superClass);
+  cola.TableDataColumn = (function(superClass) {
+    extend(TableDataColumn, superClass);
 
-    function DataColumn() {
-      return DataColumn.__super__.constructor.apply(this, arguments);
+    function TableDataColumn() {
+      return TableDataColumn.__super__.constructor.apply(this, arguments);
     }
 
-    DataColumn.ATTRIBUTES = {
+    TableDataColumn.ATTRIBUTES = {
       dataType: {
         readOnlyAfterCreate: true,
         setter: cola.DataType.dataTypeSetter
@@ -26259,18 +26425,18 @@
       template: null
     };
 
-    return DataColumn;
+    return TableDataColumn;
 
-  })(ContentColumn);
+  })(cola.TableContentColumn);
 
-  SelectColumn = (function(superClass) {
-    extend(SelectColumn, superClass);
+  cola.TableSelectColumn = (function(superClass) {
+    extend(TableSelectColumn, superClass);
 
-    function SelectColumn() {
-      return SelectColumn.__super__.constructor.apply(this, arguments);
+    function TableSelectColumn() {
+      return TableSelectColumn.__super__.constructor.apply(this, arguments);
     }
 
-    SelectColumn.ATTRIBUTES = {
+    TableSelectColumn.ATTRIBUTES = {
       width: {
         defaultValue: "34px"
       },
@@ -26279,7 +26445,7 @@
       }
     };
 
-    SelectColumn.prototype.renderHeader = function(dom, item) {
+    TableSelectColumn.prototype.renderHeader = function(dom, item) {
       var checkbox;
       if (!dom.firstChild) {
         this._headerCheckbox = checkbox = new cola.Checkbox({
@@ -26295,7 +26461,7 @@
       }
     };
 
-    SelectColumn.prototype.renderCell = function(dom, item) {
+    TableSelectColumn.prototype.renderCell = function(dom, item) {
       var checkbox;
       if (!dom.firstChild) {
         checkbox = new cola.Checkbox({
@@ -26313,7 +26479,7 @@
       }
     };
 
-    SelectColumn.prototype.refreshHeaderCheckbox = function() {
+    TableSelectColumn.prototype.refreshHeaderCheckbox = function() {
       if (!this._headerCheckbox) {
         return;
       }
@@ -26347,7 +26513,7 @@
       });
     };
 
-    SelectColumn.prototype.selectAll = function(selected) {
+    TableSelectColumn.prototype.selectAll = function(selected) {
       var selectedProperty, table;
       table = this._table;
       selectedProperty = table._selectedProperty;
@@ -26373,9 +26539,9 @@
       }
     };
 
-    return SelectColumn;
+    return TableSelectColumn;
 
-  })(ContentColumn);
+  })(cola.TableContentColumn);
 
   _columnsSetter = function(table, columnConfigs) {
     var column, columnConfig, columns, l, len1, len2, n, ref;
@@ -26393,10 +26559,10 @@
         if (!columnConfig) {
           continue;
         }
-        if (columnConfig instanceof Column) {
+        if (columnConfig instanceof cola.TableColumn) {
           column = columnConfig;
         } else {
-          column = cola.create("table.column", columnConfig, Column);
+          column = cola.create("table.column", columnConfig, cola.TableColumn);
         }
         column._setTable(table);
         columns.push(column);
@@ -26453,8 +26619,8 @@
     AbstractTable.EVENTS = {
       renderRow: null,
       renderCell: null,
-      renderHeader: null,
-      renderFooter: null
+      renderHeaderCell: null,
+      renderFooterCell: null
     };
 
     AbstractTable.TEMPLATES = {
@@ -26520,7 +26686,7 @@
           level: deepth,
           column: column
         };
-        if (column instanceof GroupColumn) {
+        if (column instanceof cola.TableGroupColumn) {
           if (column._columns) {
             info.columns = cols = [];
             ref = column._columns;
@@ -26580,7 +26746,7 @@
           }
           info.index = context.dataColumns.length;
           context.dataColumns.push(info);
-          if (column instanceof SelectColumn) {
+          if (column instanceof cola.TableSelectColumn) {
             if (context.selectColumns == null) {
               context.selectColumns = [];
             }
@@ -26729,12 +26895,23 @@
     };
 
     Table.prototype._doRefreshItems = function() {
-      var col, colInfo, colgroup, column, i, l, len1, nextCol, ref, tbody, tfoot, thead;
+      var col, colInfo, colgroup, column, columnConfigs, i, l, len1, len2, n, nextCol, propertyDef, ref, ref1, tbody, tfoot, thead;
+      if (!this._columnsInfo.dataColumns.length && this._dataType && this._dataType instanceof cola.EntityDataType) {
+        columnConfigs = [];
+        ref = this._dataType.getProperties().elements;
+        for (l = 0, len1 = ref.length; l < len1; l++) {
+          propertyDef = ref[l];
+          columnConfigs.push({
+            bind: propertyDef._property
+          });
+        }
+        this.set("columns", columnConfigs);
+      }
       colgroup = this._doms.colgroup;
       nextCol = colgroup.firstChild;
-      ref = this._columnsInfo.dataColumns;
-      for (i = l = 0, len1 = ref.length; l < len1; i = ++l) {
-        colInfo = ref[i];
+      ref1 = this._columnsInfo.dataColumns;
+      for (i = n = 0, len2 = ref1.length; n < len2; i = ++n) {
+        colInfo = ref1[i];
         col = nextCol;
         if (!col) {
           col = document.createElement("col");
@@ -26912,8 +27089,8 @@
           return;
         }
       }
-      if (this.getListeners("renderHeader")) {
-        if (this.fire("renderHeader", this, {
+      if (this.getListeners("renderHeaderCell")) {
+        if (this.fire("renderHeaderCell", this, {
           column: column,
           dom: dom
         }) === false) {
@@ -27004,8 +27181,8 @@
           return;
         }
       }
-      if (this.getListeners("renderFooter")) {
-        if (this.fire("renderFooter", this, {
+      if (this.getListeners("renderFooterCell")) {
+        if (this.fire("renderFooterCell", this, {
           column: column,
           dom: dom
         }) === false) {
@@ -27038,7 +27215,8 @@
       if (this.getListeners("renderRow")) {
         if (this.fire("renderRow", this, {
           item: item,
-          dom: itemDom
+          dom: itemDom,
+          scope: itemScope
         }) === false) {
           return;
         }
@@ -27328,5 +27506,386 @@
     return Table;
 
   })(cola.AbstractTable);
+
+  _pagesItems = ["firstPage", "prevPage", "info", "nextPage", "lastPage"];
+
+  _pageCodeMap = {
+    "|<": "firstPage",
+    "<": "prevPage",
+    ">": "nextPage",
+    ">|": "lastPage"
+  };
+
+  cola.Pager = (function(superClass) {
+    extend(Pager, superClass);
+
+    Pager.ATTRIBUTES = {
+      bind: {
+        setter: function(bindStr) {
+          return this._bindSetter(bindStr);
+        }
+      }
+    };
+
+    Pager.prototype._getBindItems = function() {
+      var ref;
+      return (ref = this._getItems()) != null ? ref.items : void 0;
+    };
+
+    function Pager(config) {
+      var _getPageCount, pager;
+      this._pagerItemMap = {};
+      pager = this;
+      _getPageCount = function() {
+        var data;
+        data = pager._getBindItems();
+        return parseInt((data.totalEntityCount + data.pageSize - 1) / data.pageSize);
+      };
+      this._pagerItemConfig = {
+        firstPage: {
+          icon: "angle double left",
+          click: function() {
+            var ref;
+            return (ref = pager._getBindItems()) != null ? ref.firstPage() : void 0;
+          }
+        },
+        prevPage: {
+          icon: "angle left",
+          click: function() {
+            var data;
+            data = pager._getBindItems();
+            return data.previousPage();
+          }
+        },
+        goto: {
+          $type: "input",
+          "class": "goto",
+          inputType: "number",
+          keyDown: function(self, arg) {
+            var k;
+            k = arg.keyCode;
+            if (k === 190) {
+              return event.preventDefault();
+            }
+          },
+          change: function(self, arg) {
+            var button, data, pageCount, pageNo, value;
+            value = arg.value;
+            if (value) {
+              value = parseInt(value);
+            }
+            if (value === this._targetPageNo) {
+              return;
+            }
+            data = pager._getBindItems();
+            if (data) {
+              pageNo = data.pageNo;
+              pageCount = _getPageCount();
+              if (value > pageCount || value < 1) {
+                if (value > pageCount) {
+                  value = pageCount;
+                }
+                if (value < 1) {
+                  value = 1;
+                }
+                setTimeout(function() {
+                  return self.get$Dom().find("input").val(value);
+                }, 10);
+              }
+              button = self.get("actionButton");
+              setTimeout(function() {
+                return button.set("disabled", value === pageNo);
+              }, 100);
+              return pager._targetPageNo = value;
+            }
+          },
+          actionButton: {
+            $type: "Button",
+            caption: "Go",
+            click: function() {
+              var data;
+              if (pager._targetPageNo) {
+                data = pager._getBindItems();
+                return data != null ? data.gotoPage(pager._targetPageNo) : void 0;
+              }
+            }
+          }
+        },
+        nextPage: {
+          icon: "angle right",
+          click: function() {
+            var data;
+            data = pager._getBindItems();
+            return data.nextPage();
+          }
+        },
+        lastPage: {
+          icon: "angle double right",
+          click: function() {
+            var data;
+            data = pager._getBindItems();
+            return data != null ? data.lastPage() : void 0;
+          }
+        }
+      };
+      Pager.__super__.constructor.call(this, config);
+    }
+
+    Pager.prototype._parsePageItem = function(childNode, right) {
+      var beforeChild, itemConfig, itemDom, l, len1, menuItem, pageCode, pageItem, pageItemKey, propName, results;
+      pageCode = $fly(childNode).attr("page-code");
+      if (pageCode) {
+        if (pageCode === "pages") {
+          results = [];
+          for (l = 0, len1 = _pagesItems.length; l < len1; l++) {
+            pageItemKey = _pagesItems[l];
+            pageItem = this._pagerItemConfig[pageItemKey];
+            if (pageItemKey === "firstPage") {
+              pageItem.dom = childNode;
+              menuItem = new cola.menu.MenuItem(pageItem);
+              if (right) {
+                this.addRightItem(menuItem);
+              } else {
+                this.addItem(menuItem);
+              }
+              beforeChild = childNode;
+            } else {
+              if (pageItemKey === "info") {
+                menuItem = new cola.menu.ControlMenuItem();
+              } else {
+                menuItem = new cola.menu.MenuItem(pageItem);
+              }
+              itemDom = menuItem.getDom();
+              $fly(beforeChild).after(itemDom);
+              itemDom._eachIgnore = true;
+              if (right) {
+                this.addRightItem(menuItem);
+              } else {
+                this.addItem(menuItem);
+              }
+              beforeChild = itemDom;
+            }
+            results.push(this._pagerItemMap[pageItemKey] = menuItem);
+          }
+          return results;
+        } else {
+          propName = _pageCodeMap[pageCode];
+          if (propName) {
+            itemConfig = this._pagerItemConfig[propName];
+            itemConfig.dom = childNode;
+            if (cola.util.hasContent(childNode)) {
+              delete itemConfig["icon"];
+            }
+            menuItem = new cola.menu.MenuItem(itemConfig);
+            if (right) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+          } else if (pageCode === "goto") {
+            propName = "goto";
+            itemConfig = {
+              dom: childNode,
+              control: this._pagerItemConfig[pageCode]
+            };
+            menuItem = new cola.menu.ControlMenuItem(itemConfig);
+            if (right) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+          } else if (pageCode === "info") {
+            propName = "info";
+            itemConfig = {
+              dom: childNode
+            };
+            menuItem = new cola.menu.ControlMenuItem(itemConfig);
+            if (right) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+          }
+          return this._pagerItemMap[propName] = menuItem;
+        }
+      }
+    };
+
+    Pager.prototype._parseItems = function(node) {
+      var childNode, menuItem, pageCode, parseRightMenu, results;
+      parseRightMenu = (function(_this) {
+        return function(node) {
+          var childNode, menuItem, pageCode;
+          childNode = node.firstChild;
+          if (_this._rightItems == null) {
+            _this._rightItems = [];
+          }
+          while (childNode) {
+            if (childNode.nodeType === 1) {
+              menuItem = cola.widget(childNode);
+              if (menuItem) {
+                _this.addRightItem(menuItem);
+              } else if (cola.util.hasClass(childNode, "item")) {
+                pageCode = $fly(childNode).attr("page-code");
+                if (pageCode) {
+                  _this._parsePageItem(childNode, true);
+                } else {
+                  menuItem = new cola.menu.MenuItem({
+                    dom: childNode
+                  });
+                  _this.addRightItem(menuItem);
+                }
+              }
+            }
+            childNode = childNode.nextSibling;
+          }
+        };
+      })(this);
+      childNode = node.firstChild;
+      results = [];
+      while (childNode) {
+        if (childNode._eachIgnore) {
+          childNode = childNode.nextSibling;
+          continue;
+        }
+        if (childNode.nodeType === 1) {
+          menuItem = cola.widget(childNode);
+          if (menuItem) {
+            this.addItem(menuItem);
+          } else if (!this._rightMenuDom && cola.util.hasClass(childNode, "right menu")) {
+            this._rightMenuDom = childNode;
+            parseRightMenu(childNode);
+          } else if (cola.util.hasClass(childNode, "item")) {
+            pageCode = $fly(childNode).attr("page-code");
+            if (pageCode) {
+              this._parsePageItem(childNode);
+            } else {
+              menuItem = new cola.menu.MenuItem({
+                dom: childNode
+              });
+              this.addItem(menuItem);
+            }
+          }
+        }
+        results.push(childNode = childNode.nextSibling);
+      }
+      return results;
+    };
+
+    Pager.prototype._createItem = function(config, floatRight) {
+      var itemConfig, l, len1, menuItem, pageItem, pageItemKey, propName;
+      if (typeof config === "string") {
+        if (config === "pages") {
+          for (l = 0, len1 = _pagesItems.length; l < len1; l++) {
+            pageItemKey = _pagesItems[l];
+            pageItem = this._pagerItemConfig[pageItemKey];
+            if (pageItemKey === "info") {
+              menuItem = new cola.menu.ControlMenuItem();
+            } else {
+              menuItem = new cola.menu.MenuItem(pageItem);
+            }
+            if (floatRight) {
+              this.addRightItem(menuItem);
+            } else {
+              this.addItem(menuItem);
+            }
+            this._pagerItemMap[pageItemKey] = menuItem;
+          }
+        } else {
+          propName = _pageCodeMap[config];
+          if (propName) {
+            itemConfig = this._pagerItemConfig[propName];
+            menuItem = new cola.menu.MenuItem(itemConfig);
+          } else if (config === "goto") {
+            propName = "goto";
+            itemConfig = {
+              control: this._pagerItemConfig[config]
+            };
+            menuItem = new cola.menu.ControlMenuItem(itemConfig);
+          }
+          if (floatRight) {
+            this.addRightItem(menuItem);
+          } else {
+            this.addItem(menuItem);
+          }
+          this._pagerItemMap[propName] = menuItem;
+        }
+        return;
+      }
+      menuItem = null;
+      if (config.constructor === Object.prototype.constructor) {
+        if (config.$type) {
+          if (config.$type === "dropdown") {
+            menuItem = new cola.menu.DropdownMenuItem(config);
+          } else if (config.$type === "headerItem") {
+            menuItem = new cola.menu.HeaderMenuItem(config);
+          } else {
+            menuItem = new cola.menu.ControlMenuItem({
+              control: config
+            });
+          }
+        } else {
+          menuItem = new cola.menu.MenuItem(config);
+        }
+      } else if (config instanceof cola.menu.AbstractMenuItem) {
+        menuItem = config;
+      }
+      return menuItem;
+    };
+
+    Pager.prototype.pagerItemsRefresh = function(pager) {};
+
+    Pager.prototype._onItemsRefresh = function() {
+      var data, gotoInput, infoItem, infoItemDom, pageCount, pager, ref, ref1, ref2, ref3, ref4, ref5;
+      pager = this;
+      data = pager._getBindItems();
+      if (data) {
+        this._pageNo = data.pageNo;
+        if ((ref = pager._pagerItemMap["firstPage"]) != null) {
+          ref.get$Dom().toggleClass("disabled", data.pageNo === 1);
+        }
+        if ((ref1 = pager._pagerItemMap["prevPage"]) != null) {
+          ref1.get$Dom().toggleClass("disabled", data.pageNo === 1);
+        }
+        pageCount = parseInt((data.totalEntityCount + data.pageSize - 1) / data.pageSize);
+        if ((ref2 = pager._pagerItemMap["nextPage"]) != null) {
+          ref2.get$Dom().toggleClass("disabled", pageCount === data.pageNo);
+        }
+        if ((ref3 = pager._pagerItemMap["lastPage"]) != null) {
+          ref3.get$Dom().toggleClass("disabled", pageCount === data.pageNo);
+        }
+        infoItem = pager._pagerItemMap["info"];
+        if (infoItem && data.pageCountDetermined) {
+          if (infoItem.nodeType === 1) {
+            infoItemDom = infoItem;
+          } else {
+            infoItemDom = infoItem.getDom();
+          }
+          $(infoItemDom).text("第" + data.pageNo + "页/共" + data.pageCount + "页");
+        }
+        gotoInput = (ref4 = pager._pagerItemMap["goto"]) != null ? ref4.get("control") : void 0;
+        if (gotoInput) {
+          return (ref5 = cola.widget(gotoInput)) != null ? ref5.set("value", data.pageNo) : void 0;
+        }
+      }
+    };
+
+    Pager.prototype._onItemRefresh = function(arg) {};
+
+    Pager.prototype._onItemInsert = function(arg) {};
+
+    Pager.prototype._onItemRemove = function(arg) {};
+
+    Pager.prototype._onItemsLoadingStart = function(arg) {};
+
+    Pager.prototype._onItemsLoadingEnd = function(arg) {};
+
+    Pager.prototype._onCurrentItemChange = function(arg) {};
+
+    return Pager;
+
+  })(cola.Menu);
+
+  cola.Element.mixin(cola.Pager, cola.DataItemsWidgetMixin);
 
 }).call(this);

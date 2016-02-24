@@ -1,0 +1,259 @@
+@import ".global.less";
+
+@prettyprintTransition: border-color 0.55s linear;
+@prettyprintBoxShadow: 0 1px 4px rgba(0, 105, 214, 0.25);
+
+body {
+	color: #2C3E50 !important;
+	font-size: 15px;
+}
+
+.github-link-img {
+	left: auto;
+	right: 0px;
+	position: absolute;
+	width: inherit;
+}
+
+.example {
+	//background-color: #fcfcfc;
+}
+
+.github-link {
+	left: auto;
+	right: 0px;
+	position: absolute;
+	z-index: 1000;
+	width: 156px;
+	height: 156px;
+}
+
+@media only screen and (min-width: 979px) {
+
+}
+
+@media only screen and (max-width: 978px) {
+	#toc {
+		display: none;
+	}
+
+	.github-link, .github-link-img {
+		display: none;
+	}
+
+}
+
+
+
+#header {
+	.box-shadow(0 0 4px rgba(0, 0, 0, 0.125));
+	padding: 10px 60px;
+	position: relative;
+	z-index: 2;
+	.item {
+		color: @fontColor;
+	}
+	.logo {
+		max-width: 1.5em;
+	}
+}
+
+.banner {
+	overflow: hidden;
+	position: relative;
+	color: @fontColor;
+	padding: 4em 2em;
+	.masthead {
+		line-height: 2em;
+		.logo {
+			max-width: 16em;
+		}
+		.tagline {
+			text-align: center;
+			font-size: 1.15em;
+			margin-top: 0.6em;
+		}
+		.segment {
+			text-align: center;
+			.ui.button {
+				min-width: 10em;
+			}
+		}
+	}
+}
+
+.container.demo {
+	max-width: 1080px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 4em;
+	h3 {
+		text-align: center;
+		color: @fontColor;
+	}
+	> div {
+		display: inline-block;
+		&.code {
+			text-align: left;
+			display: inline-block;
+			width: 31%;
+			height: 10em;
+			vertical-align: top;
+			background-color: #f9f9f9;
+			border-radius: 2px;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.125);
+			overflow: visible;
+		}
+		&.sign {
+			display: inline-block;
+			height: 10em;
+			width: 3.5%;
+			line-height: 9em;
+			padding: 0 0.5em;
+			font-weight: 600;
+			text-align: center;
+			color: #7f8c8d;
+		}
+		> pre {
+			margin: 0.5em;
+			border: none;
+		}
+		pre {
+			overflow: visible;
+		}
+		.prettyprint {
+			background-color: transparent;
+		}
+
+	}
+	&.widget {
+		> div {
+			height: 25em;
+		}
+	}
+}
+
+.down.btn {
+	display: block;
+	text-align: center;
+	padding: 2em;
+	> i {
+		font-size: 2em;
+		color: @tertiaryDescriptionFontColor;
+		-webkit-animation: bounce 4s 2s infinite;
+		animation: bounce 4s 2s infinite;
+	}
+
+}
+
+.home {
+	.banner {
+		//max-height: 80%;
+	}
+}
+
+.footer {
+	padding: 1.5em;
+	overflow: hidden;
+	background-color: #38A087;
+	> ul {
+		> * {
+			margin: 0 !important;
+			text-align: center;
+			h3.ui.header {
+				color: #fff;
+			}
+			&.qq {
+				> div {
+					max-width: 180px;
+					background-color: #ffffff;
+					display: inline-block;
+					.image.container {
+						padding: 0.8em;
+					}
+					.description {
+						font-size: 0.9em;
+						color: @fontColor;
+						padding: 0.5em 1em;
+						img {
+
+						}
+						background-color: rgba(0, 0, 0, 0.1);
+					}
+				}
+
+			}
+
+			&:not(.qq) {
+				padding-top: 1em;
+				a {
+					display: block;
+					line-height: 2em;
+					color: rgba(255, 255, 255, 0.7);
+					&:hover {
+						color: rgba(255, 255, 255, 0.9);
+					}
+				}
+			}
+		}
+	}
+
+}
+
+.copyright {
+	background: #2e4053;
+	color: rgba(255, 255, 255, 0.7);
+	padding: 2em 0;
+	font-size: 10px;
+	line-height: 20px;
+	text-align: center;
+}
+
+#demoDialog {
+	padding: 1em 2em;
+	text-align: center;
+	img {
+		max-height: 200px;
+	}
+	.description {
+		margin-top: 1em;
+		margin-bottom: 1em;
+		p {
+			font-size: 12px;
+			margin-bottom: 0;
+		}
+	}
+	a{
+	}
+}
+
+@media only screen and (max-width: 978px) {
+	#footer {
+		.qq {
+			width: 12em;
+		}
+	}
+	.example{
+		padding: 0 1em;
+	.container.demo{
+		>div{
+			&.code,&.sign{
+				display:block;
+				width: 100%;
+			}
+			&.sign{
+				height: 2em;
+				line-height:2em;
+			}
+		}
+
+	}}
+}
+
+@media only screen and (max-width: 768px) {
+	#footer {
+		.qq {
+			display: none;
+		}
+	}
+}

@@ -1,145 +1,38 @@
 extends ../doc-layout
 
 block content
-
-	+addCatalog("basic","普通表格")
-	.example(name="basic")#basic
-		h4.ui.header 普通表格
+	+addCatalog("paging","分页装载")
+	.example(name="paging")#paging
+		h4.ui.header 分页表格
 		.code
-			#basicTable
-
-		script(type="text/javascript" name="basic").
-			cola("basic", function (model) {
-				var items = [];
-				for (var row = 1; row <= 40; row++) {
-					var item = {
-						selected: Math.random() > 0.5,
-						int: Math.round(Math.random() * 1000)
-					};
-					for (var col = 1; col <= 6; col++) {
-						item["col" + col] = "item " + row + "," + col
-					}
-					items.push(item);
-				}
-				model.set("items", items);
-
-				model.widgetConfig({
-					basicTable: {
-						$type: "table",
-						bind: "item in items",
-						showHeader: true,
-						height: 300,
-						columns: [
-							{
-								$type: "select"
-							},
-							{
-								caption: "组合列",
-								columns: [
-									{
-										bind: ".col1",
-										caption: "文本1"
-									},
-									{
-										bind: ".col2",
-										caption: "文本2"
-									}
-								]
-							},
-							{
-								bind: ".col3",
-								caption: "文本3"
-							},
-							{
-								bind: ".col4",
-								caption: "文本4"
-							},
-							{
-								bind: ".int",
-								caption: "整数",
-								align: "right"
-							}
-						]
-					}
-				});
-			});
-
-	+addCatalog("template","模板和编辑器")
-	.example(name="template")#template
-		h4.ui.header 模板和编辑器
-		p.
-			通过模板我们可以自由的定义每一列单元格的渲染方式。
-			为了实现某个模板被同时使用在多个列上，在列模板内可以使用$default来代表当前列的属性。
-		p.
-			Cola-UI内部还提供了几个预定义好的列模板。
-			比如input-column可以把某一列渲染成可编辑的列，checkbox-column可以把某一列渲染成带有复选框的形式。
-		.code
-			#templateTable
-				template(name="int-template")
-					div(c-widget="input; bind:$default; class:fluid" c-class="error:$default>500")
-				template(name="check-mark")
-					span(c-style="display:$default?'':'none'")
-						i(class="large green checkmark icon")
-				template(name="operations")
-					div(c-widget="button;caption:Del;class:red;size:mini;click:{{remove(item)}}")
-
-		script(type="text/javascript" name="template").
-			cola("template", function (model) {
-				var items = [];
-				for (var row = 1; row <= 40; row++) {
-					var item = {
-						bool: Math.random() > 0.5,
-						int: Math.round(Math.random() * 1000)
-					};
-					for (var col = 1; col <= 6; col++) {
-						item["col" + col] = "item " + row + "," + col
-					}
-					items.push(item);
-				}
-				model.set("items", items);
-
-				model.action({
-					upper: function(s) {
-						return (s) ? s.toUpperCase() : "";
-					},
-					remove: function(item) {
-						item.remove();
+			#pagingTable
+			div(c-widget="Pager; bind:pageItems")
+				a.item(page-code="|<")
+				a.item(page-code="<")
+				a.item(page-code="goto")
+				a.item(page-code=">")
+				a.item(page-code=">|")
+		script(type="text/javascript" name="paging").
+			cola("paging", function (model) {
+				model.describe("pageItems", {
+					provider: {
+						url: "/numbers",
+						pageSize: 5
 					}
 				});
 
 				model.widgetConfig({
-					templateTable: {
+
+					pagingTable: {
 						$type: "table",
-						bind: "item in items",
+						bind: "item in pageItems",
 						showHeader: true,
+						currentPageOnly: true,
 						height: 300,
 						columns: [
 							{
-								caption: "图标",
-								bind: ".bool",
-								align: "center",
-								template: "check-mark",
-								width: 40
-							},
-							{
-								caption: "转换大写",
-								bind: "upper(item.col1)"
-							},
-							{
-								caption: "文本编辑",
-								bind: ".col2",
-								template: "input-column"
-							},
-							{
-								caption: "控制Style",
-								bind: ".int",
-								align: "right",
-								template: "int-template"
-							},
-							{
-								caption: "操作",
-								align: "center",
-								template: "operations"
+								bind: ".id",
+								caption: "编号"
 							}
 						]
 					}

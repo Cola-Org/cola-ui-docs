@@ -1,1 +1,10 @@
-# Markdown 文件中的内容
+定义普通的Action的方式如下：
+```
+model.action({
+    showMessage: function() {
+        ...
+    },
+    checkNickName: function() {
+    }
+});
+```
