@@ -1,30 +1,21 @@
 express = require 'express'
 router = express.Router()
-
+items = require './data/items.coffee'
 # GET home page.
 router.get '/', (req, res, next) ->
 	res.render 'index',
 		title: 'Cola-UI'
 
-router.get '/numbers', (req, res, next) ->
+
+router.get '/data/items', (req, res, next) ->
 	query = req.query
-	from = parseInt(query.from or 0)
-	limit = parseInt(query.limit or 5)
-
-	length = limit
-	i = 0
-	data = []
-
-	while i < length
-		i++
-		id = from + i
-		data.push({
-			id: "000#{id}"
-		})
-
+	pageSize = parseInt(query.pageSize or 5)
+	pageNo = parseInt(query.pageNo or 1)
+	from = (pageNo - 1) * pageSize
+	limit = from + pageSize
 	res.send({
-		$entityCount: 1000,
-		$data: data
+		$entityCount: items.length,
+		$data: items.slice(from, limit)
 	})
 
 

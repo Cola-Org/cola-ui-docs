@@ -234,8 +234,8 @@ module.exports = [
 				url: "list/tree"
 			}
 			{
-				name: "抽屉"
-				url: "collection/accordion"
+				name: "分页工具条"
+				url: "list/pager"
 			}
 		]
 	}

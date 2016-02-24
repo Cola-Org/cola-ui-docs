@@ -1,0 +1,222 @@
+extends ../doc-layout
+
+block content
+	#pager
+	.markdown-content
+		+addCatalog("pager","简介")
+
+		h1.ui.header 分页工具条
+		p.
+			分页工具条，此控件继承自Menu控件，保留Menu的所有特性。同时支持数据绑定。
+			pageItem的定义支持json和HTMLTemplate两种模式。
+		ul
+			li |< - 翻到第一页的按钮。
+			li < - 翻到上一页的按钮。
+			li > - 翻到下一页的按钮。
+			li >| - 翻到最后一页的按钮。
+			li goto - 跳转到指定页的编辑框+按钮。
+			li info - 用于显示一段描述当前页和总页数的文本。
+			li pages - 用于简单翻页按钮定义的特殊代码，表示|<,<,info,>,>|这5个子对象的组合。
+
+	+addCatalog("basic","数据绑定")
+
+	.example(name="basic")#basic
+		h4.ui.header 数据绑定
+		p.
+			数据绑定与其它数据控件一样通过属性bind来绑定数据模型中定义的数据模型。
+
+		.code
+			div(c-widget="Pager; bind:pageItems")
+				a.item(page-code="|<")
+				a.item(page-code="<")
+				a.item(page-code="info")
+				a.item(page-code=">")
+				a.item(page-code=">|")
+			#pagingTable
+
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {
+				model.describe("pageItems", {
+					provider: {
+						url: "/data/items",
+						pageSize: 5
+					}
+				});
+
+				model.widgetConfig({
+
+					pagingTable: {
+						$type: "table",
+						bind: "item in pageItems",
+						showHeader: true,
+						currentPageOnly: true,
+						columns: [
+							{
+								bind: ".id",
+								caption: "产品编号"
+							},
+							{
+								bind: ".title",
+								caption: "产品名称"
+							},
+							{
+								bind: ".originalPrice",
+								caption: "价格"
+							}
+						]
+					}
+				});
+			});
+	+addCatalog("pages","pages元素")
+
+	.example(name="pages")#pages
+		h4.ui.header pages 元素
+		p.
+			用于简单翻页按钮定义的特殊代码，表示|<,<,info,>,>|这5个子对象的组合。
+
+		.code
+			div(c-widget="Pager; bind:pageItems")
+				a.item(page-code="pages")
+			#pagingTable
+
+		script(type="text/javascript" name="pages").
+			cola("pages", function (model) {
+				model.describe("pageItems", {
+					provider: {
+						url: "/data/items",
+						pageSize: 5
+					}
+				});
+
+				model.widgetConfig({
+
+					pagingTable: {
+						$type: "table",
+						bind: "item in pageItems",
+						showHeader: true,
+						currentPageOnly: true,
+						columns: [
+							{
+								bind: ".id",
+								caption: "产品编号"
+							},
+							{
+								bind: ".title",
+								caption: "产品名称"
+							},
+							{
+								bind: ".originalPrice",
+								caption: "价格"
+							}
+						]
+					}
+				});
+			});
+
+	+addCatalog("json","json定义")
+
+	.example(name="json")#json
+		h4.ui.header json定义
+		p.
+			所有分页元素都如Menu元素的定义支持json定义
+
+		.code
+			#pagerExample
+			#pagingTable
+
+		script(type="text/javascript" name="json").
+			cola("json", function (model) {
+				model.describe("pageItems", {
+					provider: {
+						url: "/data/items",
+						pageSize: 5
+					}
+				});
+
+				model.widgetConfig({
+					pagerExample:{
+						$type:"pager",
+						bind:"pageItems",
+						items:[
+								"|<","<",">",">|"
+						]
+					},
+					pagingTable: {
+						$type: "table",
+						bind: "item in pageItems",
+						showHeader: true,
+						currentPageOnly: true,
+						columns: [
+							{
+								bind: ".id",
+								caption: "产品编号"
+							},
+							{
+								bind: ".title",
+								caption: "产品名称"
+							},
+							{
+								bind: ".originalPrice",
+								caption: "价格"
+							}
+						]
+					}
+				});
+			});
+	+addCatalog("right","靠右显示")
+
+	.example(name="right")#right
+		h4.ui.header 靠右显示
+		p.
+			所有分页元素都如Menu 的靠右元素的定义支持靠右显示
+
+		.code
+			div(c-widget="Pager; bind:pageItems")
+				a.item(page-code="|<")
+				a.item(page-code="<")
+				a.item(page-code=">")
+				a.item(page-code=">|")
+				.right.menu
+					a.item(page-code="goto")
+			#pagingTable
+
+		script(type="text/javascript" name="right").
+			cola("right", function (model) {
+				model.describe("pageItems", {
+					provider: {
+						url: "/data/items",
+						pageSize: 5
+					}
+				});
+
+				model.widgetConfig({
+					pagerExample:{
+						$type:"pager",
+						bind:"pageItems",
+						items:[
+							"|<","<",">",">|"
+						]
+					},
+					pagingTable: {
+						$type: "table",
+						bind: "item in pageItems",
+						showHeader: true,
+						currentPageOnly: true,
+						columns: [
+							{
+								bind: ".id",
+								caption: "产品编号"
+							},
+							{
+								bind: ".title",
+								caption: "产品名称"
+							},
+							{
+								bind: ".originalPrice",
+								caption: "价格"
+							}
+						]
+					}
+				});
+			});
+
