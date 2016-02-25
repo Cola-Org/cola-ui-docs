@@ -113,6 +113,9 @@ block content
 						bind: "item in items",
 						showHeader: true,
 						height: 300,
+						renderRow:function(self,arg){
+							$(arg.dom).click(function(){alert(arg.item.get("int"))})
+						},
 						columns: [
 							{
 								caption: "图标",

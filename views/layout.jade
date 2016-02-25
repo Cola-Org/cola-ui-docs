@@ -4,63 +4,106 @@ html
 		title= title
 		meta(charset="utf-8")
 		meta(name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1")
-
 		link(rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.min.css")
 		link(rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.min.css")
 		link(rel="stylesheet" type="text/css" href="/prettify/themes/tomorrow.css")
-		link(rel="stylesheet" type="text/css" href="/docs.css")
-
-		script(src="/resources/jquery-2.1.3.js")
+		link(rel="stylesheet" type="text/css" href="/resources/index.css")
+		script(src="/resources/jquery/jquery-2.1.3.js")
 		script(src="/resources/cola-ui/3rd.min.js")
 		script(src="/resources/cola-ui/semantic.min.js")
 		script(src="/resources/cola-ui/cola.min.js")
-		script(src="/cola-interceptor.js")
-
+		script(src="/resources/cola-interceptor.js")
 	body.home
+		#header
+			.ui.menu.secondary
+				.item
+					img.logo(src="/images/version2/cola-ico.png")
+				a.item(href="/docs" target="_blank") 教程
+				a.item(href="/api" target="_blank") API
+				a.item(href="http://help.bstek.com" target="_blank") 问答
+				a.item(c-onclick="showDemo()") 示例
+				.right.menu
+					.item
+						iframe.github(src="http://ghbtns.com/github-btn.html?user=cola-org&repo=cola-ui&type=watch" allowtransparency="true" frameborder="0" scrolling="0" width="100" height="20")
 
-		.banner
-			div.container
-				.content
-					block content
+		block content
 
+		.footer
 
-
-		#footer.black-background
-			.qq
-				img.ui.image.fluid(src="/images/qq.png")
-				.description
+			ul.ui.basic.segment.container.small-block-grid-2.medium-block-grid-2.large-block-grid-4
+				li.qq
 					div
-						span.label 群名称:
-						span.text Cola-Ui 技术交流
-					div
-						span.label 群号:
-						span.text 309407648
-			.issue.ui.segment.basic.inverted
-				h2.ui.header 技术问答
-				a(href="https://github.com/Cola-Org/cola-ui/issues" target="_blank") GitHub Issue
-			.github.ui.segment.basic.inverted
-				h2.ui.header GitHub仓库
-				a(href="https://github.com/Cola-Org/cola-ui" target="_blank") Cola-UI
-				a(href="https://github.com/Cola-Org/cola-ui-docs" target="_blank") Cola-UI-Docs
-			.documention.ui.segment.basic.inverted
-				h2.ui.header 相关文档
-				a(href="/docs" target="_blank") 快速入门
-				a(href="/api" target="_blank") Client API
+						div.image.container
+							img.ui.image(src="/images/qq.png")
+						.description
+							div
+								span.label 群名称:
+								span.text Cola-Ui 技术交流
+							div
+								span.label 群号:
+								span.text 309407648
+				li.issue
+					h3.ui.header 技术问答
+					a(href="https://github.com/Cola-Org/cola-ui/issues" target="_blank") GitHub Issue
+					a(href="http://help.bstek.com" target="_blank") Bstek 问答
+				li.github
+					h3.ui.header GitHub仓库
+					a(href="https://github.com/Cola-Org/cola-ui" target="_blank") Cola-UI
+					a(href="https://github.com/Cola-Org/cola-ui-docs" target="_blank") Cola-UI-Docs
+				li.documention
+					h3.ui.header 相关文档
+					a(href="/docs" target="_blank") 快速入门
+					a(href="/api" target="_blank") Client API
+
+		#demoDialog
+			div.description
+			div
+				img.ui.image.centered(src="/images/version2/demo-shop.png")
+			div.description
+				p 此示例为一个手机商店案例
+				p 建议手机上预览
+			a(href="http://demo-shop.cola-ui.com" target="_blank") 电脑预览
+		.copyright
+			div 沪ICP备05040768
+			div 上海锐道信息技术有限公司 版权所有 Copyright @2016，Cola-UI All Rights Reserved
+
 
 
 	script(src="/prettify/prettify.js")
-	script(src="/jsbeautify.js")
-	script(src="/docs.js")
+	script(src="/resources/jsbeautify.js")
 	script(type="text/javascript").
 		cola(function (model) {
 			model.action({
 				showSidebar: function () {
 					cola.widget("sidebar").toggle()
 				}
-			})
+			});
 			model.widgetConfig({
 				sidebar: {
 					$type: "Sidebar"
+				},
+				demoDialog:{
+					$type:"dialog"
+				}
+			});
+			model.action({
+				save: function () {
+					alert(model.get("email"))
+				},
+				clear: function () {
+					model.set("email", "")
+				},
+				showDemo:function(){
+					cola.widget("demoDialog").show()
 				}
 			})
+			model.set("name", "World!");
+			model.set("equal", "=");
+			model.describe({
+				email: {
+					validators: ["required", "email"]
+				}
+			});
+			model.widgetConfig({});
+			prettyPrint()
 		})
