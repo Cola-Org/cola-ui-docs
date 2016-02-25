@@ -1,7 +1,6 @@
 extends layout
 
 block content
-	h2= error.status
-	if notFound
+	if error.status == 404
 		.not-found
 			<iframe scrolling='no' frameborder='0' src='http://yibo.iyiyun.com/Home/Distribute/ad404/key/778322' width='654' height='470' style='display:block;'></iframe>

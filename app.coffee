@@ -62,6 +62,5 @@ app.use (err, req, res, next) ->
 		res.render 'error',
 			message: err.message,
 			error: {}
-			notFound:true
 
 module.exports = app
