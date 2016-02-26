@@ -10,6 +10,9 @@
 		<div c-widget="button; click:save">
 		提交
 		</div>
+		<div c-widget="button; click:clear">
+        清空
+        </div>
 	</div>
 </div>
 </body>
