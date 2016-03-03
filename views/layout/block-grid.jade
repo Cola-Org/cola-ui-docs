@@ -1,0 +1,56 @@
+extends ../doc-layout
+block content
+	link(rel="stylesheet" type="text/css" href="/examples/grid.css")
+	link(rel="stylesheet" type="text/css" href="/examples/visibility.css")
+	- defaultGroupName="栅格系统"
+	.markdown-content
+		+addCatalog("grid","简介")
+		#grid
+		:markdown
+			## 块状列表布局系统
+			Cola 提供了一套响应式、移动设备优先的流式块状列表布局系统，随着屏幕尺寸的变化将会自适应显示模式，默认分为最多12列。它包含了易于使用的预定义类，还有强大的mixin 用于生成更具语义的布局。
+			### 简介
+			栅格系统使用与html ul标签：
+
+			* `ul` 子标签`li`将受此布局管理器布局。
+			* 通过标签`ul`class 定义获得相应的响应式效果。
+
+			### 设备宽度定义
+
+			*  手机屏幕(`small-block-grid-*`):`小于等于768px;`
+			*  平板屏幕(`medium-block-grid-*`):`大于769px and 小于等于1024px;`
+			*  大屏幕(`large-block-grid-*`):`大于1024px and 小于等于1440px;`
+			*  超大屏幕(`xlarge-block-grid-*`):`大于1440px;`
+		.gs-example
+			ul.small-block-grid-2.medium-block-grid-3.large-block-grid-5
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+
+		pre.code
+			ul.small-block-grid-2.medium-block-grid-3.large-block-grid-6
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+				li
+
+
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

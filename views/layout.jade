@@ -30,7 +30,7 @@ html
 
 		.footer
 
-			ul.ui.basic.segment.container.small-block-grid-2.medium-block-grid-2.large-block-grid-4
+			ul.ui.basic.segment.container.small-block-grid-1.medium-block-grid-3.large-block-grid-4
 				li.qq
 					div
 						div.image.container
@@ -82,8 +82,8 @@ html
 				sidebar: {
 					$type: "Sidebar"
 				},
-				demoDialog:{
-					$type:"dialog"
+				demoDialog: {
+					$type: "dialog"
 				}
 			});
 			model.action({
@@ -93,8 +93,11 @@ html
 				clear: function () {
 					model.set("email", "")
 				},
-				showDemo:function(){
-					cola.widget("demoDialog").show()
+				showDemo: function () {
+					if (cola.device.mobile)
+						window.open("http://demo-shop.cola-ui.com")
+					else
+						cola.widget("demoDialog").show()
 				}
 			})
 			model.set("name", "World!");

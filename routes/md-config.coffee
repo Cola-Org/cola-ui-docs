@@ -8,6 +8,9 @@ module.exports =
 		"tutorial-todo":
 			title:"实例教程——代办事项"
 			file:"tutorial-todo.md"
+		"code-guide":
+			title:"编码规范"
+			file:"code-guide.md"
 		"faq":
 			title:"FAQ"
 			file:"faq.md"

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
+	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<title>Cola-CRUD</title>
+</head>
+<body>
+<div class="v-box" style="height: 100%">
+	<div class="box">
+		<div c-widget="segment; class:basic">
+			<div c-widget="pager; bind:products" class="top attached">
+				<a class="item" page-code="pages"></a>
+				<div c-widget="controlItem;">
+					<div c-widget="Input; placeholder:编号; bind:queryId">
+						<div c-widget="button; caption:查询; click:flush"></div>
+					</div>
+				</div>
+				<div class="right menu">
+					<a c-widget="item; caption:添加; icon:plus; click:add; class:teal"></a>
+					<a c-widget="item; caption:修改; icon:edit; click:edit"></a>
+					<a c-widget="item; caption:保存; icon:save; click:save"></a>
+				</div>
+			</div>
+			<div id="pagingTable">
+				<template name="operations">
+					<div c-widget="button;icon:trash outline;class:red basic;size:mini;click:{{del(item)}}"></div>
+				</template>
+			</div>
+		</div>
+	</div>
+	<div class="flex-box">
+		<div c-widget="form;" style="padding: 1em">
+			<div class="three fields">
+				<div class="field">
+					<label>产品编号</label>
+
+					<div c-widget="input; bind:products.id;readOnly:true"></div>
+				</div>
+				<div class="field">
+					<label>产品名称</label>
+
+					<div c-widget="input; bind:products.name;readOnly:true"></div>
+				</div>
+				<div class="field">
+					<label>产品价格</label>
+
+					<div c-widget="input; bind:products.originalPrice;readOnly:true"></div>
+				</div>
+			</div>
+			<div class="field">
+				<label>图片展示</label>
+				<img c-widget="image; class:centered" c-src="products.image"/>
+			</div>
+
+		</div>
+	</div>
+</div>
+<div c-widget="dialog; width:400;closeable:false" id="editDialog">
+	<div class="header">产品信息维护</div>
+	<div class="content">
+		<div c-widget="form;" style="padding: 1em">
+			<div class="field">
+				<label>产品编号</label>
+
+				<div c-widget="input; bind:editItem.id;"></div>
+			</div>
+			<div class="field">
+				<label>产品名称</label>
+
+				<div c-widget="input; bind:editItem.name"></div>
+			</div>
+			<div class="field">
+				<label>产品价格</label>
+
+				<div c-widget="input; bind:editItem.originalPrice;"></div>
+			</div>
+		</div>
+	</div>
+	<div class="actions">
+		<div c-widget="button; caption:取消; click:cancel"></div>
+		<div c-widget="button; caption:确定; click:ok"></div>
+	</div>
+</div>
+<script src="/resources/jquery/jquery-2.1.3.js"></script>
+<script src="/resources/cola-ui/3rd.js"></script>
+<script src="/resources/cola-ui/semantic.js"></script>
+<script src="/resources/cola-ui/cola.js"></script>
+<script src="/resources/cola-ui/i18n/zh-Hans/cola.js"></script>
+<script type="text/javascript">
+	cola(function (model) {
+		model.describe("products", {
+			dataType: {
+				name: "Product",
+				properties: {
+					id: {
+						validators: ["required"]
+					},
+					name: {
+						validators: ["required"]
+					},
+					price: {}
+				}
+			},
+			provider: {
+				url: "/data/items", pageSize: 5,
+				beforeSend: function (self, arg) {
+					arg.options.data.id = model.get("queryId")
+				}
+			}
+		});
+		model.describe("editItem", "Product");
+		model.set("queryId", "");
+		model.action({
+			flush: function () {
+				model.get("products").flush();
+			},
+			edit: function () {
+				var item = model.get("products").current;
+				model.set("editItem", item.toJSON());
+				cola.widget("editDialog").show()
+			},
+			add: function () {
+				var products = model.get("products");
+				products.setCurrent(products.insert({}));
+				model.set("editItem", {});
+				cola.widget("editDialog").show()
+			},
+			del: function (item) {
+				item.remove();
+			},
+			ok: function () {
+				var editItem = model.get("editItem");
+				if (editItem.validate()) {
+					model.get("products").current.set(editItem.toJSON());
+					cola.widget("editDialog").hide()
+				}
+			},
+			cancel: function () {
+				var current = model.get("products").current;
+				if (current.state == cola.Entity.STATE_NEW) {
+					current.remove()
+				}
+				cola.widget("editDialog").hide()
+			},
+			save: function () {
+				var saveItems = [], newCount = 0, modifyCount = 0, deleteCount = 0;
+				model.get("products").each(function (entity) {
+					if (entity.state != cola.Entity.STATE_NONE) {
+						saveItems.push(entity)
+					}
+					if (entity.state == cola.Entity.STATE_NEW) newCount++;
+					if (entity.state == cola.Entity.STATE_MODIFIED) modifyCount++;
+					if (entity.state == cola.Entity.STATE_DELETED) deleteCount++;
+				});
+				var message = "";
+				if (newCount > 0) message += "新增:" + newCount + "条\n";
+				if (modifyCount > 0)message += "修改:" + modifyCount + "条\n";
+				if (deleteCount > 0)message += "删除:" + deleteCount + "条\n";
+				alert(message)
+			}
+		});
+		model.widgetConfig({
+			pagingTable: {
+				$type: "table", showHeader: true,
+				bind: "item in products",
+				highlightCurrentItem: true,
+				currentPageOnly: true,
+				columns: [
+					{
+						bind: ".id", caption: "产品编号"
+					}, {
+						bind: ".name", caption: "产品名称"
+					}, {
+						bind: "formatNumber(item.originalPrice, '¥#,##0.00')", caption: "原价", align: "right"
+					}, {
+						bind: "formatNumber(item.price, '¥#,##0.00')", caption: "价格", align: "right"
+					}, {
+						caption: "操作", align: "center", template: "operations"
+					}
+				],
+				renderRow: function (self, arg) {
+					$(arg.dom).click(function () {
+						model.get("products").setCurrent(arg.item)
+					})
+				}
+			}
+		});
+	});
+</script>
+</body>
+</html>

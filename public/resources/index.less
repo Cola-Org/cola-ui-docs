@@ -28,23 +28,6 @@ body {
 	height: 156px;
 }
 
-@media only screen and (min-width: 979px) {
-
-}
-
-@media only screen and (max-width: 978px) {
-	#toc {
-		display: none;
-	}
-
-	.github-link, .github-link-img {
-		display: none;
-	}
-
-}
-
-
-
 #header {
 	.box-shadow(0 0 4px rgba(0, 0, 0, 0.125));
 	padding: 10px 60px;
@@ -146,11 +129,7 @@ body {
 
 }
 
-.home {
-	.banner {
-		//max-height: 80%;
-	}
-}
+
 
 .footer {
 	padding: 1.5em;
@@ -223,7 +202,7 @@ body {
 			margin-bottom: 0;
 		}
 	}
-	a{
+	a {
 	}
 }
 
@@ -233,36 +212,76 @@ body {
 			width: 12em;
 		}
 	}
-	.example{
-		padding: 0 1em;
-	.container.demo{
-		>div{
-			&.code,&.sign{
-				display:block;
-				width: 100%;
-			}
-			&.sign{
-				height: 2em;
-				line-height:2em;
-			}
-		}
 
-	}}
+	.example {
+		padding: 0 1em;
+		.container.demo {
+			> div {
+				&.code, &.sign {
+					display: block;
+					width: 100%;
+				}
+				&.sign {
+					height: 2em;
+					line-height: 2em;
+				}
+			}
+
+		}
+	}
 }
 
 @media only screen and (max-width: 768px) {
-	#footer {
+	.footer {
 		.qq {
 			display: none;
 		}
 	}
+
+	#header {
+		padding: 10px 20px;
+		.right.menu{
+			display: none;
+		}
+
+	}
+	.banner {
+
+		.masthead {
+			.logo {
+				max-width: 12em;
+			}
+			.segment {
+				padding-left: 0px;
+				padding-right: 0px;
+				.ui.button {
+					min-width: 6em;
+				}
+			}
+		}
+	}
 }
 
-.not-found{
+.not-found {
 	padding-top: 2em;
 	padding-bottom: 2em;
-	iframe{
-		margin-left:auto;
-		margin-right:auto;
+	iframe {
+		margin-left: auto;
+		margin-right: auto;
 	}
+}
+
+@media only screen and (min-width: 979px) {
+
+}
+
+@media only screen and (max-width: 978px) {
+	#toc {
+		display: none;
+	}
+
+	.github-link, .github-link-img {
+		display: none;
+	}
+
 }

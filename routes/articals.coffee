@@ -11,9 +11,14 @@ module.exports = [
 				url: "tutorial-todo"
 			}
 			{
+				name: "编码规范"
+				url: "code-guide"
+			}
+			{
 				name: "FAQ"
 				url: "faq"
 			}
+
 		]
 	}
 	{
@@ -75,6 +80,10 @@ module.exports = [
 			{
 				name: "Grid(栅格系统)"
 				url: "layout/grid"
+			}
+			{
+				name:"Block-Grid(块状列表布局)"
+				url: "layout/block-grid"
 			}
 			{
 				name: "Box(箱式布局)"
