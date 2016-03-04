@@ -11,7 +11,7 @@ module.exports = [
 				url: "tutorial-todo"
 			}
 			{
-				name: "编码规范"
+				name: "Html页面规范"
 				url: "code-guide"
 			}
 			{

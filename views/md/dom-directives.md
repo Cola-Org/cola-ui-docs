@@ -11,7 +11,7 @@ c-bind可以自动识别`<label>`、`<input>`、`<select>`的不同类型的DOM�
 基本的形式是： `[[迭代变量名] in ]<目标数据路径>`
 
 例如： `employee in employees`
-这里的in关键词和迭代变量名也可以省略，直接定义`employees`，如果这样的话Dorado内部会自动按照`item in employees`来处理。
+这里的in关键词和迭代变量名也可以省略，直接定义`employees`，如果这样的话Cola内部会自动按照`item in employees`来处理。
 
 ### c-alias
 用于为目标数据定义一个别名，该别名的作用范围是此DOM元素及其中的子DOM。此指令并不产生实际的绑定效果。
@@ -40,11 +40,11 @@ c-bind可以自动识别`<label>`、`<input>`、`<select>`的不同类型的DOM�
 用于直接设置dom的class属性。
 
 ### c-on*
-事件绑定。当一个指令是以c-on开始的，那么DoradoUI会把后面的字符串试做事件名并完成一个DOM事件的绑定
+事件绑定。当一个指令是以c-on开始的，那么Cola-UI会把后面的字符串试做事件名并完成一个DOM事件的绑定
 例如： `<button c-onclick="showMessage()">Show</button>`
 
 ### c-*
-属性值绑定。当一个指令是以c-开始的，那么DoradoUI会把后面的字符串试做DOM的Attribute名。
+属性值绑定。当一个指令是以c-开始的，那么Cola-UI会把后面的字符串试做DOM的Attribute名。
 
 例如： `<button c-disabled="num>5">Save</button>`
 

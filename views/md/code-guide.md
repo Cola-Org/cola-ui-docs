@@ -1,4 +1,4 @@
-# Cola-UI编码规范
+# Cola-UI页面规范
 
 下面是Cola-UI Hello-World例子的代码，为了获得更高性能的Web体验请参考如下此例：
 ```
