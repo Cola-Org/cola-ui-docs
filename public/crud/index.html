@@ -3,6 +3,7 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/semantic.css">
 	<link rel="stylesheet" type="text/css" href="/resources/cola-ui/cola.css">
+	<!--<link rel="stylesheet" type="text/css" href="./demo.css">-->
 	<title>Cola-CRUD</title>
 </head>
 <body>
@@ -11,6 +12,7 @@
 		<div c-widget="segment; class:basic">
 			<div c-widget="pager; bind:products" class="top attached">
 				<a class="item" page-code="pages"></a>
+				<a class="item" page-code="goto"></a>
 				<div c-widget="controlItem;">
 					<div c-widget="Input; placeholder:编号; bind:queryId">
 						<div c-widget="button; caption:查询; click:flush"></div>
@@ -128,6 +130,7 @@
 			},
 			del: function (item) {
 				item.remove();
+				// 此处编写调用后台直接删除
 			},
 			ok: function () {
 				var editItem = model.get("editItem");

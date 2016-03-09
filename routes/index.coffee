@@ -14,7 +14,7 @@ router.get '/data/items', (req, res, next) ->
 	from = (pageNo - 1) * pageSize
 	limit = from + pageSize
 
-	if query.id.length>0
+	if query.id and query.id.length>0
 		result = []
 		for item in items
 			if item.id.toString().indexOf(query.id) >= 0 then result.push(item)
