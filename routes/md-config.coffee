@@ -53,3 +53,6 @@ module.exports =
 		"shell-router":
 			title:"频道和卡片"
 			file:"shell/router.md"
+		"shell-service":
+			title:"频道和卡片"
+			file:"shell/service.md"

@@ -268,8 +268,8 @@ module.exports = [
 				url: "shell-router"
 			}
 			{
-				name: "频道和卡片"
-				url: "shell-router"
+				name: "后台服务接口"
+				url: "shell-service"
 			}
 		]
 	}
