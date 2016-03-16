@@ -41,3 +41,15 @@ module.exports =
 		"definitions":
 			title:"常用名词或规范"
 			file:"definitions.md"
+		"shell-tutorial":
+			title:"Cola Shell总体介绍"
+			file:"shell/tutorial.md"
+		"shell-project":
+			title:"创建App项目"
+			file:"shell/project.md"
+		"shell-setting":
+			title:"基本参数设定"
+			file:"shell/setting.md"
+		"shell-router":
+			title:"频道和卡片"
+			file:"shell/router.md"

@@ -36,7 +36,7 @@ Cola的双向绑定功能为我们提供的很大的开发便利性，然而我�
 ### 表达式的监听范围
 Cola内部在实现双向数据绑定时会根据表达式的内容分析该表达式与数据模型中的那些数据相关。对于那些比较简单的绑定表达式这一点是很容易做到的。
 
-比如`person.name`很明显至于person的name属性相关。稍微复杂一点的比如`items | filter:filterParam`，它的结果同时items和filterParam这两个数据路径相关。
+比如`person.name`很明显至于person的name属性相关。稍微复杂一点的比如`filter(items, filterParam)`，它的结果同时items和filterParam这两个数据路径相关。
 
 对于包含方法调用的表达式而言，这种分析就不能确保完全准确了。例如`calcAge(person.birthday)`，Cola会认为它的结果只跟person.birthday相关，这种分析在大多数情况下是准确的，但去不是绝对的。例如下面这种情况...
 

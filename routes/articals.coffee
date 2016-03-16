@@ -248,4 +248,29 @@ module.exports = [
 			}
 		]
 	}
+	{
+		name: "Cola Shell"
+		docs: [
+			{
+				name: "总体介绍"
+				url: "shell-tutorial"
+			}
+			{
+				name: "创建项目"
+				url: "shell-project"
+			}
+			{
+				name: "基本参数设定"
+				url: "shell-setting"
+			}
+			{
+				name: "频道和卡片"
+				url: "shell-router"
+			}
+			{
+				name: "频道和卡片"
+				url: "shell-router"
+			}
+		]
+	}
 ]
