@@ -23,3 +23,38 @@ Cola Shell内置一个App对象，通过该对象可以完成一些跟App相关�
 
 ### getArgument(model)
 获得父页面传入的参数，调用此方法时须传入当前当前卡片页面的model对象。
+
+### setReturnValue(model, value)
+设置当前卡片的返回值，调用此方法时须传入当前当前卡片页面的model对象。
+
+### goLogin()
+显示登录页。
+
+此方法可以传入两种参数，它们的顺序不重要，Cola Shell会自动根据参数的类型来判断他们的作用。
+* 如果参数为String类型，这表示登录成功之后将要自动打开的URL。如果不定义此参数则会再回到当前的页面。
+* 如果参数类型为Function，这表示登录成功之后的回调方法。
+
+### setTitle(model, title)
+设置当前卡片的标题。
+
+### boardcastMessage(message)
+广播消息。
+
+此处的message参数应该是一个JSON对象，其中包含两个子属性：
+* type	-	消息类型，可以任意定义。
+* data	-	消息的附带信息，可以任意定义。
+
+假设我们调用下面的代码来广播一段消息...
+`
+App.boardcastMessage({
+	type: "helloMessage",
+	data: "Hey you guys."
+});
+`
+
+我们可以在任何一个卡片的代码中利用下面的代码收听到这个消息...
+`
+$(window).on("helloMessage", function(data) {
+	console.log(data); // 将打印Hey you guys.
+});
+`
