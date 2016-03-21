@@ -54,5 +54,8 @@ module.exports =
 			title:"频道和卡片"
 			file:"shell/router.md"
 		"shell-service":
-			title:"频道和卡片"
+			title:"后台服务接口"
 			file:"shell/service.md"
+		"shell-app":
+			title:"App对象"
+			file:"shell/app.md"

@@ -271,6 +271,10 @@ module.exports = [
 				name: "后台服务接口"
 				url: "shell-service"
 			}
+			{
+				name: "App对象"
+				url: "shell-app"
+			}
 		]
 	}
 ]

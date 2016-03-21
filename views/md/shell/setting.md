@@ -15,6 +15,7 @@ App.prop({
 这里支持的参数目前有以下这些：
 
 * appTitle	-	应用的名称，该名称将会显示在浏览器的标题栏等位置。如果利用Cola Shell的国际化资源定义的appTitle项，那么这里的设置将会失效。
+* version	-	当前App的版本号，可以随意设置。
 * domainRegExp	-	用于判断某个URL是否本应用内部URL的正则表达式。
 * contextPath	-	用于设置应用在站点内的根路径，默认值为`/`。假设你的应用的访问地址是`http://www.mycompany.com`或`http://www.mycompany.com:/8080`，
 那么该应用的contextPath就是`/`。假设你的应用的访问地址是`http://www.mycompany.com/my-app`，那么该应用的contextPath就是`/my-app`。
@@ -28,3 +29,7 @@ App.prop({
 当我们最终Jade生成的HTML打包到App中时，通常是直接通过文件名来访问某个页面的，此时htmlSuffix应设置为`.html`。
 * mainView	-	App主页面的URL，默认值为`shell/main-channel-bottom`。
 * loginPath	-	App路径页的路径，默认值为`/login`。
+
+下面还有一些属性是用于提供给开发者获取一些系统信息的，如无特别需要请不要去手工修改它们。
+* authenticated	-	是否已登录。
+* authInfo	-	当前登录用户的信息。该属性中保存的应该是一个对象，其中的属性由开发人员自由定义。

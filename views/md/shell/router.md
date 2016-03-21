@@ -42,7 +42,15 @@ path中的问号代码这段参数是可以不定义的。
 * title	-	频道或卡片对应的标题。当App切换到某个频道或卡片是该标题将显示在浏览器的标题栏中，如果某个路由未定义该属性，那么浏览器标题栏会显示appTitle。
 * type	-	用于定义某个频道或卡片具体使用哪种模式来实现。目前支持两种模式iFrame和subView。这里的subView就是轻量级的卡片，Cola Shell默认使用subView模式。
 * authRequired	-	此视图是否需要登录后才能访问，默认值为false。如果设置为true，且当前的App状态为为登录。那么Cola Shell将会自动切换到登录的视图。
-* htmlUrl	-	要装载的HTML的URL。此属性的值除了可以是一个字符串之外，也可以是一个Function，该Function会在运行时被Cola Shell调用，它应该返回一个字符串作为htmlUrl。
+* htmlUrl	-	要装载的HTML的URL。
+
+如果此参数为空，那么Cola Shell为自动认为htmlUrl的值是`/card/+当前主页面URL`。即假设当前当前主页面URL是`/item/detail`，那么htmlUrl将默认是`/card/item/detail`
+
+另外，此参数中还允许植入可替换的参数。例如`/card/item?id={id}`，假设此时path属性的值是`/item/:id`，而主页面URL是`/item/P001`，那么我们最终得到的htmlUrl的值将是`/card/item?id=P001`.
+
+有个比较特殊的参数——{$search}和{$hash}。{$search}表示主页面URL中的查询字符串部分，{$hash}表示主页面URL中的Hash部分。
+
+此属性的值除了可以是一个字符串之外，也可以是一个Function，该Function会在运行时被Cola Shell调用，它应该返回一个字符串作为htmlUrl。
 例如下面的例子中，我们总是把当前主框架URL中的QueryString部分取出来并在iFrame页面的URL后面。
 ```
 App.router({
@@ -82,3 +90,9 @@ App.router({
 	* free	-	自由式卡片，这种卡片不会带入任何默认的显示元素。所有的内容都需要自己来定义。
 * animation	-	用于切入的动画效果。此属性只对卡片有效。默认值为slide left，其他常用的动画效果有slide down、fade、scale。
 具体请参考 http://semantic-ui.com/modules/transition.html
+
+# 基本的目录结构
+根据Cola Shell的默认文件排放规则，Cola Shell默认提供的页面放置在shell子目录中。
+如果你需要自定义主框架的页面，例如仿照/shell/main-channel-bottom.html自定义一个新的main.html，那么建议把它直接放在项目的根目录中。
+
+除了主框架之外，其他页面基本都属于卡片页面，包括频道的首页也统一认为以卡片页面，建议都放置在card子目录中。
