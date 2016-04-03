@@ -1,4 +1,4 @@
-/*! Cola UI - 0.8.1
+/*! Cola UI - 0.8.2
  * Copyright (c) 2002-2016 BSTEK Corp. All rights reserved.
  *
  * This file is dual-licensed under the AGPLv3 (http://www.gnu.org/licenses/agpl-3.0.html)
@@ -178,7 +178,6 @@ template {
 }
 .v-box,
 .h-box {
-  height: 100%;
   position: relative;
   -webkit-flex-wrap: nowrap;
   -ms-flex-wrap: nowrap;
@@ -228,6 +227,7 @@ template {
   bottom: 0;
 }
 .v-box {
+  height: 100%;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
@@ -239,6 +239,7 @@ template {
   width: 100%;
 }
 .h-box {
+  width: 100%;
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
@@ -2276,6 +2277,7 @@ template {
 }
 .ui.list-view .tail-padding {
   height: 5em;
+  position: relative;
 }
 .ui.list-view.striped .list.item:nth-child(2n):not(.current) {
   background: #f7f7f7;
@@ -2570,6 +2572,7 @@ template {
 }
 .ui.nested-list .ui.layer {
   background: #ffffff;
+  box-shadow: -2px 0 0 0 rgba(34, 36, 38, 0.2);
 }
 .ui.nested-list .item.has-child {
   position: relative;

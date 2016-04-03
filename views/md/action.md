@@ -136,6 +136,9 @@ Cola中包含一些系统级的Action供我们直接使用，我们称这些Acti
  * "$none" 表示不排序。
  * "$random" 表示随机排序。例如：`sort(employees, '$random')`
  
+### 链式表达式
+TODO
+ 
 ### 自定义内置Action
 
 如果要自定义内置Action，可以通过下面的方式：
