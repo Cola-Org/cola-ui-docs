@@ -82,7 +82,7 @@ module.exports = [
 				url: "layout/grid"
 			}
 			{
-				name:"Block-Grid(块状列表布局)"
+				name: "Block-Grid(块状列表布局)"
 				url: "layout/block-grid"
 			}
 			{
@@ -104,6 +104,18 @@ module.exports = [
 			{
 				name: "Sidebar(侧边栏)"
 				url: "layout/sidebar"
+			}
+			{
+				name: "Panel(面板)"
+				url: "layout/panel"
+			}
+			{
+				name: "FieldSet"
+				url: "layout/fieldset"
+			}
+			{
+				name: "GroupBox"
+				url: "layout/group-box"
 			}
 		]
 	}
@@ -243,8 +255,12 @@ module.exports = [
 				url: "list/tree"
 			}
 			{
-				name: "分页工具条"
+				name: "Pager(分页工具条)"
 				url: "list/pager"
+			}
+			{
+				name: "TimeLine(时间线)"
+				url: "list/time-line"
 			}
 		]
 	}

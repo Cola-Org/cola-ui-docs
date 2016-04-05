@@ -1,0 +1,76 @@
+extends ../doc-layout
+block content
+	style.
+		.example > .ui.segment {
+			overflow: hidden;
+		}
+
+		.example .grouped {
+			margin-bottom: 1em;
+		}
+
+	h4.ui.header FieldSet控件
+	p 此控件可定义展开和收缩，并在此基础上支持了关闭。
+	+addCatalog("default","普通FieldSet")
+	.example#default(name="default")
+		h4.ui.header 普通FieldSet控件
+		div
+			.code
+				div(c-widget="FieldSet; caption:FieldSet控件; width:400")
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="default").
+		cola("default", function (model) {
+		});
+	+addCatalog("basic","消除外线框")
+
+	.example#basic(name="basic")
+		h4.ui.header 消除外线框
+		p FieldSet控件可以通过<code>basic</code> class获得消除外线框效果
+		div
+			.code
+				div(c-widget="FieldSet; caption:FieldSet控件;class:basic; width:400")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+
+
+	+addCatalog("tools","定义操作按钮")
+	.example#tools(name="tools")
+		h4.ui.header 定义操作按钮
+		div
+			.code
+				div(c-widget="FieldSet; caption:FieldSet控件; width:400")
+					template(name="tools")
+						i.icon.setting.blue(c-onclick="settingIconClick()")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="tools").
+		cola("tools", function (model) {
+			model.action({
+				settingIconClick: function () {
+					alert("hello")
+				}
+			})
+		});
+	+addCatalog("close","支持关闭")
+	.example#close(name="close")
+		h4.ui.header 支持关闭
+		div
+			.code
+				div(c-widget="FieldSet; caption:FieldSet控件; closable:true; width:400")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="close").
+		cola("close", function (model) {
+
+		});
+
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

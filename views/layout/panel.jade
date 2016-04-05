@@ -1,0 +1,86 @@
+extends ../doc-layout
+block content
+	style.
+		.example > .ui.segment {
+			overflow: hidden;
+		}
+
+		.example .grouped {
+			margin-bottom: 1em;
+		}
+
+	h4.ui.header Panel面板控件
+	p 此控件可定义展开和收缩，并在此基础上支持了关闭。
+	+addCatalog("default","普通面板")
+	.example#default(name="default")
+		h4.ui.header 普通面板控件
+		div.ui.segment
+			.code
+				div(c-widget="Panel; caption:面板控件; width:300")
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="default").
+		cola("default", function (model) {
+		});
+	+addCatalog("tools","右上角定义图标按钮")
+	.example#tools(name="tools")
+		h4.ui.header 自定义右上角图标按钮
+		div.ui.segment
+			.code
+				div(c-widget="Panel; caption:面板控件; width:300")
+					template(name="tools")
+						i.icon.setting.blue(c-onclick="settingIconClick()")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="tools").
+		cola("tools", function (model) {
+			model.action({
+				settingIconClick: function () {
+					alert("hello")
+				}
+			})
+		});
+	+addCatalog("close","支持关闭")
+	.example#close(name="close")
+		h4.ui.header 支持关闭
+		div.ui.segment
+			.code
+				div(c-widget="Panel; caption:面板控件; closable:true; width:300")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+	script(type="text/javascript" name="close").
+		cola("close", function (model) {
+
+		});
+	+addCatalog("basic","消除浮动效果")
+
+	.example#basic(name="basic")
+		h4.ui.header 获得嵌入式效果（消除浮动效果）
+		p 面板控件可以通过<code>basic</code> class获得嵌入式效果（消除浮动效果）
+
+		div.ui.segment
+			.code
+				div(c-widget="Panel; caption:面板控件;class:basic; width:300")
+
+					img(c-widget="Image; src:/images/wireframe/media-paragraph.png; class:fluid")
+
+
+	+addCatalog("color","多色主题")
+	.example#color(name="color")
+		h4.ui.header 多色主题
+		p 面板控件可以通过<code>red、orange、yellow、olive、green、teal、blue、violet、purple、pink、brown、grey</code> class获得多色主题
+		div.ui.segment
+			.code
+				each color in colors
+					- var config = "Panel; class:"+color+"; caption:"+color+";width:300; height:150"
+					div(c-widget=config)
+
+
+
+
+	script(type="text/javascript").
+		cola(function (model) {
+
+		})

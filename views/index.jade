@@ -1,55 +1,55 @@
 extends layout
 block content
 	.banner
-			div.container
-				.content
-					.masthead
-						img.ui.centered.medium.image.logo( src="/images/version2/cola-logo.png")
-						div.tagline 支持双向数据绑定的一站式前端UI框架
-						.ui.segment.basic
-							a.ui.button(href="/docs") 快速入门
-							a.ui.button(href="http://oss.cola-ui.com/download/cola-ui-v0.8.3.zip")
-								i.icon.download
-								span 下载最新版(v0.8.3)
+		div.container
+			.content
+				.masthead
+					img.ui.centered.medium.image.logo( src="/images/version2/cola-logo.png")
+					div.tagline 支持双向数据绑定的一站式前端UI框架
+					.ui.segment.basic
+						a.ui.button(href="/docs") 快速入门
+						a.ui.button(href="http://oss.cola-ui.com/download/cola-ui-v0.8.4.zip")
+							i.icon.download
+							span 下载最新版(v0.8.4)
 	.down.btn
-			i.angle.down.icon
+		i.angle.down.icon
 
 	.example
-			.container.demo.bind
-				h3 半分钟看懂双向数据绑定
-				div.code
-					pre.prettyprint.lang-html
-						include:markdown ./demo-md/bind-html.md
-				div.sign +
-				div.code
-					pre.prettyprint.lang-html
-						include:markdown ./demo-md/bind-script.md
-				div.sign(c-bind="equal")
-				div.code
-					pre
-						!= 'Hello <span c-bind="name"></span>'
-						div
-						<br>
-						input(c-bind="name")
-			.container.demo.widget
-				h3 两分钟学会控件与数据绑定
-				div.code
-					pre.prettyprint.lang-html
-						include:markdown ./demo-md/widget-html.md
-				div.sign +
-				div.code
-					pre.prettyprint.lang-html
-						include:markdown ./demo-md/widget-script.md
-				div.sign(c-bind="equal")
-				div.code
-					pre
-						div(c-widget="form")
-							.field
-								label Email
-								div(c-widget="input; bind:email")
-							.field
-								div(c-widget="button; click:save") 提交
-								div(c-widget="button; click:clear") 清空
+		.container.demo.bind
+			h3 半分钟看懂双向数据绑定
+			div.code
+				pre.prettyprint.lang-html
+					include:markdown ./demo-md/bind-html.md
+			div.sign +
+			div.code
+				pre.prettyprint.lang-html
+					include:markdown ./demo-md/bind-script.md
+			div.sign(c-bind="equal")
+			div.code
+				pre
+					!= 'Hello <span c-bind="name"></span>'
+					div
+					<br>
+					input(c-bind="name")
+		.container.demo.widget
+			h3 两分钟学会控件与数据绑定
+			div.code
+				pre.prettyprint.lang-html
+					include:markdown ./demo-md/widget-html.md
+			div.sign +
+			div.code
+				pre.prettyprint.lang-html
+					include:markdown ./demo-md/widget-script.md
+			div.sign(c-bind="equal")
+			div.code
+				pre
+					div(c-widget="form")
+						.field
+							label Email
+							div(c-widget="input; bind:email")
+						.field
+							div(c-widget="button; click:save") 提交
+							div(c-widget="button; click:clear") 清空
 
 
 

@@ -1,0 +1,82 @@
+extends ../doc-layout
+
+block content
+
+	style.
+		.ui.list-view {
+			border: 1px solid #e0e0e0;
+		}
+
+	+addCatalog("basic","普通列表")
+	.example(name="basic")#basic
+		h4.ui.header 普通时间线
+		.code
+			#basicTimeLine
+
+		script(type="text/javascript" name="basic").
+			cola("basic", function (model) {
+				model.describe("historyList", {
+					provider: "/examples/data/time-line.json"
+				});
+				model.widgetConfig({
+					basicTimeLine: {
+						$type: "TimeLine",
+						bind: "history in historyList",
+						width: 260,
+						height: 260
+					}
+				});
+			});
+
+	+addCatalog("template", "行模板")
+	.example(name="template")#template
+		h4.ui.header 行模板
+		p.
+			利用template子节点，我们可以为列表中的行定义模板，在模板里的HTML里可以使用Cola-UI中所有的DOM指令。
+		.code
+			#templateTimeLine
+				template(name="content")
+					strong(c-bind="history.content.title")
+					p(c-bind="history.content.description")
+				template(name="icon")
+					i(c-class="'icon '+history.icon")
+				template(name="time")
+					span(c-bind="history.time")
+		script(type="text/javascript" name="template").
+			cola("template", function (model) {
+				model.describe("historyList", {
+					provider: "/examples/data/time-line.json"
+				});
+				model.widgetConfig({
+					templateTimeLine: {
+						$type: "TimeLine",
+						bind: "history in historyList"
+					}
+				});
+			});
+	+addCatalog("circular", "圆角效果")
+	.example(name="circular")#circular
+		h4.ui.header 圆角效果
+		p.
+			利用circular className,可获得圆角效果。
+		.code
+			#circularTimeLine.circular
+				template(name="content")
+					strong(c-bind="history.content.title")
+					p(c-bind="history.content.description")
+				template(name="icon")
+					i(c-class="'icon '+history.icon")
+				template(name="time")
+					span(c-bind="history.time")
+		script(type="text/javascript" name="circular").
+			cola("circular", function (model) {
+				model.describe("historyList", {
+					provider: "/examples/data/time-line.json"
+				});
+				model.widgetConfig({
+					circularTimeLine: {
+						$type: "TimeLine",
+						bind: "history in historyList"
+					}
+				});
+			});
