@@ -8,13 +8,22 @@ block content
 		}
 
 
-		var names = ["flex", "flexBasis", "flexDirection", "flexFlow", "flexGrow", "flexShrink", "flexWrap"	];
-		var target=document.getElementById("content");
+		var names = ["flex", "flexBasis", "flexDirection", "flexFlow", "flexGrow", "flexShrink", "flexWrap"];
+		var target = document.getElementById("content");
 		for (var i = 0; i < names.length; i++) {
 			var name = names[i];
+			var can = canCssSupport(name)
 			target.appendChild($.xCreate({
 				tagName: "h3",
-				class: "ui header",
-				content: name+':' + canCssSupport(name)
+				class: "ui header " + (can ? "green" : "red"),
+				content: name + ':' + canCssSupport(name)
 			}))
 		}
+
+
+		target.appendChild($.xCreate({
+			tagName: "h3",
+			class: "ui header blue",
+			content: 'webkit:  ' + cola.browser.webkit
+		}))
+
