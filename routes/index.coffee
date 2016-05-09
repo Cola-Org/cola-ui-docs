@@ -6,6 +6,12 @@ router.get '/', (req, res, next) ->
 	res.render 'index',
 		title: 'Cola-UI'
 
+router.get '/dev-support/*', (req, res, next) ->
+	originalUrl=req.originalUrl
+	template=originalUrl.substring(1,originalUrl.length)
+	console.log(template)
+	res.render template,
+		title: 'Cola-UI'
 
 router.get '/data/items', (req, res, next) ->
 	query = req.query

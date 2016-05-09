@@ -1,0 +1,20 @@
+extends ./layout
+block content
+	#content.ui.basic.segment
+
+	script.
+		function canCssSupport(name) {
+			return typeof document.documentElement.style[name] == "string"
+		}
+
+
+		var names = ["flex", "flexBasis", "flexDirection", "flexFlow", "flexGrow", "flexShrink", "flexWrap"	];
+		var target=document.getElementById("content");
+		for (var i = 0; i < names.length; i++) {
+			var name = names[i];
+			target.appendChild($.xCreate({
+				tagName: "h3",
+				class: "ui header",
+				content: name+':' + canCssSupport(name)
+			}))
+		}
