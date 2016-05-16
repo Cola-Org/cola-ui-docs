@@ -8,8 +8,9 @@ block content
 		.code
 			#fileTree
 				template(name="node-default")
-					i(c-classname="node.isDir ? 'icon folder outline' : 'icon file'")
-					span(c-bind="node.isDir")
+					div
+						i(c-classname="node.isDir ? 'icon folder outline' : 'icon file'")
+						span(c-bind="getName(node)")
 
 		script(type="text/javascript" name="lazyRecursive").
 			cola("lazyRecursive", function (model) {
@@ -21,12 +22,17 @@ block content
 							provider: {
 								url: "/service/tree-nodes",
 								parameter: {
-									root: ":path"
+									root: "{{@path}}"
 								}
 							}
 						}
 					}
 				});
+				model.action({
+					getName:function(node){
+						return node.get("isDir")?"文件夹":"文件"
+					}
+				})
 
 				model.describe("nodes", {
 					dataType: "Node",

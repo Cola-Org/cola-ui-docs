@@ -7,26 +7,29 @@ block content
 			border: 1px solid #e0e0e0;
 		}
 
-	+addCatalog("basic","普通列表")
-	.example(name="basic")#basic
-		h4.ui.header 普通时间线
-		.code
-			#basicTimeLine
-
-		script(type="text/javascript" name="basic").
-			cola("basic", function (model) {
-				model.describe("historyList", {
-					provider: "/examples/data/time-line.json"
-				});
-				model.widgetConfig({
-					basicTimeLine: {
-						$type: "TimeLine",
-						bind: "history in historyList",
-						width: 260,
-						height: 260
-					}
-				});
-			});
+	//+addCatalog("basic","普通列表")
+	//.example(name="basic")#basic
+	//	h4.ui.header 普通时间线
+	//	.code
+	//		#basicTimeLine
+	//			template(name="content")
+	//				strong(c-bind="history.content.title")
+	//				p(c-bind="history.content.description")
+	//
+	//	script(type="text/javascript" name="basic").
+	//		cola("basic", function (model) {
+	//			model.describe("historyList", {
+	//				provider: "/examples/data/time-line.json"
+	//			});
+	//			model.widgetConfig({
+	//				basicTimeLine: {
+	//					$type: "TimeLine",
+	//					bind: "history in historyList",
+	//
+	//					height: 260
+	//				}
+	//			});
+	//		});
 
 	+addCatalog("template", "行模板")
 	.example(name="template")#template
@@ -40,7 +43,7 @@ block content
 					p(c-bind="history.content.description")
 				template(name="icon")
 					i(c-class="'icon '+history.icon")
-				template(name="time")
+				template(name="label")
 					span(c-bind="history.time")
 		script(type="text/javascript" name="template").
 			cola("template", function (model) {
@@ -66,7 +69,7 @@ block content
 					p(c-bind="history.content.description")
 				template(name="icon")
 					i(c-class="'icon '+history.icon")
-				template(name="time")
+				template(name="label")
 					span(c-bind="history.time")
 		script(type="text/javascript" name="circular").
 			cola("circular", function (model) {
