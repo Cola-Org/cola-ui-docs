@@ -117,7 +117,7 @@ Model对于一个页面而言往往并不是一个唯一的实例，很多情况
 </script>
 <body>
 	<ul>
-		<li d-repeat="address in addresses">
+		<li c-repeat="address in addresses">
 			<span d-bind="address.city"></span>
 		</li>
 	</ul>

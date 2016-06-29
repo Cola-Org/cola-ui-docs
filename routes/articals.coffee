@@ -293,4 +293,25 @@ module.exports = [
 			}
 		]
 	}
+	{
+		name: "Cola Frame"
+		docs: [
+			{
+				name: "总体介绍"
+				url: "frame-tutorial"
+			}
+			{
+				name: "基本参数设定"
+				url: "frame-setting"
+			}
+			{
+				name: "后台服务接口"
+				url: "frame-service"
+			}
+			{
+				name: "App对象"
+				url: "frame-app"
+			}
+		]
+	}
 ]
