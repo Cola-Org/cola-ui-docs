@@ -59,15 +59,15 @@ module.exports =
 		"shell-app":
 			title:"App对象"
 			file:"shell/app.md"
-		"frame-tutorial":
-			title:"Cola Frame总体介绍"
-			file:"frame/tutorial.md"
-		"frame-setting":
-			title:"基本参数设定"
-			file:"frame/setting.md"
-		"frame-service":
-			title:"后台服务接口"
-			file:"frame/service.md"
-		"frame-app":
-			title:"App对象"
-			file:"frame/app.md"
+#		"frame-tutorial":
+#			title:"Cola Frame总体介绍"
+#			file:"frame/tutorial.md"
+#		"frame-setting":
+#			title:"基本参数设定"
+#			file:"frame/setting.md"
+#		"frame-service":
+#			title:"后台服务接口"
+#			file:"frame/service.md"
+#		"frame-app":
+#			title:"App对象"
+#			file:"frame/app.md"
