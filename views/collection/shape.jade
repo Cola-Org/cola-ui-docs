@@ -6,7 +6,7 @@ block content
 	.example#standard(name="shape")
 		h4.ui.header 标准
 		.code
-			#s1(c-widget="Shape;")
+			c-shape#s1
 				.sides
 					.side
 						img(c-widget="image; src:/images/avatar/large/chris.jpg; class:small centered;")
@@ -20,12 +20,12 @@ block content
 						img(c-widget="image; src:/images/avatar/large/laura.jpg; class:small centered;")
 			p
 			div(c-widget="buttonGroup")
-				div(c-widget="button; icon:left long arrow; userData:left; click:flip")
-				div(c-widget="button; icon:up long arrow; userData:up; click:flip")
-				div(c-widget="button; icon:down long arrow; userData:down; click:flip")
-				div(c-widget="button; icon:right long arrow; userData:right; click:flip")
-				div(c-widget="button; icon:retweet arrow; userData:over; click:flip")
-				div(c-widget="button; icon:flipped retweet arrow; userData:back; click:flip")
+				c-button(icon="left long arrow" userData="left" click="flip")
+				c-button(icon="up long arrow" userData="up" click="flip")
+				c-button(icon="down long arrow" userData="down" click="flip")
+				c-button(icon="right long arrow" userData="right" click="flip")
+				c-button(icon="retweet arrow" userData="over" click="flip")
+				c-button(icon="flipped retweet arro" userData="back" click="flip")
 	script(type="text/javascript" name="shape").
 		cola("shape", function (model) {
 			model.action("flip", function (self, arg) {
@@ -33,22 +33,22 @@ block content
 				cola.widget("s1").flip(ar);
 			})
 		})
-	+addCatalog("template","template")
+	+addCatalog("template","模式定义内容")
 	.example#template(name="template")
 		h4.ui.header template
 		.code
-			#s2(c-widget="Shape; bind:item in items;")
+			c-shape#s2(bind="items")
 				template
 					.side
 						img(c-widget="image; src:{{item.image}}; class:small centered;")
 			p
-			div(c-widget="buttonGroup")
-				div(c-widget="button; icon:left long arrow; userData:left; click:flip2")
-				div(c-widget="button; icon:up long arrow; userData:up; click:flip2")
-				div(c-widget="button; icon:down long arrow; userData:down; click:flip2")
-				div(c-widget="button; icon:right long arrow; userData:right; click:flip2")
-				div(c-widget="button; icon:retweet arrow; userData:over; click:flip2")
-				div(c-widget="button; icon:flipped retweet arrow; userData:back; click:flip2")
+			c-buttonGroup
+				c-button(icon="left long arrow" userData="left" click="flip2")
+				c-button(icon="up long arrow" userData="up" click="flip2")
+				c-button(icon="down long arrow" userData="down" click="flip2")
+				c-button(icon="right long arrow" userData="right" click="flip2")
+				c-button(icon="retweet arrow" userData="over" click="flip2")
+				c-button(icon="flipped retweet arro" userData="back" click="flip2")
 
 	script(type="text/javascript" name="template").
 		cola("template", function (model) {

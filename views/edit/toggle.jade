@@ -1,22 +1,21 @@
 extends ../doc-layout
 block content
-
 	+addCatalog("toggle","Toggle")
 	.example#toggle
-		h4.ui.header 拴牢开关
+		h4.ui.header 开关控件
 		.code
-			div(c-widget="Toggle; label:滑动开关;")
+			c-toggle(label="滑动开关")
+			c-toggle.slider(label="滑动开关")
 	+addCatalog("onValue","onValue")
 	.example#onValue
 		h4.ui.header onValue
 		.code
-			div(c-widget="Toggle; label:滑动开关; value:开启; onValue:开启")
+			c-toggle(label="滑动开关" value="开启" onValue="开启" )
 	+addCatalog("offValue","offValue")
 	.example#offValue
 		h4.ui.header offValue
 		.code
-			div(c-widget="Toggle; label:滑动开关; value:关闭; offValue:关闭")
+			c-toggle(abel="滑动开关" value="关闭" offValue="关闭")
 	script(type="text/javascript").
 		cola(function (model) {
-
-		});
+		});	

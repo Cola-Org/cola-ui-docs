@@ -7,15 +7,10 @@ block content
 		p.
 			Select控件是利用浏览器原生的select标签实现的输入控件。最简单的定义选择项的方式是直接通过String数组。
 		.code
-			#selectStatic
+			c-select(options="{{options}}")
 		script(type="text/javascript" name="static").
 			cola("static", function (model) {
-				model.widgetConfig({
-					selectStatic: {
-						$type: "select",
-						options: ["Javascript", "CSS3", "HTML5", "Coffee", "LESS"]
-					}
-				});
+				model.set("options", ["Javascript", "CSS3", "HTML5", "Coffee", "LESS"])
 			});
 
 	+addCatalog("mapping","键值映射")
@@ -25,17 +20,15 @@ block content
 			Select控件也支持定义键值对形式的选择项，只需利用JSON对象的数组。
 			每个JSON对象中的value或key属性将被认作是选项的内部值，而text或name属性将被认作是选项的显示值。
 		.code
-			#selectMapping
-		script(type="text/javascript" name="mapping").
+			c-select(options="{{options}}" bind="gender")
+			div
+				span 值为:
+				span(c-bind="gender")
+		script(type="text/javascript" name="mapping" ).
 			cola("mapping", function (model) {
-				model.widgetConfig({
-					selectMapping: {
-						$type: "select",
-						options: [
-							{ value: null, text: "<Unknown>" },
-							{ value: "m", text: "Male" },
-							{ value: "f", text: "Female" }
-						]
-					}
-				});
+				model.set("options", [
+					{value: null, text: "<Unknown>"},
+					{value: "m", text: "Male"},
+					{value: "f", text: "Female"}
+				]);
 			});

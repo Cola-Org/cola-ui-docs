@@ -5,40 +5,28 @@ block content
 	.example#standard(name="standard")
 		h4.ui.header 标准RadioGroup
 		.code
-			div#radioGroup(c-widget="RadioGroup; name:brand; value:小米")
+			c-radioGroup(name="brand" value="小米" items="{{items}}")
 
 	script(type="text/javascript" name="standard").
 		cola("standard", function (model) {
-			model.widgetConfig({
-				radioGroup: {
-						items: ["苹果", "小米", "华为", "三星"]
-				}
-			})
+			model.set("items", ["苹果", "小米", "华为", "三星"]);
 		});
 
 	+addCatalog("slider","滑动条")
 	.example#slider(name="sliderGroup")
 		h4.ui.header 滑动条
 		.code
-			div#sliderGroup(c-widget="RadioGroup; name:brand2; value:小米; type:slider")
+			c-radioGroup(name="brand2" value="小米" items="{{items}}" type="slider")
 	script(type="text/javascript" name="sliderGroup").
 		cola("sliderGroup", function (model) {
-			model.widgetConfig({
-				sliderGroup: {
-					items: ["苹果", "小米", "华为", "三星"]
-				}
-			})
+			model.set("items", ["苹果", "小米", "华为", "三星"]);
 		});
 	+addCatalog("toggle","拴牢")
 	.example#slider(name="toggleGroup")
 		h4.ui.header 拴牢
 		.code
-			div#sliderGroup(c-widget="RadioGroup; name:brand3; value:小米; type:toggle")
+			c-radioGroup(name="brand3" value="小米" items="{{items}}" type="toggle")
 	script(type="text/javascript" name="toggleGroup").
 		cola("toggleGroup", function (model) {
-			model.widgetConfig({
-				sliderGroup: {
-					items: ["苹果", "小米", "华为", "三星"]
-				}
-			})
+			model.set("items", ["苹果", "小米", "华为", "三星"]);
 		});

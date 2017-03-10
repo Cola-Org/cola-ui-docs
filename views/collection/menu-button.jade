@@ -5,8 +5,8 @@ block content
 	.example#standard
 		h4.ui.header 标准
 		.code
-			div(c-widget="menuButton; caption:搜索引擎")
-				div(c-widget="Menu")
+			c-menuButton(caption="搜索引擎")
+				c-menu
 					a.item Google
 					a.item Bing
 					a.item BaiDu
@@ -15,9 +15,9 @@ block content
 	.example#event(name="event")
 		h4.ui.header 事件
 		.code
-			div(c-widget="menuButton; caption:搜索引擎; menuItemClick:itemClick")
-				div(c-widget="Menu")
-					a(c-widget="item; click:googleClick") Google
+			c-menuButton(caption="搜索引擎" menuItemClick="itemClick")
+				c-menu(c-widget="Menu")
+					a.item(click="googleClick") Google
 					a.item Bing
 					a.item BaiDu
 					a.item SouGou

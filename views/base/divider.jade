@@ -6,62 +6,63 @@ block content
 	.example#standard
 		h4.ui.header 标准
 		.code
-			div(c-widget="segment; height:120")
-				div(c-widget="divider;")
+			c-segment(height="120")
+				c-divider
 
 	+addCatalog("vertical","纵向分割线")
 	.example#vertical
 		h4.ui.header 纵向分割线
 		.code
-			div(c-widget="segment; height:120")
-				div(c-widget="divider; direction:vertical;content:或")
+			c-segment(height="120")
+				c-divider(direction="vertical" content="或")
 
 	+addCatalog("horizontal","横向分割线")
 	.example#horizontal
 		h4.ui.header 横向分割线
 		.code
-			div(c-widget="segment; height:120")
-				div(c-widget="divider; direction:horizontal;content:分割线")
+			c-segment(height="120")
+				c-divider(direction="horizontal" content="分割线")
 
 	+addCatalog("inverted","反白效果","UI")
 	.example#inverted
 		h4.ui.header 反白效果
 		.code
-			div(c-widget="segment; height:160; class:inverted")
+			c-segment(height="160" class="inverted")
 				p(style={height: "40px"})
-				div(c-widget="divider; class:inverted;")
+				c-divider(class="inverted")
 				p(style={height: "40px"})
-				div(c-widget="divider; direction:horizontal;class:inverted;content:分割线")
+				c-divider(direction="horizontal" class="inverted" content="分割线")
 
 	+addCatalog("fitted","贴合模式","UI")
 	.example#fitted
 		h4.ui.header 贴合模式
 		.code
-			div(c-widget="segment;")
+			c-segment
 				p Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.
-				div(c-widget="divider; class:fitted;")
+				c-divider(class="fitted")
 				p Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec odio. Quisque volutpat mattis eros. Nullam malesuada erat ut turpis. Suspendisse urna nibh, viverra non, semper suscipit, posuere a, pede.
 
 	+addCatalog("hidden","隐藏","UI")
 	.example#hidden
 		h4.ui.header 隐藏
 		.code
-			div(c-widget="segment;")
+			c-segment
 				h3.ui.header Section One
-				div(c-widget="divider; class:hidden;")
+				c-divider(class="hidden")
 				h3.ui.header Section Two
 	+addCatalog("clearing","Clearing","UI")
 	.example#clearing
 		h4.ui.header Clearing
 		p 在左右两侧不允许浮动元素,与css中object.style.clean="both" 效果一致
 		.code
-			div(c-widget="segment;")
+			c-segment
 				h2.ui.right.floated.header Floated Content
-				div(c-widget="divider; class:clearing;")
+				c-divider(class="clearing")
 				h3.ui.header
 
 	script(type="text/javascript").
-		cola(function (model) {});
+		cola(function (model) {
+		});
 		$(window).on("load", function () {
 			$(".code h3.ui.header").after($.xCreate({
 				tagName: "img", class: "ui.wireframe.image",

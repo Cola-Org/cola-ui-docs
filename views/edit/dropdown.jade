@@ -9,7 +9,7 @@ block content
 	.example(name="drop")#drop
 		h4.ui.header 下拉模式
 		.code
-			#dropdownDrop
+			c-dropdown(items= "{{country in countries}}" openMode= "drop")
 				template
 					li(c-bind="country.label")
 		script(type="text/javascript" name="drop").
@@ -17,20 +17,13 @@ block content
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
 				});
-				model.widgetConfig({
-					dropdownDrop: {
-						$type: "dropdown",
-						items: "{{country in countries}}",
-						openMode: "drop"
-					}
-				});
 			});
 
 	+addCatalog("layer","层模式")
 	.example(name="layer")#layer
 		h4.ui.header 层模式
 		.code
-			#dropdownLayer
+			c-dropdown(items= "{{country in countries}}" openMode= "layer")
 				template
 					li(c-bind="country.label")
 		script(type="text/javascript" name="layer").
@@ -38,21 +31,13 @@ block content
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
 				});
-
-				model.widgetConfig({
-					dropdownLayer: {
-						$type: "dropdown",
-						items: "{{country in countries}}",
-						openMode: "layer"
-					}
-				});
 			});
 
 	+addCatalog("dialog","对话框模式")
 	.example(name="dialog")#dialog
 		h4.ui.header 对话框
 		.code
-			#dropdownDialog
+			c-dropdown(items= "{{country in countries}}" openMode= "dialog" dropdownWidth= "75%" dropdownHeight= "60%")
 				template
 					li(c-bind="country.label")
 		script(type="text/javascript" name="dialog").
@@ -60,35 +45,18 @@ block content
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
 				});
-
-				model.widgetConfig({
-					dropdownDialog: {
-						$type: "dropdown",
-						items: "{{country in countries}}",
-						openMode: "dialog",
-						dropdownWidth: "75%",
-						dropdownHeight: "60%"
-					}
-				});
 			});
 
 	+addCatalog("halfLayer", "半层模式")
 	.example(name="halfLayer")#halfLayer
 		h4.ui.header 半层模式
 		.code
-			#dropdownHalfLayer
+			c-dropdown(items= "{{country in countries}}" openMode= "sidebar")
 				template
 					li(c-bind="country.label")
 		script(type="text/javascript" name="halfLayer").
 			cola("halfLayer", function (model) {
 				model.describe("countries", {
 					provider: "/examples/data/countries.json"
-				});
-				model.widgetConfig({
-					dropdownHalfLayer: {
-						$type: "dropdown",
-						items: "{{country in countries}}",
-						openMode: "sidebar"
-					}
 				});
 			});

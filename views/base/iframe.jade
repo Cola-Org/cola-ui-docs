@@ -10,8 +10,8 @@ block content
 	.example#standard
 		h4.ui.header IFrame
 		.code
-			div(c-widget="IFrame; height:180; path:../inner-window;")
-	+addCatalog("event","事件")
+			c-iframe(height="180" path="../inner-window;")
+	+addCatalog("event","装载监听")
 	.example#event(name="event")
 		h4.ui.header 装载监听
 		div#loadButton(c-widget="Button; caption:reload; click:load")
@@ -19,7 +19,7 @@ block content
 		.row
 			.columns.small-6
 				.code
-					div#iframeLoad(c-widget="IFrame; height:180;path:../inner-window; load:onLoad")
+					c-iframe#iframeLoad(height="180" path="../inner-window;" load="onLoad")
 			.columns.small-6
 				img#dogImg(c-widget="image; src:/images/dog.png; size:small; class:spaced")
 

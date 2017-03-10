@@ -10,7 +10,7 @@ block content
 			开控件的子组件切换无动画。
 		div.ui.segment(style={padding: 0, "max-width": "300px"})
 			.code
-				div#card-book-demo(c-widget="CardBook;height:300")
+				c-cardBook#card-book-demo(height="300")
 					.item.active
 						img.ui.image.fluid(src="/images/movies/happiness.jpg")
 					.item
@@ -20,7 +20,7 @@ block content
 					.item
 						img.ui.image.fluid(src="/images/movies/12years.jpg")
 
-				div#bottomBar(c-widget="Menu;class:bottom attached four item; itemClick:itemClick")
+				c-menu(class="bottom attached four item" itemClick="itemClick")
 					a(c-widget="item; caption:钱包; icon:money; userData:0")
 					a(c-widget="item; caption:商家; icon:flag; userData:1")
 					a(c-widget="item; caption:朋友; icon:users;userData:2")

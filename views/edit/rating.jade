@@ -5,21 +5,21 @@ block content
 	.example#standard
 		h4.ui.header 评分控件
 		.code
-			div(c-widget="Rating; maxRating:10; rating:3")
+			c-rating(maxRating="10" rating="3")
 	+addCatalog("star","Star")
 	.example#star
 		h4.ui.header Star
 		.code
-			div(c-widget="Rating; maxRating:5; rating:3; class:star")
+			c-rating.star(maxRating="5" rating="3")
 	+addCatalog("heart","Heart")
 	.example#heart
 		h4.ui.header Heart
 		.code
-			div(c-widget="Rating; maxRating:5; rating:3; class:heart")
+			div.heart(c-widget="Rating; maxRating:5; rating:3; class:heart")
 	+addCatalog("heart","Heart")
 	.example#disabled
 		h4.ui.header disabled
 		.code
-			div(c-widget="Rating; maxRating:5; rating:3; disabled:true")
+			c-rating(maxRating="5" rating="3" disabled="true")
 
 

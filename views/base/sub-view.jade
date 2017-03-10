@@ -16,7 +16,7 @@ block content
 	.example(name="basic")#basic
 		h4.ui.header 基本用法
 		.code
-			div(c-widget="subView; url:../../examples/sub-view/sub-view1.html" style="width:200px;height:100px")
+			c-subView( url="../../examples/sub-view/sub-view1.html" style="width:200px;height:100px")
 		script(type="text/javascript" name="basic").
 			cola("basic", function (model) {});
 
@@ -32,14 +32,11 @@ block content
 			在下面的例子中jsUrl和cssUrl被定义成了“$”，这是一种特殊的简写，表示js和css的URL与HTML片段的url除后缀名不同之外，其他都完全相同。
 			以jsUrl为例，“$”相当于“../../examples/sub-view/sub-view2.js”。
 		.code
-			#dynaSubView(style="width:200px;height:100px")
+			c-subView#dynaSubView(style="width:200px;height:100px")
 			#loadButton
 		script(type="text/javascript" name="dyna").
 			cola("dyna", function (model) {
 				model.widgetConfig({
-					dynaSubView: {
-						$type: "subView"
-					},
 					loadButton: {
 						$type: "button",
 						caption: "装载",

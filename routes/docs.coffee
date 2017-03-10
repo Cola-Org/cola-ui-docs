@@ -44,4 +44,6 @@ router.get '/*', (req, res, next) ->
 		articals: articals
 		pathName: "/docs/#{pathName}"
 
+
+
 module.exports = router

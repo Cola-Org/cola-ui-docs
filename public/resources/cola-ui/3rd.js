@@ -930,6 +930,624 @@ return XDate;
 
 })(Date, Math, Array);
 
+//     JavaScript Expression Parser (JSEP) 0.3.0
+//     JSEP may be freely distributed under the MIT License
+//     http://jsep.from.so/
+
+/*global module: true, exports: true, console: true */
+(function (root) {
+	'use strict';
+	// Node Types
+	// ----------
+
+	// This is the full set of types that any JSEP node can be.
+	// Store them here to save space when minified
+	var COMPOUND = 'Compound',
+		IDENTIFIER = 'Identifier',
+		MEMBER_EXP = 'MemberExpression',
+		LITERAL = 'Literal',
+		THIS_EXP = 'ThisExpression',
+		CALL_EXP = 'CallExpression',
+		UNARY_EXP = 'UnaryExpression',
+		BINARY_EXP = 'BinaryExpression',
+		LOGICAL_EXP = 'LogicalExpression',
+		CONDITIONAL_EXP = 'ConditionalExpression',
+		ARRAY_EXP = 'ArrayExpression',
+
+		PERIOD_CODE = 46, // '.'
+		COMMA_CODE  = 44, // ','
+		SQUOTE_CODE = 39, // single quote
+		DQUOTE_CODE = 34, // double quotes
+		OPAREN_CODE = 40, // (
+		CPAREN_CODE = 41, // )
+		OBRACK_CODE = 91, // [
+		CBRACK_CODE = 93, // ]
+		QUMARK_CODE = 63, // ?
+		SEMCOL_CODE = 59, // ;
+		COLON_CODE  = 58, // :
+
+		throwError = function(message, index) {
+			var error = new Error(message + ' at character ' + index);
+			error.index = index;
+			error.description = message;
+			throw error;
+		},
+
+	// Operations
+	// ----------
+
+	// Set `t` to `true` to save space (when minified, not gzipped)
+		t = true,
+	// Use a quickly-accessible map to store all of the unary operators
+	// Values are set to `true` (it really doesn't matter)
+		unary_ops = {'-': t, '!': t, '~': t, '+': t},
+	// Also use a map for the binary operations but set their values to their
+	// binary precedence for quick reference:
+	// see [Order of operations](http://en.wikipedia.org/wiki/Order_of_operations#Programming_language)
+		binary_ops = {
+			'||': 1, '&&': 2, '|': 3,  '^': 4,  '&': 5,
+			'==': 6, '!=': 6, '===': 6, '!==': 6,
+			'<': 7,  '>': 7,  '<=': 7,  '>=': 7,
+			'<<':8,  '>>': 8, '>>>': 8,
+			'+': 9, '-': 9,
+			'*': 10, '/': 10, '%': 10
+		},
+	// Get return the longest key length of any object
+		getMaxKeyLen = function(obj) {
+			var max_len = 0, len;
+			for(var key in obj) {
+				if((len = key.length) > max_len && obj.hasOwnProperty(key)) {
+					max_len = len;
+				}
+			}
+			return max_len;
+		},
+		max_unop_len = getMaxKeyLen(unary_ops),
+		max_binop_len = getMaxKeyLen(binary_ops),
+	// Literals
+	// ----------
+	// Store the values to return for the various literals we may encounter
+		literals = {
+			'true': true,
+			'false': false,
+			'null': null
+		},
+	// Except for `this`, which is special. This could be changed to something like `'self'` as well
+		this_str = 'this',
+	// Returns the precedence of a binary operator or `0` if it isn't a binary operator
+		binaryPrecedence = function(op_val) {
+			return binary_ops[op_val] || 0;
+		},
+	// Utility function (gets called from multiple places)
+	// Also note that `a && b` and `a || b` are *logical* expressions, not binary expressions
+		createBinaryExpression = function (operator, left, right) {
+			var type = (operator === '||' || operator === '&&') ? LOGICAL_EXP : BINARY_EXP;
+			return {
+				type: type,
+				operator: operator,
+				left: left,
+				right: right
+			};
+		},
+	// `ch` is a character code in the next three functions
+		isDecimalDigit = function(ch) {
+			return (ch >= 48 && ch <= 57); // 0...9
+		},
+		isIdentifierStart = function(ch) {
+			return (ch === 36) || (ch === 64) || (ch === 95) || // `$` and `@` and `_`
+				(ch >= 65 && ch <= 90) || // A...Z
+				(ch >= 97 && ch <= 122); // a...z
+		},
+		isIdentifierPart = function(ch) {
+			return (ch === 36) || (ch === 64) || (ch === 95) || (ch === 35) ||// `$` and `@` and `_` and `#`
+				(ch >= 65 && ch <= 90) || // A...Z
+				(ch >= 97 && ch <= 122) || // a...z
+				(ch >= 48 && ch <= 57); // 0...9
+		},
+
+	// Parsing
+	// -------
+	// `expr` is a string with the passed in expression
+		jsep = function(expr) {
+			// `index` stores the character number we are currently at while `length` is a constant
+			// All of the gobbles below will modify `index` as we move along
+			var index = 0,
+				charAtFunc = expr.charAt,
+				charCodeAtFunc = expr.charCodeAt,
+				exprI = function(i) { return charAtFunc.call(expr, i); },
+				exprICode = function(i) { return charCodeAtFunc.call(expr, i); },
+				length = expr.length,
+
+			// Push `index` up to the next non-space character
+				gobbleSpaces = function() {
+					var ch = exprICode(index);
+					// space or tab
+					while(ch === 32 || ch === 9) {
+						ch = exprICode(++index);
+					}
+				},
+
+			// The main parsing function. Much of this code is dedicated to ternary expressions
+				gobbleExpression = function() {
+					var test = gobbleBinaryExpression(),
+						consequent, alternate;
+					gobbleSpaces();
+					if(exprICode(index) === QUMARK_CODE) {
+						// Ternary expression: test ? consequent : alternate
+						index++;
+						consequent = gobbleExpression();
+						if(!consequent) {
+							throwError('Expected expression', index);
+						}
+						gobbleSpaces();
+						if(exprICode(index) === COLON_CODE) {
+							index++;
+							alternate = gobbleExpression();
+							if(!alternate) {
+								throwError('Expected expression', index);
+							}
+							return {
+								type: CONDITIONAL_EXP,
+								test: test,
+								consequent: consequent,
+								alternate: alternate
+							};
+						} else {
+							throwError('Expected :', index);
+						}
+					} else {
+						return test;
+					}
+				},
+
+			// Search for the operation portion of the string (e.g. `+`, `===`)
+			// Start by taking the longest possible binary operations (3 characters: `===`, `!==`, `>>>`)
+			// and move down from 3 to 2 to 1 character until a matching binary operation is found
+			// then, return that binary operation
+				gobbleBinaryOp = function() {
+					gobbleSpaces();
+					var biop, to_check = expr.substr(index, max_binop_len), tc_len = to_check.length;
+					while(tc_len > 0) {
+						if(binary_ops.hasOwnProperty(to_check)) {
+							index += tc_len;
+							return to_check;
+						}
+						to_check = to_check.substr(0, --tc_len);
+					}
+					return false;
+				},
+
+			// This function is responsible for gobbling an individual expression,
+			// e.g. `1`, `1+2`, `a+(b*2)-Math.sqrt(2)`
+				gobbleBinaryExpression = function() {
+					var ch_i, node, biop, prec, stack, biop_info, left, right, i;
+
+					// First, try to get the leftmost thing
+					// Then, check to see if there's a binary operator operating on that leftmost thing
+					left = gobbleToken();
+					biop = gobbleBinaryOp();
+
+					// If there wasn't a binary operator, just return the leftmost node
+					if(!biop) {
+						return left;
+					}
+
+					// Otherwise, we need to start a stack to properly place the binary operations in their
+					// precedence structure
+					biop_info = { value: biop, prec: binaryPrecedence(biop)};
+
+					right = gobbleToken();
+					if(!right) {
+						throwError("Expected expression after " + biop, index);
+					}
+					stack = [left, biop_info, right];
+
+					// Properly deal with precedence using [recursive descent](http://www.engr.mun.ca/~theo/Misc/exp_parsing.htm)
+					while((biop = gobbleBinaryOp())) {
+						prec = binaryPrecedence(biop);
+
+						if(prec === 0) {
+							break;
+						}
+						biop_info = { value: biop, prec: prec };
+
+						// Reduce: make a binary expression from the three topmost entries.
+						while ((stack.length > 2) && (prec <= stack[stack.length - 2].prec)) {
+							right = stack.pop();
+							biop = stack.pop().value;
+							left = stack.pop();
+							node = createBinaryExpression(biop, left, right);
+							stack.push(node);
+						}
+
+						node = gobbleToken();
+						if(!node) {
+							throwError("Expected expression after " + biop, index);
+						}
+						stack.push(biop_info, node);
+					}
+
+					i = stack.length - 1;
+					node = stack[i];
+					while(i > 1) {
+						node = createBinaryExpression(stack[i - 1].value, stack[i - 2], node);
+						i -= 2;
+					}
+					return node;
+				},
+
+			// An individual part of a binary expression:
+			// e.g. `foo.bar(baz)`, `1`, `"abc"`, `(a % 2)` (because it's in parenthesis)
+				gobbleToken = function() {
+					var ch, to_check, tc_len;
+
+					gobbleSpaces();
+					ch = exprICode(index);
+
+					if(isDecimalDigit(ch) || ch === PERIOD_CODE) {
+						// Char code 46 is a dot `.` which can start off a numeric literal
+						return gobbleNumericLiteral();
+					} else if(ch === SQUOTE_CODE || ch === DQUOTE_CODE) {
+						// Single or double quotes
+						return gobbleStringLiteral();
+					} else if(isIdentifierStart(ch) || ch === OPAREN_CODE) { // open parenthesis
+						// `foo`, `bar.baz`
+						return gobbleVariable();
+					} else if (ch === OBRACK_CODE) {
+						return gobbleArray();
+					} else {
+						to_check = expr.substr(index, max_unop_len);
+						tc_len = to_check.length;
+						while(tc_len > 0) {
+							if(unary_ops.hasOwnProperty(to_check)) {
+								index += tc_len;
+								return {
+									type: UNARY_EXP,
+									operator: to_check,
+									argument: gobbleToken(),
+									prefix: true
+								};
+							}
+							to_check = to_check.substr(0, --tc_len);
+						}
+
+						return false;
+					}
+				},
+			// Parse simple numeric literals: `12`, `3.4`, `.5`. Do this by using a string to
+			// keep track of everything in the numeric literal and then calling `parseFloat` on that string
+				gobbleNumericLiteral = function() {
+					var number = '', ch, chCode;
+					while(isDecimalDigit(exprICode(index))) {
+						number += exprI(index++);
+					}
+
+					if(exprICode(index) === PERIOD_CODE) { // can start with a decimal marker
+						number += exprI(index++);
+
+						while(isDecimalDigit(exprICode(index))) {
+							number += exprI(index++);
+						}
+					}
+
+					ch = exprI(index);
+					if(ch === 'e' || ch === 'E') { // exponent marker
+						number += exprI(index++);
+						ch = exprI(index);
+						if(ch === '+' || ch === '-') { // exponent sign
+							number += exprI(index++);
+						}
+						while(isDecimalDigit(exprICode(index))) { //exponent itself
+							number += exprI(index++);
+						}
+						if(!isDecimalDigit(exprICode(index-1)) ) {
+							throwError('Expected exponent (' + number + exprI(index) + ')', index);
+						}
+					}
+
+
+					chCode = exprICode(index);
+					// Check to make sure this isn't a variable name that start with a number (123abc)
+					if(isIdentifierStart(chCode)) {
+						throwError('Variable names cannot start with a number (' +
+						number + exprI(index) + ')', index);
+					} else if(chCode === PERIOD_CODE) {
+						throwError('Unexpected period', index);
+					}
+
+					return {
+						type: LITERAL,
+						value: parseFloat(number),
+						raw: number
+					};
+				},
+
+			// Parses a string literal, staring with single or double quotes with basic support for escape codes
+			// e.g. `"hello world"`, `'this is\nJSEP'`
+				gobbleStringLiteral = function() {
+					var str = '', quote = exprI(index++), closed = false, ch;
+
+					while(index < length) {
+						ch = exprI(index++);
+						if(ch === quote) {
+							closed = true;
+							break;
+						} else if(ch === '\\') {
+							// Check for all of the common escape codes
+							ch = exprI(index++);
+							switch(ch) {
+								case 'n': str += '\n'; break;
+								case 'r': str += '\r'; break;
+								case 't': str += '\t'; break;
+								case 'b': str += '\b'; break;
+								case 'f': str += '\f'; break;
+								case 'v': str += '\x0B'; break;
+							}
+						} else {
+							str += ch;
+						}
+					}
+
+					if(!closed) {
+						throwError('Unclosed quote after "'+str+'"', index);
+					}
+
+					return {
+						type: LITERAL,
+						value: str,
+						raw: quote + str + quote
+					};
+				},
+
+			// Gobbles only identifiers
+			// e.g.: `foo`, `_value`, `$x1`
+			// Also, this function checks if that identifier is a literal:
+			// (e.g. `true`, `false`, `null`) or `this`
+				gobbleIdentifier = function() {
+					var ch = exprICode(index), start = index, identifier;
+
+					if(isIdentifierStart(ch)) {
+						index++;
+					} else {
+						throwError('Unexpected ' + exprI(index), index);
+					}
+
+					while(index < length) {
+						ch = exprICode(index);
+						if(isIdentifierPart(ch)) {
+							index++;
+						} else {
+							break;
+						}
+					}
+					identifier = expr.slice(start, index);
+
+					if(literals.hasOwnProperty(identifier)) {
+						return {
+							type: LITERAL,
+							value: literals[identifier],
+							raw: identifier
+						};
+					} else if(identifier === this_str) {
+						return { type: THIS_EXP };
+					} else {
+						return {
+							type: IDENTIFIER,
+							name: identifier
+						};
+					}
+				},
+
+			// Gobbles a list of arguments within the context of a function call
+			// or array literal. This function also assumes that the opening character
+			// `(` or `[` has already been gobbled, and gobbles expressions and commas
+			// until the terminator character `)` or `]` is encountered.
+			// e.g. `foo(bar, baz)`, `my_func()`, or `[bar, baz]`
+				gobbleArguments = function(termination) {
+					var ch_i, args = [], node;
+					while(index < length) {
+						gobbleSpaces();
+						ch_i = exprICode(index);
+						if(ch_i === termination) { // done parsing
+							index++;
+							break;
+						} else if (ch_i === COMMA_CODE) { // between expressions
+							index++;
+						} else {
+							node = gobbleExpression();
+							if(!node || node.type === COMPOUND) {
+								throwError('Expected comma', index);
+							}
+							args.push(node);
+						}
+					}
+					return args;
+				},
+
+			// Gobble a non-literal variable name. This variable name may include properties
+			// e.g. `foo`, `bar.baz`, `foo['bar'].baz`
+			// It also gobbles function calls:
+			// e.g. `Math.acos(obj.angle)`
+				gobbleVariable = function() {
+					var ch_i, node;
+					ch_i = exprICode(index);
+
+					if(ch_i === OPAREN_CODE) {
+						node = gobbleGroup();
+					} else {
+						node = gobbleIdentifier();
+					}
+					gobbleSpaces();
+					ch_i = exprICode(index);
+					while(ch_i === PERIOD_CODE || ch_i === OBRACK_CODE || ch_i === OPAREN_CODE) {
+						index++;
+						if(ch_i === PERIOD_CODE) {
+							gobbleSpaces();
+							node = {
+								type: MEMBER_EXP,
+								computed: false,
+								object: node,
+								property: gobbleIdentifier()
+							};
+						} else if(ch_i === OBRACK_CODE) {
+							node = {
+								type: MEMBER_EXP,
+								computed: true,
+								object: node,
+								property: gobbleExpression()
+							};
+							gobbleSpaces();
+							ch_i = exprICode(index);
+							if(ch_i !== CBRACK_CODE) {
+								throwError('Unclosed [', index);
+							}
+							index++;
+						} else if(ch_i === OPAREN_CODE) {
+							// A function call is being made; gobble all the arguments
+							node = {
+								type: CALL_EXP,
+								'arguments': gobbleArguments(CPAREN_CODE),
+								callee: node
+							};
+						}
+						gobbleSpaces();
+						ch_i = exprICode(index);
+					}
+					return node;
+				},
+
+			// Responsible for parsing a group of things within parentheses `()`
+			// This function assumes that it needs to gobble the opening parenthesis
+			// and then tries to gobble everything within that parenthesis, assuming
+			// that the next thing it should see is the close parenthesis. If not,
+			// then the expression probably doesn't have a `)`
+				gobbleGroup = function() {
+					index++;
+					var node = gobbleExpression();
+					gobbleSpaces();
+					if(exprICode(index) === CPAREN_CODE) {
+						index++;
+						return node;
+					} else {
+						throwError('Unclosed (', index);
+					}
+				},
+
+			// Responsible for parsing Array literals `[1, 2, 3]`
+			// This function assumes that it needs to gobble the opening bracket
+			// and then tries to gobble the expressions as arguments.
+				gobbleArray = function() {
+					index++;
+					return {
+						type: ARRAY_EXP,
+						elements: gobbleArguments(CBRACK_CODE)
+					};
+				},
+
+				nodes = [], ch_i, node;
+
+			while(index < length) {
+				ch_i = exprICode(index);
+
+				// Expressions can be separated by semicolons, commas, or just inferred without any
+				// separators
+				if(ch_i === SEMCOL_CODE || ch_i === COMMA_CODE) {
+					index++; // ignore separators
+				} else {
+					// Try to gobble each expression individually
+					if((node = gobbleExpression())) {
+						nodes.push(node);
+						// If we weren't able to find a binary expression and are out of room, then
+						// the expression passed in probably has too much
+					} else if(index < length) {
+						throwError('Unexpected "' + exprI(index) + '"', index);
+					}
+				}
+			}
+
+			// If there's only one expression just try returning the expression
+			if(nodes.length === 1) {
+				return nodes[0];
+			} else {
+				return {
+					type: COMPOUND,
+					body: nodes
+				};
+			}
+		};
+
+	// To be filled in by the template
+	jsep.version = '0.3.0';
+	jsep.toString = function() { return 'JavaScript Expression Parser (JSEP) v' + jsep.version; };
+
+	/**
+	 * @method jsep.addUnaryOp
+	 * @param {string} op_name The name of the unary op to add
+	 * @return jsep
+	 */
+	jsep.addUnaryOp = function(op_name) {
+		unary_ops[op_name] = t; return this;
+	};
+
+	/**
+	 * @method jsep.addBinaryOp
+	 * @param {string} op_name The name of the binary op to add
+	 * @param {number} precedence The precedence of the binary op (can be a float)
+	 * @return jsep
+	 */
+	jsep.addBinaryOp = function(op_name, precedence) {
+		max_binop_len = Math.max(op_name.length, max_binop_len);
+		binary_ops[op_name] = precedence;
+		return this;
+	};
+
+	/**
+	 * @method jsep.removeUnaryOp
+	 * @param {string} op_name The name of the unary op to remove
+	 * @return jsep
+	 */
+	jsep.removeUnaryOp = function(op_name) {
+		delete unary_ops[op_name];
+		if(op_name.length === max_unop_len) {
+			max_unop_len = getMaxKeyLen(unary_ops);
+		}
+		return this;
+	};
+
+	/**
+	 * @method jsep.removeBinaryOp
+	 * @param {string} op_name The name of the binary op to remove
+	 * @return jsep
+	 */
+	jsep.removeBinaryOp = function(op_name) {
+		delete binary_ops[op_name];
+		if(op_name.length === max_binop_len) {
+			max_binop_len = getMaxKeyLen(binary_ops);
+		}
+		return this;
+	};
+
+	// In desktop environments, have a way to restore the old value for `jsep`
+	if (typeof exports === 'undefined') {
+		var old_jsep = root.jsep;
+		// The star of the show! It's a function!
+		root.jsep = jsep;
+		// And a courteous function willing to move out of the way for other similarly-named objects!
+		jsep.noConflict = function() {
+			if(root.jsep === jsep) {
+				root.jsep = old_jsep;
+			}
+			return jsep;
+		};
+	} else {
+		// In Node.JS environments
+		if (typeof module !== 'undefined' && module.exports) {
+			exports = module.exports = jsep;
+		} else {
+			exports.parse = jsep;
+		}
+	}
+}(this));
 /*
  * Swipe 2.0
  *
@@ -976,7 +1594,7 @@ function Swipe(container, options) {
 		length = slides.length;
 
 		// set continuous to false if only one slide
-		if (slides.length < 2) options.continuous = false;
+		options.continuous = slides.length >= 2;
 
 		//special case if two slides
 		if (browser.transitions && options.continuous && slides.length < 3) {
@@ -2265,624 +2883,6 @@ if (window.jQuery || window.Zepto) {
 
 	return $;
 }));
-//     JavaScript Expression Parser (JSEP) 0.3.0
-//     JSEP may be freely distributed under the MIT License
-//     http://jsep.from.so/
-
-/*global module: true, exports: true, console: true */
-(function (root) {
-	'use strict';
-	// Node Types
-	// ----------
-
-	// This is the full set of types that any JSEP node can be.
-	// Store them here to save space when minified
-	var COMPOUND = 'Compound',
-		IDENTIFIER = 'Identifier',
-		MEMBER_EXP = 'MemberExpression',
-		LITERAL = 'Literal',
-		THIS_EXP = 'ThisExpression',
-		CALL_EXP = 'CallExpression',
-		UNARY_EXP = 'UnaryExpression',
-		BINARY_EXP = 'BinaryExpression',
-		LOGICAL_EXP = 'LogicalExpression',
-		CONDITIONAL_EXP = 'ConditionalExpression',
-		ARRAY_EXP = 'ArrayExpression',
-
-		PERIOD_CODE = 46, // '.'
-		COMMA_CODE  = 44, // ','
-		SQUOTE_CODE = 39, // single quote
-		DQUOTE_CODE = 34, // double quotes
-		OPAREN_CODE = 40, // (
-		CPAREN_CODE = 41, // )
-		OBRACK_CODE = 91, // [
-		CBRACK_CODE = 93, // ]
-		QUMARK_CODE = 63, // ?
-		SEMCOL_CODE = 59, // ;
-		COLON_CODE  = 58, // :
-
-		throwError = function(message, index) {
-			var error = new Error(message + ' at character ' + index);
-			error.index = index;
-			error.description = message;
-			throw error;
-		},
-
-	// Operations
-	// ----------
-
-	// Set `t` to `true` to save space (when minified, not gzipped)
-		t = true,
-	// Use a quickly-accessible map to store all of the unary operators
-	// Values are set to `true` (it really doesn't matter)
-		unary_ops = {'-': t, '!': t, '~': t, '+': t},
-	// Also use a map for the binary operations but set their values to their
-	// binary precedence for quick reference:
-	// see [Order of operations](http://en.wikipedia.org/wiki/Order_of_operations#Programming_language)
-		binary_ops = {
-			'||': 1, '&&': 2, '|': 3,  '^': 4,  '&': 5,
-			'==': 6, '!=': 6, '===': 6, '!==': 6,
-			'<': 7,  '>': 7,  '<=': 7,  '>=': 7,
-			'<<':8,  '>>': 8, '>>>': 8,
-			'+': 9, '-': 9,
-			'*': 10, '/': 10, '%': 10
-		},
-	// Get return the longest key length of any object
-		getMaxKeyLen = function(obj) {
-			var max_len = 0, len;
-			for(var key in obj) {
-				if((len = key.length) > max_len && obj.hasOwnProperty(key)) {
-					max_len = len;
-				}
-			}
-			return max_len;
-		},
-		max_unop_len = getMaxKeyLen(unary_ops),
-		max_binop_len = getMaxKeyLen(binary_ops),
-	// Literals
-	// ----------
-	// Store the values to return for the various literals we may encounter
-		literals = {
-			'true': true,
-			'false': false,
-			'null': null
-		},
-	// Except for `this`, which is special. This could be changed to something like `'self'` as well
-		this_str = 'this',
-	// Returns the precedence of a binary operator or `0` if it isn't a binary operator
-		binaryPrecedence = function(op_val) {
-			return binary_ops[op_val] || 0;
-		},
-	// Utility function (gets called from multiple places)
-	// Also note that `a && b` and `a || b` are *logical* expressions, not binary expressions
-		createBinaryExpression = function (operator, left, right) {
-			var type = (operator === '||' || operator === '&&') ? LOGICAL_EXP : BINARY_EXP;
-			return {
-				type: type,
-				operator: operator,
-				left: left,
-				right: right
-			};
-		},
-	// `ch` is a character code in the next three functions
-		isDecimalDigit = function(ch) {
-			return (ch >= 48 && ch <= 57); // 0...9
-		},
-		isIdentifierStart = function(ch) {
-			return (ch === 36) || (ch === 64) || (ch === 95) || // `$` and `@` and `_`
-				(ch >= 65 && ch <= 90) || // A...Z
-				(ch >= 97 && ch <= 122); // a...z
-		},
-		isIdentifierPart = function(ch) {
-			return (ch === 36) || (ch === 64) || (ch === 95) || // `$` and `@` and `_`
-				(ch >= 65 && ch <= 90) || // A...Z
-				(ch >= 97 && ch <= 122) || // a...z
-				(ch >= 48 && ch <= 57); // 0...9
-		},
-
-	// Parsing
-	// -------
-	// `expr` is a string with the passed in expression
-		jsep = function(expr) {
-			// `index` stores the character number we are currently at while `length` is a constant
-			// All of the gobbles below will modify `index` as we move along
-			var index = 0,
-				charAtFunc = expr.charAt,
-				charCodeAtFunc = expr.charCodeAt,
-				exprI = function(i) { return charAtFunc.call(expr, i); },
-				exprICode = function(i) { return charCodeAtFunc.call(expr, i); },
-				length = expr.length,
-
-			// Push `index` up to the next non-space character
-				gobbleSpaces = function() {
-					var ch = exprICode(index);
-					// space or tab
-					while(ch === 32 || ch === 9) {
-						ch = exprICode(++index);
-					}
-				},
-
-			// The main parsing function. Much of this code is dedicated to ternary expressions
-				gobbleExpression = function() {
-					var test = gobbleBinaryExpression(),
-						consequent, alternate;
-					gobbleSpaces();
-					if(exprICode(index) === QUMARK_CODE) {
-						// Ternary expression: test ? consequent : alternate
-						index++;
-						consequent = gobbleExpression();
-						if(!consequent) {
-							throwError('Expected expression', index);
-						}
-						gobbleSpaces();
-						if(exprICode(index) === COLON_CODE) {
-							index++;
-							alternate = gobbleExpression();
-							if(!alternate) {
-								throwError('Expected expression', index);
-							}
-							return {
-								type: CONDITIONAL_EXP,
-								test: test,
-								consequent: consequent,
-								alternate: alternate
-							};
-						} else {
-							throwError('Expected :', index);
-						}
-					} else {
-						return test;
-					}
-				},
-
-			// Search for the operation portion of the string (e.g. `+`, `===`)
-			// Start by taking the longest possible binary operations (3 characters: `===`, `!==`, `>>>`)
-			// and move down from 3 to 2 to 1 character until a matching binary operation is found
-			// then, return that binary operation
-				gobbleBinaryOp = function() {
-					gobbleSpaces();
-					var biop, to_check = expr.substr(index, max_binop_len), tc_len = to_check.length;
-					while(tc_len > 0) {
-						if(binary_ops.hasOwnProperty(to_check)) {
-							index += tc_len;
-							return to_check;
-						}
-						to_check = to_check.substr(0, --tc_len);
-					}
-					return false;
-				},
-
-			// This function is responsible for gobbling an individual expression,
-			// e.g. `1`, `1+2`, `a+(b*2)-Math.sqrt(2)`
-				gobbleBinaryExpression = function() {
-					var ch_i, node, biop, prec, stack, biop_info, left, right, i;
-
-					// First, try to get the leftmost thing
-					// Then, check to see if there's a binary operator operating on that leftmost thing
-					left = gobbleToken();
-					biop = gobbleBinaryOp();
-
-					// If there wasn't a binary operator, just return the leftmost node
-					if(!biop) {
-						return left;
-					}
-
-					// Otherwise, we need to start a stack to properly place the binary operations in their
-					// precedence structure
-					biop_info = { value: biop, prec: binaryPrecedence(biop)};
-
-					right = gobbleToken();
-					if(!right) {
-						throwError("Expected expression after " + biop, index);
-					}
-					stack = [left, biop_info, right];
-
-					// Properly deal with precedence using [recursive descent](http://www.engr.mun.ca/~theo/Misc/exp_parsing.htm)
-					while((biop = gobbleBinaryOp())) {
-						prec = binaryPrecedence(biop);
-
-						if(prec === 0) {
-							break;
-						}
-						biop_info = { value: biop, prec: prec };
-
-						// Reduce: make a binary expression from the three topmost entries.
-						while ((stack.length > 2) && (prec <= stack[stack.length - 2].prec)) {
-							right = stack.pop();
-							biop = stack.pop().value;
-							left = stack.pop();
-							node = createBinaryExpression(biop, left, right);
-							stack.push(node);
-						}
-
-						node = gobbleToken();
-						if(!node) {
-							throwError("Expected expression after " + biop, index);
-						}
-						stack.push(biop_info, node);
-					}
-
-					i = stack.length - 1;
-					node = stack[i];
-					while(i > 1) {
-						node = createBinaryExpression(stack[i - 1].value, stack[i - 2], node);
-						i -= 2;
-					}
-					return node;
-				},
-
-			// An individual part of a binary expression:
-			// e.g. `foo.bar(baz)`, `1`, `"abc"`, `(a % 2)` (because it's in parenthesis)
-				gobbleToken = function() {
-					var ch, to_check, tc_len;
-
-					gobbleSpaces();
-					ch = exprICode(index);
-
-					if(isDecimalDigit(ch) || ch === PERIOD_CODE) {
-						// Char code 46 is a dot `.` which can start off a numeric literal
-						return gobbleNumericLiteral();
-					} else if(ch === SQUOTE_CODE || ch === DQUOTE_CODE) {
-						// Single or double quotes
-						return gobbleStringLiteral();
-					} else if(isIdentifierStart(ch) || ch === OPAREN_CODE) { // open parenthesis
-						// `foo`, `bar.baz`
-						return gobbleVariable();
-					} else if (ch === OBRACK_CODE) {
-						return gobbleArray();
-					} else {
-						to_check = expr.substr(index, max_unop_len);
-						tc_len = to_check.length;
-						while(tc_len > 0) {
-							if(unary_ops.hasOwnProperty(to_check)) {
-								index += tc_len;
-								return {
-									type: UNARY_EXP,
-									operator: to_check,
-									argument: gobbleToken(),
-									prefix: true
-								};
-							}
-							to_check = to_check.substr(0, --tc_len);
-						}
-
-						return false;
-					}
-				},
-			// Parse simple numeric literals: `12`, `3.4`, `.5`. Do this by using a string to
-			// keep track of everything in the numeric literal and then calling `parseFloat` on that string
-				gobbleNumericLiteral = function() {
-					var number = '', ch, chCode;
-					while(isDecimalDigit(exprICode(index))) {
-						number += exprI(index++);
-					}
-
-					if(exprICode(index) === PERIOD_CODE) { // can start with a decimal marker
-						number += exprI(index++);
-
-						while(isDecimalDigit(exprICode(index))) {
-							number += exprI(index++);
-						}
-					}
-
-					ch = exprI(index);
-					if(ch === 'e' || ch === 'E') { // exponent marker
-						number += exprI(index++);
-						ch = exprI(index);
-						if(ch === '+' || ch === '-') { // exponent sign
-							number += exprI(index++);
-						}
-						while(isDecimalDigit(exprICode(index))) { //exponent itself
-							number += exprI(index++);
-						}
-						if(!isDecimalDigit(exprICode(index-1)) ) {
-							throwError('Expected exponent (' + number + exprI(index) + ')', index);
-						}
-					}
-
-
-					chCode = exprICode(index);
-					// Check to make sure this isn't a variable name that start with a number (123abc)
-					if(isIdentifierStart(chCode)) {
-						throwError('Variable names cannot start with a number (' +
-						number + exprI(index) + ')', index);
-					} else if(chCode === PERIOD_CODE) {
-						throwError('Unexpected period', index);
-					}
-
-					return {
-						type: LITERAL,
-						value: parseFloat(number),
-						raw: number
-					};
-				},
-
-			// Parses a string literal, staring with single or double quotes with basic support for escape codes
-			// e.g. `"hello world"`, `'this is\nJSEP'`
-				gobbleStringLiteral = function() {
-					var str = '', quote = exprI(index++), closed = false, ch;
-
-					while(index < length) {
-						ch = exprI(index++);
-						if(ch === quote) {
-							closed = true;
-							break;
-						} else if(ch === '\\') {
-							// Check for all of the common escape codes
-							ch = exprI(index++);
-							switch(ch) {
-								case 'n': str += '\n'; break;
-								case 'r': str += '\r'; break;
-								case 't': str += '\t'; break;
-								case 'b': str += '\b'; break;
-								case 'f': str += '\f'; break;
-								case 'v': str += '\x0B'; break;
-							}
-						} else {
-							str += ch;
-						}
-					}
-
-					if(!closed) {
-						throwError('Unclosed quote after "'+str+'"', index);
-					}
-
-					return {
-						type: LITERAL,
-						value: str,
-						raw: quote + str + quote
-					};
-				},
-
-			// Gobbles only identifiers
-			// e.g.: `foo`, `_value`, `$x1`
-			// Also, this function checks if that identifier is a literal:
-			// (e.g. `true`, `false`, `null`) or `this`
-				gobbleIdentifier = function() {
-					var ch = exprICode(index), start = index, identifier;
-
-					if(isIdentifierStart(ch)) {
-						index++;
-					} else {
-						throwError('Unexpected ' + exprI(index), index);
-					}
-
-					while(index < length) {
-						ch = exprICode(index);
-						if(isIdentifierPart(ch)) {
-							index++;
-						} else {
-							break;
-						}
-					}
-					identifier = expr.slice(start, index);
-
-					if(literals.hasOwnProperty(identifier)) {
-						return {
-							type: LITERAL,
-							value: literals[identifier],
-							raw: identifier
-						};
-					} else if(identifier === this_str) {
-						return { type: THIS_EXP };
-					} else {
-						return {
-							type: IDENTIFIER,
-							name: identifier
-						};
-					}
-				},
-
-			// Gobbles a list of arguments within the context of a function call
-			// or array literal. This function also assumes that the opening character
-			// `(` or `[` has already been gobbled, and gobbles expressions and commas
-			// until the terminator character `)` or `]` is encountered.
-			// e.g. `foo(bar, baz)`, `my_func()`, or `[bar, baz]`
-				gobbleArguments = function(termination) {
-					var ch_i, args = [], node;
-					while(index < length) {
-						gobbleSpaces();
-						ch_i = exprICode(index);
-						if(ch_i === termination) { // done parsing
-							index++;
-							break;
-						} else if (ch_i === COMMA_CODE) { // between expressions
-							index++;
-						} else {
-							node = gobbleExpression();
-							if(!node || node.type === COMPOUND) {
-								throwError('Expected comma', index);
-							}
-							args.push(node);
-						}
-					}
-					return args;
-				},
-
-			// Gobble a non-literal variable name. This variable name may include properties
-			// e.g. `foo`, `bar.baz`, `foo['bar'].baz`
-			// It also gobbles function calls:
-			// e.g. `Math.acos(obj.angle)`
-				gobbleVariable = function() {
-					var ch_i, node;
-					ch_i = exprICode(index);
-
-					if(ch_i === OPAREN_CODE) {
-						node = gobbleGroup();
-					} else {
-						node = gobbleIdentifier();
-					}
-					gobbleSpaces();
-					ch_i = exprICode(index);
-					while(ch_i === PERIOD_CODE || ch_i === OBRACK_CODE || ch_i === OPAREN_CODE) {
-						index++;
-						if(ch_i === PERIOD_CODE) {
-							gobbleSpaces();
-							node = {
-								type: MEMBER_EXP,
-								computed: false,
-								object: node,
-								property: gobbleIdentifier()
-							};
-						} else if(ch_i === OBRACK_CODE) {
-							node = {
-								type: MEMBER_EXP,
-								computed: true,
-								object: node,
-								property: gobbleExpression()
-							};
-							gobbleSpaces();
-							ch_i = exprICode(index);
-							if(ch_i !== CBRACK_CODE) {
-								throwError('Unclosed [', index);
-							}
-							index++;
-						} else if(ch_i === OPAREN_CODE) {
-							// A function call is being made; gobble all the arguments
-							node = {
-								type: CALL_EXP,
-								'arguments': gobbleArguments(CPAREN_CODE),
-								callee: node
-							};
-						}
-						gobbleSpaces();
-						ch_i = exprICode(index);
-					}
-					return node;
-				},
-
-			// Responsible for parsing a group of things within parentheses `()`
-			// This function assumes that it needs to gobble the opening parenthesis
-			// and then tries to gobble everything within that parenthesis, assuming
-			// that the next thing it should see is the close parenthesis. If not,
-			// then the expression probably doesn't have a `)`
-				gobbleGroup = function() {
-					index++;
-					var node = gobbleExpression();
-					gobbleSpaces();
-					if(exprICode(index) === CPAREN_CODE) {
-						index++;
-						return node;
-					} else {
-						throwError('Unclosed (', index);
-					}
-				},
-
-			// Responsible for parsing Array literals `[1, 2, 3]`
-			// This function assumes that it needs to gobble the opening bracket
-			// and then tries to gobble the expressions as arguments.
-				gobbleArray = function() {
-					index++;
-					return {
-						type: ARRAY_EXP,
-						elements: gobbleArguments(CBRACK_CODE)
-					};
-				},
-
-				nodes = [], ch_i, node;
-
-			while(index < length) {
-				ch_i = exprICode(index);
-
-				// Expressions can be separated by semicolons, commas, or just inferred without any
-				// separators
-				if(ch_i === SEMCOL_CODE || ch_i === COMMA_CODE) {
-					index++; // ignore separators
-				} else {
-					// Try to gobble each expression individually
-					if((node = gobbleExpression())) {
-						nodes.push(node);
-						// If we weren't able to find a binary expression and are out of room, then
-						// the expression passed in probably has too much
-					} else if(index < length) {
-						throwError('Unexpected "' + exprI(index) + '"', index);
-					}
-				}
-			}
-
-			// If there's only one expression just try returning the expression
-			if(nodes.length === 1) {
-				return nodes[0];
-			} else {
-				return {
-					type: COMPOUND,
-					body: nodes
-				};
-			}
-		};
-
-	// To be filled in by the template
-	jsep.version = '0.3.0';
-	jsep.toString = function() { return 'JavaScript Expression Parser (JSEP) v' + jsep.version; };
-
-	/**
-	 * @method jsep.addUnaryOp
-	 * @param {string} op_name The name of the unary op to add
-	 * @return jsep
-	 */
-	jsep.addUnaryOp = function(op_name) {
-		unary_ops[op_name] = t; return this;
-	};
-
-	/**
-	 * @method jsep.addBinaryOp
-	 * @param {string} op_name The name of the binary op to add
-	 * @param {number} precedence The precedence of the binary op (can be a float)
-	 * @return jsep
-	 */
-	jsep.addBinaryOp = function(op_name, precedence) {
-		max_binop_len = Math.max(op_name.length, max_binop_len);
-		binary_ops[op_name] = precedence;
-		return this;
-	};
-
-	/**
-	 * @method jsep.removeUnaryOp
-	 * @param {string} op_name The name of the unary op to remove
-	 * @return jsep
-	 */
-	jsep.removeUnaryOp = function(op_name) {
-		delete unary_ops[op_name];
-		if(op_name.length === max_unop_len) {
-			max_unop_len = getMaxKeyLen(unary_ops);
-		}
-		return this;
-	};
-
-	/**
-	 * @method jsep.removeBinaryOp
-	 * @param {string} op_name The name of the binary op to remove
-	 * @return jsep
-	 */
-	jsep.removeBinaryOp = function(op_name) {
-		delete binary_ops[op_name];
-		if(op_name.length === max_binop_len) {
-			max_binop_len = getMaxKeyLen(binary_ops);
-		}
-		return this;
-	};
-
-	// In desktop environments, have a way to restore the old value for `jsep`
-	if (typeof exports === 'undefined') {
-		var old_jsep = root.jsep;
-		// The star of the show! It's a function!
-		root.jsep = jsep;
-		// And a courteous function willing to move out of the way for other similarly-named objects!
-		jsep.noConflict = function() {
-			if(root.jsep === jsep) {
-				root.jsep = old_jsep;
-			}
-			return jsep;
-		};
-	} else {
-		// In Node.JS environments
-		if (typeof module !== 'undefined' && module.exports) {
-			exports = module.exports = jsep;
-		} else {
-			exports.parse = jsep;
-		}
-	}
-}(this));
 /*
  * Scroller
  * http://github.com/zynga/scroller
@@ -4678,844 +4678,3 @@ document.addEventListener("DOMContentLoaded", function() {
 	};
 
 }, false);
-;(function () {
-	'use strict';
-
-	/**
-	 * @preserve FastClick: polyfill to remove click delays on browsers with touch UIs.
-	 *
-	 * @codingstandard ftlabs-jsv2
-	 * @copyright The Financial Times Limited [All Rights Reserved]
-	 * @license MIT License (see LICENSE.txt)
-	 */
-
-	/*jslint browser:true, node:true*/
-	/*global define, Event, Node*/
-
-
-	/**
-	 * Instantiate fast-clicking listeners on the specified layer.
-	 *
-	 * @constructor
-	 * @param {Element} layer The layer to listen on
-	 * @param {Object} [options={}] The options to override the defaults
-	 */
-	function FastClick(layer, options) {
-		var oldOnClick;
-
-		options = options || {};
-
-		/**
-		 * Whether a click is currently being tracked.
-		 *
-		 * @type boolean
-		 */
-		this.trackingClick = false;
-
-
-		/**
-		 * Timestamp for when click tracking started.
-		 *
-		 * @type number
-		 */
-		this.trackingClickStart = 0;
-
-
-		/**
-		 * The element being tracked for a click.
-		 *
-		 * @type EventTarget
-		 */
-		this.targetElement = null;
-
-
-		/**
-		 * X-coordinate of touch start event.
-		 *
-		 * @type number
-		 */
-		this.touchStartX = 0;
-
-
-		/**
-		 * Y-coordinate of touch start event.
-		 *
-		 * @type number
-		 */
-		this.touchStartY = 0;
-
-
-		/**
-		 * ID of the last touch, retrieved from Touch.identifier.
-		 *
-		 * @type number
-		 */
-		this.lastTouchIdentifier = 0;
-
-
-		/**
-		 * Touchmove boundary, beyond which a click will be cancelled.
-		 *
-		 * @type number
-		 */
-		this.touchBoundary = options.touchBoundary || 10;
-
-
-		/**
-		 * The FastClick layer.
-		 *
-		 * @type Element
-		 */
-		this.layer = layer;
-
-		/**
-		 * The minimum time between tap(touchstart and touchend) events
-		 *
-		 * @type number
-		 */
-		this.tapDelay = options.tapDelay || 200;
-
-		/**
-		 * The maximum time for a tap
-		 *
-		 * @type number
-		 */
-		this.tapTimeout = options.tapTimeout || 700;
-
-		if (FastClick.notNeeded(layer)) {
-			return;
-		}
-
-		// Some old versions of Android don't have Function.prototype.bind
-		function bind(method, context) {
-			return function() { return method.apply(context, arguments); };
-		}
-
-
-		var methods = ['onMouse', 'onClick', 'onTouchStart', 'onTouchMove', 'onTouchEnd', 'onTouchCancel'];
-		var context = this;
-		for (var i = 0, l = methods.length; i < l; i++) {
-			context[methods[i]] = bind(context[methods[i]], context);
-		}
-
-		// Set up event handlers as required
-		if (deviceIsAndroid) {
-			layer.addEventListener('mouseover', this.onMouse, true);
-			layer.addEventListener('mousedown', this.onMouse, true);
-			layer.addEventListener('mouseup', this.onMouse, true);
-		}
-
-		layer.addEventListener('click', this.onClick, true);
-		layer.addEventListener('touchstart', this.onTouchStart, false);
-		layer.addEventListener('touchmove', this.onTouchMove, false);
-		layer.addEventListener('touchend', this.onTouchEnd, false);
-		layer.addEventListener('touchcancel', this.onTouchCancel, false);
-
-		// Hack is required for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
-		// which is how FastClick normally stops click events bubbling to callbacks registered on the FastClick
-		// layer when they are cancelled.
-		if (!Event.prototype.stopImmediatePropagation) {
-			layer.removeEventListener = function(type, callback, capture) {
-				var rmv = Node.prototype.removeEventListener;
-				if (type === 'click') {
-					rmv.call(layer, type, callback.hijacked || callback, capture);
-				} else {
-					rmv.call(layer, type, callback, capture);
-				}
-			};
-
-			layer.addEventListener = function(type, callback, capture) {
-				var adv = Node.prototype.addEventListener;
-				if (type === 'click') {
-					adv.call(layer, type, callback.hijacked || (callback.hijacked = function(event) {
-						if (!event.propagationStopped) {
-							callback(event);
-						}
-					}), capture);
-				} else {
-					adv.call(layer, type, callback, capture);
-				}
-			};
-		}
-
-		// If a handler is already declared in the element's onclick attribute, it will be fired before
-		// FastClick's onClick handler. Fix this by pulling out the user-defined handler function and
-		// adding it as listener.
-		if (typeof layer.onclick === 'function') {
-
-			// Android browser on at least 3.2 requires a new reference to the function in layer.onclick
-			// - the old one won't work if passed to addEventListener directly.
-			oldOnClick = layer.onclick;
-			layer.addEventListener('click', function(event) {
-				oldOnClick(event);
-			}, false);
-			layer.onclick = null;
-		}
-	}
-
-	/**
-	 * Windows Phone 8.1 fakes user agent string to look like Android and iPhone.
-	 *
-	 * @type boolean
-	 */
-	var deviceIsWindowsPhone = navigator.userAgent.indexOf("Windows Phone") >= 0;
-
-	/**
-	 * Android requires exceptions.
-	 *
-	 * @type boolean
-	 */
-	var deviceIsAndroid = navigator.userAgent.indexOf('Android') > 0 && !deviceIsWindowsPhone;
-
-
-	/**
-	 * iOS requires exceptions.
-	 *
-	 * @type boolean
-	 */
-	var deviceIsIOS = /iP(ad|hone|od)/.test(navigator.userAgent) && !deviceIsWindowsPhone;
-
-
-	/**
-	 * iOS 4 requires an exception for select elements.
-	 *
-	 * @type boolean
-	 */
-	var deviceIsIOS4 = deviceIsIOS && (/OS 4_\d(_\d)?/).test(navigator.userAgent);
-
-
-	/**
-	 * iOS 6.0-7.* requires the target element to be manually derived
-	 *
-	 * @type boolean
-	 */
-	var deviceIsIOSWithBadTarget = deviceIsIOS && (/OS [6-7]_\d/).test(navigator.userAgent);
-
-	/**
-	 * BlackBerry requires exceptions.
-	 *
-	 * @type boolean
-	 */
-	var deviceIsBlackBerry10 = navigator.userAgent.indexOf('BB10') > 0;
-
-	/**
-	 * Determine whether a given element requires a native click.
-	 *
-	 * @param {EventTarget|Element} target Target DOM element
-	 * @returns {boolean} Returns true if the element needs a native click
-	 */
-	FastClick.prototype.needsClick = function(target) {
-		switch (target.nodeName.toLowerCase()) {
-
-			// Don't send a synthetic click to disabled inputs (issue #62)
-			case 'button':
-			case 'select':
-			case 'textarea':
-				if (target.disabled) {
-					return true;
-				}
-
-				break;
-			case 'input':
-
-				// File inputs need real clicks on iOS 6 due to a browser bug (issue #68)
-				if ((deviceIsIOS && target.type === 'file') || target.disabled) {
-					return true;
-				}
-
-				break;
-			case 'label':
-			case 'iframe': // iOS8 homescreen apps can prevent events bubbling into frames
-			case 'video':
-				return true;
-		}
-
-		return (/\bneedsclick\b/).test(target.className);
-	};
-
-
-	/**
-	 * Determine whether a given element requires a call to focus to simulate click into element.
-	 *
-	 * @param {EventTarget|Element} target Target DOM element
-	 * @returns {boolean} Returns true if the element requires a call to focus to simulate native click.
-	 */
-	FastClick.prototype.needsFocus = function(target) {
-		switch (target.nodeName.toLowerCase()) {
-			case 'textarea':
-				return true;
-			case 'select':
-				return !deviceIsAndroid;
-			case 'input':
-				switch (target.type) {
-					case 'button':
-					case 'checkbox':
-					case 'file':
-					case 'image':
-					case 'radio':
-					case 'submit':
-						return false;
-				}
-
-				// No point in attempting to focus disabled inputs
-				return !target.disabled && !target.readOnly;
-			default:
-				return (/\bneedsfocus\b/).test(target.className);
-		}
-	};
-
-
-	/**
-	 * Send a click event to the specified element.
-	 *
-	 * @param {EventTarget|Element} targetElement
-	 * @param {Event} event
-	 */
-	FastClick.prototype.sendClick = function(targetElement, event) {
-		var clickEvent, touch;
-
-		// On some Android devices activeElement needs to be blurred otherwise the synthetic click will have no effect (#24)
-		if (document.activeElement && document.activeElement !== targetElement) {
-			document.activeElement.blur();
-		}
-
-		touch = event.changedTouches[0];
-
-		// Synthesise a click event, with an extra attribute so it can be tracked
-		clickEvent = document.createEvent('MouseEvents');
-		clickEvent.initMouseEvent(this.determineEventType(targetElement), true, true, window, 1, touch.screenX, touch.screenY, touch.clientX, touch.clientY, false, false, false, false, 0, null);
-		clickEvent.forwardedTouchEvent = true;
-		targetElement.dispatchEvent(clickEvent);
-	};
-
-	FastClick.prototype.determineEventType = function(targetElement) {
-
-		//Issue #159: Android Chrome Select Box does not open with a synthetic click event
-		if (deviceIsAndroid && targetElement.tagName.toLowerCase() === 'select') {
-			return 'mousedown';
-		}
-
-		return 'click';
-	};
-
-
-	/**
-	 * @param {EventTarget|Element} targetElement
-	 */
-	FastClick.prototype.focus = function(targetElement) {
-		var length;
-
-		// Issue #160: on iOS 7, some input elements (e.g. date datetime month) throw a vague TypeError on setSelectionRange. These elements don't have an integer value for the selectionStart and selectionEnd properties, but unfortunately that can't be used for detection because accessing the properties also throws a TypeError. Just check the type instead. Filed as Apple bug #15122724.
-		if (deviceIsIOS && targetElement.setSelectionRange && targetElement.type.indexOf('date') !== 0 && targetElement.type !== 'time' && targetElement.type !== 'month') {
-			length = targetElement.value.length;
-			targetElement.setSelectionRange(length, length);
-		} else {
-			targetElement.focus();
-		}
-	};
-
-
-	/**
-	 * Check whether the given target element is a child of a scrollable layer and if so, set a flag on it.
-	 *
-	 * @param {EventTarget|Element} targetElement
-	 */
-	FastClick.prototype.updateScrollParent = function(targetElement) {
-		var scrollParent, parentElement;
-
-		scrollParent = targetElement.fastClickScrollParent;
-
-		// Attempt to discover whether the target element is contained within a scrollable layer. Re-check if the
-		// target element was moved to another parent.
-		if (!scrollParent || !scrollParent.contains(targetElement)) {
-			parentElement = targetElement;
-			do {
-				if (parentElement.scrollHeight > parentElement.offsetHeight) {
-					scrollParent = parentElement;
-					targetElement.fastClickScrollParent = parentElement;
-					break;
-				}
-
-				parentElement = parentElement.parentElement;
-			} while (parentElement);
-		}
-
-		// Always update the scroll top tracker if possible.
-		if (scrollParent) {
-			scrollParent.fastClickLastScrollTop = scrollParent.scrollTop;
-		}
-	};
-
-
-	/**
-	 * @param {EventTarget} targetElement
-	 * @returns {Element|EventTarget}
-	 */
-	FastClick.prototype.getTargetElementFromEventTarget = function(eventTarget) {
-
-		// On some older browsers (notably Safari on iOS 4.1 - see issue #56) the event target may be a text node.
-		if (eventTarget.nodeType === Node.TEXT_NODE) {
-			return eventTarget.parentNode;
-		}
-
-		return eventTarget;
-	};
-
-
-	/**
-	 * On touch start, record the position and scroll offset.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.onTouchStart = function(event) {
-		var targetElement, touch, selection;
-
-		// Ignore multiple touches, otherwise pinch-to-zoom is prevented if both fingers are on the FastClick element (issue #111).
-		if (event.targetTouches.length > 1) {
-			return true;
-		}
-
-		targetElement = this.getTargetElementFromEventTarget(event.target);
-		touch = event.targetTouches[0];
-
-		if (deviceIsIOS) {
-
-			// Only trusted events will deselect text on iOS (issue #49)
-			selection = window.getSelection();
-			if (selection.rangeCount && !selection.isCollapsed) {
-				return true;
-			}
-
-			if (!deviceIsIOS4) {
-
-				// Weird things happen on iOS when an alert or confirm dialog is opened from a click event callback (issue #23):
-				// when the user next taps anywhere else on the page, new touchstart and touchend events are dispatched
-				// with the same identifier as the touch event that previously triggered the click that triggered the alert.
-				// Sadly, there is an issue on iOS 4 that causes some normal touch events to have the same identifier as an
-				// immediately preceeding touch event (issue #52), so this fix is unavailable on that platform.
-				// Issue 120: touch.identifier is 0 when Chrome dev tools 'Emulate touch events' is set with an iOS device UA string,
-				// which causes all touch events to be ignored. As this block only applies to iOS, and iOS identifiers are always long,
-				// random integers, it's safe to to continue if the identifier is 0 here.
-				if (touch.identifier && touch.identifier === this.lastTouchIdentifier) {
-					event.preventDefault();
-					return false;
-				}
-
-				this.lastTouchIdentifier = touch.identifier;
-
-				// If the target element is a child of a scrollable layer (using -webkit-overflow-scrolling: touch) and:
-				// 1) the user does a fling scroll on the scrollable layer
-				// 2) the user stops the fling scroll with another tap
-				// then the event.target of the last 'touchend' event will be the element that was under the user's finger
-				// when the fling scroll was started, causing FastClick to send a click event to that layer - unless a check
-				// is made to ensure that a parent layer was not scrolled before sending a synthetic click (issue #42).
-				this.updateScrollParent(targetElement);
-			}
-		}
-
-		this.trackingClick = true;
-		this.trackingClickStart = event.timeStamp;
-		this.targetElement = targetElement;
-
-		this.touchStartX = touch.pageX;
-		this.touchStartY = touch.pageY;
-
-		// Prevent phantom clicks on fast double-tap (issue #36)
-		if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
-			event.preventDefault();
-		}
-
-		return true;
-	};
-
-
-	/**
-	 * Based on a touchmove event object, check whether the touch has moved past a boundary since it started.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.touchHasMoved = function(event) {
-		var touch = event.changedTouches[0], boundary = this.touchBoundary;
-
-		if (Math.abs(touch.pageX - this.touchStartX) > boundary || Math.abs(touch.pageY - this.touchStartY) > boundary) {
-			return true;
-		}
-
-		return false;
-	};
-
-
-	/**
-	 * Update the last position.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.onTouchMove = function(event) {
-		if (!this.trackingClick) {
-			return true;
-		}
-
-		// If the touch has moved, cancel the click tracking
-		if (this.targetElement !== this.getTargetElementFromEventTarget(event.target) || this.touchHasMoved(event)) {
-			this.trackingClick = false;
-			this.targetElement = null;
-		}
-
-		return true;
-	};
-
-
-	/**
-	 * Attempt to find the labelled control for the given label element.
-	 *
-	 * @param {EventTarget|HTMLLabelElement} labelElement
-	 * @returns {Element|null}
-	 */
-	FastClick.prototype.findControl = function(labelElement) {
-
-		// Fast path for newer browsers supporting the HTML5 control attribute
-		if (labelElement.control !== undefined) {
-			return labelElement.control;
-		}
-
-		// All browsers under test that support touch events also support the HTML5 htmlFor attribute
-		if (labelElement.htmlFor) {
-			return document.getElementById(labelElement.htmlFor);
-		}
-
-		// If no for attribute exists, attempt to retrieve the first labellable descendant element
-		// the list of which is defined here: http://www.w3.org/TR/html5/forms.html#category-label
-		return labelElement.querySelector('button, input:not([type=hidden]), keygen, meter, output, progress, select, textarea');
-	};
-
-
-	/**
-	 * On touch end, determine whether to send a click event at once.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.onTouchEnd = function(event) {
-		var forElement, trackingClickStart, targetTagName, scrollParent, touch, targetElement = this.targetElement;
-
-		if (!this.trackingClick) {
-			return true;
-		}
-
-		// Prevent phantom clicks on fast double-tap (issue #36)
-		if ((event.timeStamp - this.lastClickTime) < this.tapDelay) {
-			this.cancelNextClick = true;
-			return true;
-		}
-
-		if ((event.timeStamp - this.trackingClickStart) > this.tapTimeout) {
-			return true;
-		}
-
-		// Reset to prevent wrong click cancel on input (issue #156).
-		this.cancelNextClick = false;
-
-		this.lastClickTime = event.timeStamp;
-
-		trackingClickStart = this.trackingClickStart;
-		this.trackingClick = false;
-		this.trackingClickStart = 0;
-
-		// On some iOS devices, the targetElement supplied with the event is invalid if the layer
-		// is performing a transition or scroll, and has to be re-detected manually. Note that
-		// for this to function correctly, it must be called *after* the event target is checked!
-		// See issue #57; also filed as rdar://13048589 .
-		if (deviceIsIOSWithBadTarget) {
-			touch = event.changedTouches[0];
-
-			// In certain cases arguments of elementFromPoint can be negative, so prevent setting targetElement to null
-			targetElement = document.elementFromPoint(touch.pageX - window.pageXOffset, touch.pageY - window.pageYOffset) || targetElement;
-			targetElement.fastClickScrollParent = this.targetElement.fastClickScrollParent;
-		}
-
-		targetTagName = targetElement.tagName.toLowerCase();
-		if (targetTagName === 'label') {
-			forElement = this.findControl(targetElement);
-			if (forElement) {
-				this.focus(targetElement);
-				if (deviceIsAndroid) {
-					return false;
-				}
-
-				targetElement = forElement;
-			}
-		} else if (this.needsFocus(targetElement)) {
-
-			// Case 1: If the touch started a while ago (best guess is 100ms based on tests for issue #36) then focus will be triggered anyway. Return early and unset the target element reference so that the subsequent click will be allowed through.
-			// Case 2: Without this exception for input elements tapped when the document is contained in an iframe, then any inputted text won't be visible even though the value attribute is updated as the user types (issue #37).
-			if ((event.timeStamp - trackingClickStart) > 100 || (deviceIsIOS && window.top !== window && targetTagName === 'input')) {
-				this.targetElement = null;
-				return false;
-			}
-
-			this.focus(targetElement);
-			this.sendClick(targetElement, event);
-
-			// Select elements need the event to go through on iOS 4, otherwise the selector menu won't open.
-			// Also this breaks opening selects when VoiceOver is active on iOS6, iOS7 (and possibly others)
-			if (!deviceIsIOS || targetTagName !== 'select') {
-				this.targetElement = null;
-				event.preventDefault();
-			}
-
-			return false;
-		}
-
-		if (deviceIsIOS && !deviceIsIOS4) {
-
-			// Don't send a synthetic click event if the target element is contained within a parent layer that was scrolled
-			// and this tap is being used to stop the scrolling (usually initiated by a fling - issue #42).
-			scrollParent = targetElement.fastClickScrollParent;
-			if (scrollParent && scrollParent.fastClickLastScrollTop !== scrollParent.scrollTop) {
-				return true;
-			}
-		}
-
-		// Prevent the actual click from going though - unless the target node is marked as requiring
-		// real clicks or if it is in the whitelist in which case only non-programmatic clicks are permitted.
-		if (!this.needsClick(targetElement)) {
-			event.preventDefault();
-			this.sendClick(targetElement, event);
-		}
-
-		return false;
-	};
-
-
-	/**
-	 * On touch cancel, stop tracking the click.
-	 *
-	 * @returns {void}
-	 */
-	FastClick.prototype.onTouchCancel = function() {
-		this.trackingClick = false;
-		this.targetElement = null;
-	};
-
-
-	/**
-	 * Determine mouse events which should be permitted.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.onMouse = function(event) {
-
-		// If a target element was never set (because a touch event was never fired) allow the event
-		if (!this.targetElement) {
-			return true;
-		}
-
-		if (event.forwardedTouchEvent) {
-			return true;
-		}
-
-		// Programmatically generated events targeting a specific element should be permitted
-		if (!event.cancelable) {
-			return true;
-		}
-
-		// Derive and check the target element to see whether the mouse event needs to be permitted;
-		// unless explicitly enabled, prevent non-touch click events from triggering actions,
-		// to prevent ghost/doubleclicks.
-		if (!this.needsClick(this.targetElement) || this.cancelNextClick) {
-
-			// Prevent any user-added listeners declared on FastClick element from being fired.
-			if (event.stopImmediatePropagation) {
-				event.stopImmediatePropagation();
-			} else {
-
-				// Part of the hack for browsers that don't support Event#stopImmediatePropagation (e.g. Android 2)
-				event.propagationStopped = true;
-			}
-
-			// Cancel the event
-			event.stopPropagation();
-			event.preventDefault();
-
-			return false;
-		}
-
-		// If the mouse event is permitted, return true for the action to go through.
-		return true;
-	};
-
-
-	/**
-	 * On actual clicks, determine whether this is a touch-generated click, a click action occurring
-	 * naturally after a delay after a touch (which needs to be cancelled to avoid duplication), or
-	 * an actual click which should be permitted.
-	 *
-	 * @param {Event} event
-	 * @returns {boolean}
-	 */
-	FastClick.prototype.onClick = function(event) {
-		var permitted;
-
-		// It's possible for another FastClick-like library delivered with third-party code to fire a click event before FastClick does (issue #44). In that case, set the click-tracking flag back to false and return early. This will cause onTouchEnd to return early.
-		if (this.trackingClick) {
-			this.targetElement = null;
-			this.trackingClick = false;
-			return true;
-		}
-
-		// Very odd behaviour on iOS (issue #18): if a submit element is present inside a form and the user hits enter in the iOS simulator or clicks the Go button on the pop-up OS keyboard the a kind of 'fake' click event will be triggered with the submit-type input element as the target.
-		if (event.target.type === 'submit' && event.detail === 0) {
-			return true;
-		}
-
-		permitted = this.onMouse(event);
-
-		// Only unset targetElement if the click is not permitted. This will ensure that the check for !targetElement in onMouse fails and the browser's click doesn't go through.
-		if (!permitted) {
-			this.targetElement = null;
-		}
-
-		// If clicks are permitted, return true for the action to go through.
-		return permitted;
-	};
-
-
-	/**
-	 * Remove all FastClick's event listeners.
-	 *
-	 * @returns {void}
-	 */
-	FastClick.prototype.destroy = function() {
-		var layer = this.layer;
-
-		if (deviceIsAndroid) {
-			layer.removeEventListener('mouseover', this.onMouse, true);
-			layer.removeEventListener('mousedown', this.onMouse, true);
-			layer.removeEventListener('mouseup', this.onMouse, true);
-		}
-
-		layer.removeEventListener('click', this.onClick, true);
-		layer.removeEventListener('touchstart', this.onTouchStart, false);
-		layer.removeEventListener('touchmove', this.onTouchMove, false);
-		layer.removeEventListener('touchend', this.onTouchEnd, false);
-		layer.removeEventListener('touchcancel', this.onTouchCancel, false);
-	};
-
-
-	/**
-	 * Check whether FastClick is needed.
-	 *
-	 * @param {Element} layer The layer to listen on
-	 */
-	FastClick.notNeeded = function(layer) {
-		var metaViewport;
-		var chromeVersion;
-		var blackberryVersion;
-		var firefoxVersion;
-
-		// Devices that don't support touch don't need FastClick
-		if (typeof window.ontouchstart === 'undefined') {
-			return true;
-		}
-
-		// Chrome version - zero for other browsers
-		chromeVersion = +(/Chrome\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1];
-
-		if (chromeVersion) {
-
-			if (deviceIsAndroid) {
-				metaViewport = document.querySelector('meta[name=viewport]');
-
-				if (metaViewport) {
-					// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
-					if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
-						return true;
-					}
-					// Chrome 32 and above with width=device-width or less don't need FastClick
-					if (chromeVersion > 31 && document.documentElement.scrollWidth <= window.outerWidth) {
-						return true;
-					}
-				}
-
-				// Chrome desktop doesn't need FastClick (issue #15)
-			} else {
-				return true;
-			}
-		}
-
-		if (deviceIsBlackBerry10) {
-			blackberryVersion = navigator.userAgent.match(/Version\/([0-9]*)\.([0-9]*)/);
-
-			// BlackBerry 10.3+ does not require Fastclick library.
-			// https://github.com/ftlabs/fastclick/issues/251
-			if (blackberryVersion[1] >= 10 && blackberryVersion[2] >= 3) {
-				metaViewport = document.querySelector('meta[name=viewport]');
-
-				if (metaViewport) {
-					// user-scalable=no eliminates click delay.
-					if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
-						return true;
-					}
-					// width=device-width (or less than device-width) eliminates click delay.
-					if (document.documentElement.scrollWidth <= window.outerWidth) {
-						return true;
-					}
-				}
-			}
-		}
-
-		// IE10 with -ms-touch-action: none or manipulation, which disables double-tap-to-zoom (issue #97)
-		if (layer.style.msTouchAction === 'none' || layer.style.touchAction === 'manipulation') {
-			return true;
-		}
-
-		// Firefox version - zero for other browsers
-		firefoxVersion = +(/Firefox\/([0-9]+)/.exec(navigator.userAgent) || [,0])[1];
-
-		if (firefoxVersion >= 27) {
-			// Firefox 27+ does not have tap delay if the content is not zoomable - https://bugzilla.mozilla.org/show_bug.cgi?id=922896
-
-			metaViewport = document.querySelector('meta[name=viewport]');
-			if (metaViewport && (metaViewport.content.indexOf('user-scalable=no') !== -1 || document.documentElement.scrollWidth <= window.outerWidth)) {
-				return true;
-			}
-		}
-
-		// IE11: prefixed -ms-touch-action is no longer supported and it's recomended to use non-prefixed version
-		// http://msdn.microsoft.com/en-us/library/windows/apps/Hh767313.aspx
-		if (layer.style.touchAction === 'none' || layer.style.touchAction === 'manipulation') {
-			return true;
-		}
-
-		return false;
-	};
-
-
-	/**
-	 * Factory method for creating a FastClick object
-	 *
-	 * @param {Element} layer The layer to listen on
-	 * @param {Object} [options={}] The options to override the defaults
-	 */
-	FastClick.attach = function(layer, options) {
-		return new FastClick(layer, options);
-	};
-
-
-	if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
-
-		// AMD. Register as an anonymous module.
-		define(function() {
-			return FastClick;
-		});
-	} else if (typeof module !== 'undefined' && module.exports) {
-		module.exports = FastClick.attach;
-		module.exports.FastClick = FastClick;
-	} else {
-		window.FastClick = FastClick;
-	}
-}());

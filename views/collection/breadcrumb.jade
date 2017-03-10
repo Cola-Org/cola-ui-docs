@@ -1,23 +1,23 @@
 extends ../doc-layout
 
 block content
-
 	+addCatalog("standard","面包屑导航")
 	.example#standard
 		h4.ui.header 面包屑导航
 		.code
-			div(c-widget="Breadcrumb;")
+			c-breadcrumb
 				a.section 首页
 				a.section 商店
 				a.section 个人中心
 				a.section.active 购物车
+
 	+addCatalog("divider","分隔条")
 	.example#divider
 		h4.ui.header 分隔条
 		p 分隔条需通过属性<code>divider</code>设定;可选值如下:<code>chevron(默认值)、slash</code>
 
 		.code
-			div(c-widget="Breadcrumb; divider:slash")
+			c-breadcrumb(divider="slash")
 				a.section 首页
 				a.section 商店
 				a.section 个人中心
@@ -27,20 +27,20 @@ block content
 	.example#size
 		h4.ui.header 尺寸
 		.code
-			div(c-widget="Breadcrumb; divider:slash; size:small")
+			c-breadcrumb(divider="slash" size="small")
 				a.section 首页
 				a.section 商店
 				a.section 个人中心
 				a.section.active 购物车
 			div.ui.divider.hidden
-			div(c-widget="Breadcrumb; divider:slash; size:large")
+			c-breadcrumb(divider="slash" size="large")
 				a.section 首页
 				a.section 商店
 				a.section 个人中心
 				a.section.active 购物车
 			div.ui.divider.hidden
 
-			div(c-widget="Breadcrumb; size:huge")
+			c-breadcrumb(size="huge")
 				a.section 首页
 				a.section 商店
 				a.section 个人中心

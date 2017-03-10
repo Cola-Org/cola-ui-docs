@@ -1,0 +1,111 @@
+extends ../doc-layout
+
+block content
+
+	style(type="text/css").
+		.example .ui.button:not(.attached) {
+			margin-top: 0.5em;
+		}
+
+		.example .ui.buttons > .ui.button {
+			margin-top: 0em;
+		}
+
+	+addCatalog("button-group","横向","按钮组")
+	.example#button-group
+		h4.ui.header 按钮组
+		p
+		.code
+			c-buttongroup
+				c-button(caption="添加")
+				c-button(caption="删除")
+				c-button(caption="修改")
+				c-button(caption="保存")
+	+addCatalog("vertical-buttons","纵向","按钮组")
+	.example#vertical-buttons
+		h4.ui.header 纵向按钮组
+		p
+		.code
+			c-buttongroup(class="vertical")
+				c-button(caption="添加")
+				c-button(caption="删除")
+				c-button(caption="修改")
+				c-button(caption="保存")
+	+addCatalog("button-group2","分割","按钮组")
+	.example#button-group2
+		h4.ui.header 带分割内容的按钮组
+		p
+		.code
+			c-buttongroup
+				c-button(caption="添加" class="green")
+				div(c-widget="Separator; text:或")
+				c-button(caption="删除")
+	+addCatalog("icon-groups","图标","按钮组")
+	.example#icon-groups
+		h4.ui.header 图标按钮组
+		p
+		.code
+			c-buttongroup(class="icon")
+				c-button(icon="align left")
+				c-button(icon="align center")
+				c-button(icon="align right")
+				c-button(icon="align justify")
+	+addCatalog("vertical-icon-groups","纵向图标","按钮组")
+	.example#vertical-icon-groups
+		h4.ui.header 纵向图标按钮组
+		p
+		.code
+			c-buttongroup(class="vertical icon")
+				c-button(icon="align left")
+				c-button(icon="align center")
+				c-button(icon="align right")
+				c-button(icon="align justify")
+
+	+addCatalog("button-group-fluid","流体","按钮组")
+	.example#button-group-fluid
+		h4.ui.header 流体按钮组
+		p
+		.code
+			c-buttongroup(class="fluid")
+				c-button(caption="添加")
+				c-button(caption="删除")
+				c-button(caption="修改")
+				c-button(caption="保存")
+
+	+addCatalog("vertical-button-group-fluid","纵向图标","按钮组")
+	.example#vertical-labeled-icon-button-group
+		h4.ui.header 纵向图标按钮组
+		p 需将设定<code>class:vertical labeled icon</code>
+		.code
+			c-buttongroup(class="vertical labeled icon")
+				c-button(caption="暂停" icon="pause")
+				c-button(caption="播放" icon="play")
+				c-button(caption="随机" icon="shuffle")
+
+	+addCatalog("color-button-group","颜色","按钮组")
+	.example#color-button-group
+		h4.ui.header 按钮组颜色
+		p 组的颜色将渗透到子按钮
+		.code
+			c-buttongroup(color="blue")
+				c-button(caption="一")
+				c-button(caption="二")
+				c-button(caption="三")
+
+	.example#attached-button-group
+		h4.ui.header 附所模式
+		p 此模式将获得相应的边角处理
+		.code
+			div(c-widget="Segment;" style={padding: 0})
+				c-buttongroup(attached="top")
+					c-button(caption="开启")
+					c-button(caption="关闭")
+				p(style={height: "80px"})
+				c-buttongroup(attached="bottom")
+					c-button(caption="开启")
+					c-button(caption="关闭")
+	script(type="text/javascript").
+		cola(function (model) {
+		});
+
+

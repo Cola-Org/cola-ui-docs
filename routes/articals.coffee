@@ -131,6 +131,10 @@ module.exports = [
 				url: "base/button"
 			}
 			{
+				name: "ButtonGroup(按钮组)"
+				url: "base/button-group"
+			}
+			{
 				name: "Link(链接)"
 				url: "base/link"
 			}
@@ -227,8 +231,12 @@ module.exports = [
 				url: "edit/slider"
 			}
 			{
-				name: "Toggle(拴牢开关)"
+				name: "Toggle(开关)"
 				url: "edit/toggle"
+			}
+			{
+				name: "Select(选择框)"
+				url: "edit/select"
 			}
 			{
 				name: "Rating(评分)"

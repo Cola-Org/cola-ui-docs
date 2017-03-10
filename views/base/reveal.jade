@@ -6,7 +6,7 @@ block content
 	.example#fade
 		h4.ui.header Fade
 		.code
-			div(c-widget="Reveal;")
+			c-reveal
 				div.visible.content
 					img.ui.small.image(src="/images/wireframe/square-image.png")
 				div.hidden.content
@@ -16,22 +16,22 @@ block content
 		h4.ui.header Move
 		p 元素可以向某方向移动来展现内容;type:move; direction可选值<code>left,right,up,down</code>
 		.code
-			div(c-widget="Reveal; type:move;")
+			c-reveal(type="move")
 				div.visible.content
 					img.ui.small.image(src="/images/wireframe/square-image.png")
 				div.hidden.content
 					img.ui.small.image(src="/images/avatar/large/ade.jpg")
-			div(c-widget="Reveal; type:move; direction:right")
+			c-reveal(type="move" direction="right")
 				div.visible.content
 					img.ui.small.image(src="/images/wireframe/square-image.png")
 				div.hidden.content
 					img.ui.small.image(src="/images/avatar/large/ade.jpg")
-			div(c-widget="Reveal; type:move; direction:up")
+			c-reveal(type="move" direction="up")
 				div.visible.content
 					img.ui.small.image(src="/images/wireframe/square-image.png")
 				div.hidden.content
 					img.ui.small.image(src="/images/avatar/large/ade.jpg")
-			div(c-widget="Reveal; type:move; direction:down")
+			c-reveal(type="move" direction="down")
 				div.visible.content
 					img.ui.small.image(src="/images/wireframe/square-image.png")
 				div.hidden.content
@@ -41,12 +41,12 @@ block content
 		h4.ui.header Rotate
 		p 元素可以旋转的展现下面的内容;direction可选值<code>left,right</code>
 		.code
-			div(c-widget="Reveal; type:rotate;")
+			c-reveal(type="rotate")
 				div.visible.content
 					img.ui.small.image.circular(src="/images/wireframe/square-image.png")
 				div.hidden.content
 					img.ui.small.image.circular(src="/images/avatar/large/daniel.jpg")
-			div(c-widget="Reveal; type:rotate; direction:right")
+			c-reveal(type="rotate" direction="right")
 				div.visible.content
 					img.ui.small.image.circular(src="/images/wireframe/square-image.png")
 				div.hidden.content
@@ -55,4 +55,5 @@ block content
 
 
 	script(type="text/javascript").
-		cola(function (model) {});
+		cola(function (model) {
+		});
