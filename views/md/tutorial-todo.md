@@ -1,7 +1,6 @@
 # 实例教程——代办事项
 
 首先，我们来看一下将要实作的示例。
-<iframe width="100%" height="500px" src="https://jsfiddle.net/yyx990803/xkkbfL3L/embedded/result,html,js,css"></iframe>
 <a href="/examples/tutorial/todo.html" target="_blank" c-widget="button; class:blue">运行示例</a>
 
 上面例子的代码如下：
